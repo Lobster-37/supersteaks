@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperSteaks.co.uk - How It Works (The Rules)</title>
+    <!-- Load Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Using Inter font as requested */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f0f4f8; /* Light blue-gray background */
+        }
+        /* Style for subtle lift on hover */
+        .nav-link:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); 
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header & Navigation - Indigo-800 theme -->
+    <header class="bg-indigo-800 text-white shadow-xl">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <h1 class="text-3xl font-extrabold tracking-widest text-yellow-400">SUPERSTEAKS.CO.UK</h1>
+            
+            <!-- Navigation Menu - 'How It Works' is now the active link -->
+            <nav class="mt-4 md:mt-0">
+                <ul class="flex space-x-4 sm:space-x-6">
+                    <li>
+                        <a href="index.html" class="nav-link px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700">Home</a>
+                    </li>
+                    <li>
+                        <a href="contests.html" class="nav-link px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700">Our Draws</a>
+                    </li>
+                    <li>
+                        <a href="games.html" class="nav-link px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400">Enter Now</a>
+                    </li>
+                    <li>
+                        <!-- Active Link -->
+                        <a href="rules.html" class="nav-link px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600">How It Works</a>
+                    </li>
+                    <li>
+                        <a href="contact.html" class="nav-link px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700">Contact</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area - How It Works Steps -->
+    <main class="container mx-auto px-4 py-12 flex-grow">
+        <section class="text-center bg-white p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+            <h2 class="text-5xl md:text-6xl font-black text-indigo-900 mb-6 leading-tight">
+                The Simple Rules: <span class="text-yellow-500">How It Works</span>
+            </h2>
+            <p class="text-xl text-gray-700 max-w-4xl mx-auto mb-12">
+                SuperSteaks is all about free fun and luck! Here’s the 3-step process to get involved in our team draws.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                
+                <!-- Step 1: Find a Draw -->
+                <div class="p-6 bg-indigo-50 rounded-xl shadow-lg border-t-4 border-indigo-500">
+                    <div class="text-5xl font-extrabold text-indigo-600 mb-4">1</div>
+                    <h3 class="font-bold text-2xl text-indigo-700 mb-3 flex items-center">
+                        <span class="mr-3">🎉</span> Choose a Free Draw
+                    </h3>
+                    <p class="text-gray-600">
+                        Check the **Our Draws** page and pick a competition you like—it could be a football tournament, a major cricket league, or a rugby cup!
+                        All draws are always **100% free** to enter.
+                    </p>
+                </div>
+
+                <!-- Step 2: Get Assigned -->
+                <div class="p-6 bg-indigo-50 rounded-xl shadow-lg border-t-4 border-indigo-500">
+                    <div class="text-5xl font-extrabold text-indigo-600 mb-4">2</div>
+                    <h3 class="font-bold text-2xl text-indigo-700 mb-3 flex items-center">
+                        <span class="mr-3">🎲</span> Receive Your Random Team
+                    </h3>
+                    <p class="text-gray-600">
+                        Once you enter the draw, our system will **randomly assign** you one of the teams participating in the event. You don't get to choose, and that's the fun part! It's pure luck.
+                    </p>
+                </div>
+
+                <!-- Step 3: Follow & Win -->
+                <div class="p-6 bg-indigo-50 rounded-xl shadow-lg border-t-4 border-indigo-500">
+                    <div class="text-5xl font-extrabold text-indigo-600 mb-4">3</div>
+                    <h3 class="font-bold text-2xl text-indigo-700 mb-3 flex items-center">
+                        <span class="mr-3">🏆</span> Win Cool Prizes!
+                    </h3>
+                    <p class="text-gray-600">
+                        Now, you just cheer for your assigned team! If they go on to **win the actual sporting competition**, you win the associated prize (like gift cards or sports merchandise).
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="mt-12">
+                <a href="games.html" class="inline-block bg-yellow-500 text-indigo-800 font-extrabold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50">
+                    Ready to Enter? See the Latest Draw!
+                </a>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-indigo-900 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2025 SuperSteaks.co.uk. All Rights Reserved. </p>
+        </div>
+    </footer>
+
+</body>
+</html>
