@@ -1,103 +1,159 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperSteaks.co.uk - Enter Now</title>
-    <meta name="description" content="Enter the latest SuperSteaks sports sweepstakes draw for free. Get your random team assignment and join the fun!">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col">
+<!-- ...existing code above... -->
 
-    <!-- Header & Navigation -->
-    <header class="bg-indigo-800 text-white shadow-xl">
-        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
-            <h1 class="text-3xl font-extrabold tracking-widest text-yellow-400">SUPERSTEAKS.CO.UK</h1>
-            <nav aria-label="Main navigation" class="mt-4 md:mt-0">
-                <ul class="flex space-x-4 sm:space-x-6">
-                    <li>
-                        <a href="index.html" class="nav-link px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700">Home</a>
-                    </li>
-                    <li>
-                        <a href="contests.html" class="nav-link px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700">Our Draws</a>
-                    </li>
-                    <li>
-                        <a href="games.html" aria-current="page" class="nav-link px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600 font-semibold text-yellow-400 border-2 border-yellow-400">Enter Now</a>
-                    </li>
-                    <li>
-                        <a href="rules.html" class="nav-link px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700">How It Works</a>
-                    </li>
-                    <li>
-                        <a href="contact.html" class="nav-link px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700">Contact</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+    <script>
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCaqMFsLv72_lhsbue7IWZSQsndY-o8QpU",
+        authDomain: "super-steaks.firebaseapp.com",
+        projectId: "super-steaks",
+        storageBucket: "super-steaks.firebasestorage.app",
+        messagingSenderId: "738316680653",
+        appId: "1:738316680653:web:7671710f073edbe22b5884",
+        measurementId: "G-JB93BZSFW3"
+      };
 
-    <!-- Main Content Area -->
-    <main aria-label="Main content" class="container mx-auto px-4 py-12 flex-grow">
-        <section class="text-center bg-white p-6 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
-            <h2 class="text-4xl md:text-5xl font-black text-indigo-900 mb-4 leading-tight">
-                Current <span class="text-yellow-500">Free Draw</span>
-            </h2>
-            <p class="text-lg text-gray-700 max-w-4xl mx-auto mb-8">
-                Ready for the fun? Click "Enter Draw" below to get your random team assignment!
-            </p>
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
 
-            <!-- Draw Card -->
-            <div id="draw-card" class="max-w-xl mx-auto bg-indigo-50 p-8 rounded-2xl shadow-xl transition-all duration-500">
-                <div id="loading-spinner">
-                    <div class="text-indigo-600 font-bold text-2xl mb-4">Loading Draw...</div>
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div>
-                </div>
+      // Updated teams for assignment
+      const teams = [
+        "Paris Saint-Germain",
+        "Tottenham Hotspur",
+        "Liverpool",
+        "Arsenal",
+        "Manchester City",
+        "Chelsea",
+        "Newcastle United",
+        "Napoli",
+        "Inter Milan",
+        "Atalanta",
+        "Juventus",
+        "Barcelona",
+        "Real Madrid",
+        "Atlético Madrid",
+        "Athletic Club",
+        "Villarreal",
+        "Bayern Munich",
+        "Bayer Leverkusen",
+        "Eintracht Frankfurt",
+        "Borussia Dortmund",
+        "Marseille",
+        "Monaco",
+        "PSV Eindhoven",
+        "Ajax",
+        "Sporting CP",
+        "Union Saint-Gilloise",
+        "Galatasaray",
+        "Slavia Prague",
+        "Olympiacos",
+        "Benfica",
+        "Club Brugge",
+        "Qarabağ",
+        "Bodø/Glimt",
+        "Copenhagen",
+        "Pafos FC",
+        "Kairat Almaty"
+      ];
+      const currentDrawId = 'champleague25/26';
 
-                <div id="app-content" class="hidden">
-                    <h3 class="text-3xl font-extrabold text-indigo-800 mb-4">Champions League 25/26!</h3>
-                    <p class="text-gray-600 mb-6">
-                        Draw ID: <span id="draw-id" class="font-mono bg-yellow-100 p-1 rounded">champleague25/26</span>
-                    </p>
+      // DOM elements
+      const loadingSpinner = document.getElementById('loading-spinner');
+      const appContent = document.getElementById('app-content');
+      const assignedTeamEl = document.getElementById('assigned-team');
+      const enterButton = document.getElementById('enter-button');
+      const messageArea = document.getElementById('message-area');
+      const userIdDisplay = document.getElementById('user-id-display');
 
-                    <!-- User's Assigned Team -->
-                    <div class="p-4 bg-white rounded-lg shadow-inner mb-6">
-                        <p class="text-xl font-semibold text-indigo-700">Your Current Team:</p>
-                        <p id="assigned-team" class="text-4xl font-black text-yellow-600 mt-2">
-                            Awaiting Entry...
-                        </p>
-                    </div>
+      let userId = null;
+      let db = null;
 
-                    <!-- Action Button -->
-                    <button id="enter-button" onclick="enterDraw()" 
-                            class="bg-yellow-500 text-indigo-800 font-extrabold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50">
-                        Enter Draw Now!
-                    </button>
-                    <p id="message-area" aria-live="polite" class="mt-4 text-green-600 font-medium"></p>
-                </div>
-            </div>
+      window.onload = function() {
+        loadingSpinner.classList.remove('hidden');
+        appContent.classList.add('hidden');
 
-            <!-- User ID Footer -->
-            <p class="mt-8 text-sm text-gray-500">
-                Your Unique ID (needed for tracking): <span id="user-id-display" class="font-mono text-xs bg-gray-200 p-1 rounded">Loading...</span>
-            </p>
+        db = firebase.firestore();
 
-        </section>
-    </main>
+        firebase.auth().signInAnonymously()
+          .then((result) => {
+            userId = result.user.uid;
+            userIdDisplay.textContent = userId;
 
-    <!-- Footer -->
-    <footer class="bg-indigo-900 text-white py-6 mt-12">
-        <div class="container mx-auto px-4 text-center text-sm">
-            <p>&copy; 2025 SuperSteaks.co.uk. All Rights Reserved. </p>
-        </div>
-    </footer>
+            const entryRef = db.collection('users').doc(userId).collection('draw_entries').doc(currentDrawId);
 
-    <!-- Firebase SDK Imports -->
-    <script type="module">
-        // ...existing Firebase code...
+            entryRef.onSnapshot((doc) => {
+              loadingSpinner.classList.add('hidden');
+              appContent.classList.remove('hidden');
+
+              if (doc.exists) {
+                const entry = doc.data();
+                assignedTeamEl.textContent = entry.assignedTeam;
+                assignedTeamEl.classList.add('text-green-600');
+                enterButton.disabled = true;
+                enterButton.textContent = 'Already Entered!';
+                enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                messageArea.textContent = `You are cheering for ${entry.assignedTeam}! Good luck!`;
+                messageArea.classList.remove('text-red-600', 'text-indigo-600');
+                messageArea.classList.add('text-green-600');
+              } else {
+                assignedTeamEl.textContent = 'Awaiting Entry...';
+                assignedTeamEl.classList.remove('text-green-600');
+                enterButton.disabled = false;
+                enterButton.textContent = 'Enter Draw Now!';
+                enterButton.classList.add('bg-yellow-500', 'hover:bg-yellow-400');
+                enterButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                messageArea.textContent = 'Click the button to get your random team!';
+                messageArea.classList.remove('text-green-600', 'text-red-600');
+                messageArea.classList.add('text-indigo-600');
+              }
+            });
+          })
+          .catch((error) => {
+            loadingSpinner.classList.add('hidden');
+            appContent.classList.remove('hidden');
+            assignedTeamEl.textContent = 'Error loading user.';
+            messageArea.textContent = 'Could not sign in. Please refresh.';
+            messageArea.classList.add('text-red-600');
+            userIdDisplay.textContent = 'Unavailable';
+          });
+      };
+
+      window.enterDraw = function() {
+        if (!userId || !db) {
+          messageArea.textContent = 'App not fully loaded. Please wait.';
+          messageArea.classList.add('text-red-600');
+          return;
+        }
+
+        enterButton.disabled = true;
+        enterButton.textContent = 'Drawing Team...';
+        messageArea.textContent = 'Processing your entry...';
+        messageArea.classList.remove('text-red-600', 'text-green-600');
+        messageArea.classList.add('text-indigo-600');
+
+        const assignedTeam = teams[Math.floor(Math.random() * teams.length)];
+
+        const entryRef = db.collection('users').doc(userId).collection('draw_entries').doc(currentDrawId);
+
+        entryRef.set({
+          drawId: currentDrawId,
+          userId: userId,
+          assignedTeam: assignedTeam,
+          entryTimestamp: new Date().toISOString()
+        })
+        .then(() => {
+          // Success handled by onSnapshot
+        })
+        .catch((error) => {
+          messageArea.textContent = 'Entry failed. Please try again.';
+          messageArea.classList.remove('text-indigo-600', 'text-green-600');
+          messageArea.classList.add('text-red-600');
+          enterButton.disabled = false;
+          enterButton.textContent = 'Enter Draw Now!';
+        });
+      };
     </script>
+<!-- ...existing code below... -->
 </body>
 </html>
