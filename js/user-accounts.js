@@ -1,4 +1,3 @@
-
 // SuperSteaks User Account Management System
 // Uses localStorage for simple user management (no backend required)
 
@@ -190,6 +189,50 @@ class UserAccountSystem {
         if (!this.currentUser) return [];
         const user = this.users[this.currentUser.username.toLowerCase()];
         return user ? user.teamAssignments : [];
+    }
+
+    // Get all users and their team assignments (public data only)
+    getAllTeamAssignments() {
+        const allTeams = [];
+        for (let userKey in this.users) {
+            const user = this.users[userKey];
+            if (user.teamAssignments && user.teamAssignments.length > 0) {
+                user.teamAssignments.forEach(assignment => {
+                    allTeams.push({
+                        username: user.username,
+                        team: assignment.team,
+                        contest: assignment.contest,
+                        date: assignment.date
+                    });
+                });
+            }
+        }
+        // Sort by date (newest first)
+        return allTeams.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    // Get team assignments for a specific contest
+    getTeamAssignmentsByContest(contestName) {
+        const allTeams = this.getAllTeamAssignments();
+        return allTeams.filter(assignment => assignment.contest === contestName);
+    }
+
+    // Get list of teams already assigned for a specific contest
+    getAssignedTeamsForContest(contestName) {
+        const assignments = this.getTeamAssignmentsByContest(contestName);
+        return assignments.map(assignment => assignment.team);
+    }
+
+    // Check if a team is already assigned for a specific contest
+    isTeamAssigned(contestName, teamName) {
+        const assignedTeams = this.getAssignedTeamsForContest(contestName);
+        return assignedTeams.includes(teamName);
+    }
+
+    // Get available teams for a contest (teams not yet assigned)
+    getAvailableTeamsForContest(contestName, allPossibleTeams) {
+        const assignedTeams = this.getAssignedTeamsForContest(contestName);
+        return allPossibleTeams.filter(team => !assignedTeams.includes(team.name));
     }
 
     // Update UI based on login status
