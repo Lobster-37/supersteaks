@@ -81,6 +81,9 @@
                                 <a href="games.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base">Enter Now</a>
                             </li>
                             <li>
+                                <a href="teams.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">🏆 Teams</a>
+                            </li>
+                            <li>
                                 <a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a>
                             </li>
                             <li>
@@ -478,7 +481,7 @@
           enterButton.textContent = 'Team Assigned!';
           enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
           enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-          messageArea.textContent = `Congratulations! You've been assigned: ${selectedTeam.name}`;
+          messageArea.innerHTML = `Congratulations! You've been assigned: ${selectedTeam.name}<br><a href="teams.html" class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition duration-200">🏆 View All Teams</a>`;
           messageArea.classList.remove('text-red-600', 'text-indigo-600');
           messageArea.classList.add('text-green-600');
           
@@ -659,15 +662,33 @@
           return;
         }
         
+        // Get available teams (not yet assigned to other users)
+        const availableTeams = window.SuperSteaksAuth.getAvailableTeamsForContest(contestName, teams);
+        console.log('Available teams:', availableTeams.length, 'out of', teams.length);
+        
+        // Check if any teams are still available
+        if (availableTeams.length === 0) {
+          messageArea.textContent = 'Sorry! All teams have been assigned. Contest is full!';
+          messageArea.classList.remove('text-green-600', 'text-indigo-600');
+          messageArea.classList.add('text-red-600');
+          enterButton.disabled = true;
+          enterButton.textContent = 'Contest Full';
+          enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+          enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+          return;
+        }
+        
         // Start the draw animation
         enterButton.disabled = true;
         enterButton.textContent = 'Drawing...';
-        messageArea.textContent = 'Spinning the wheel of destiny...';
+        messageArea.textContent = `Spinning the wheel of destiny... (${availableTeams.length} teams available)`;
         messageArea.classList.remove('text-red-600', 'text-green-600');
         messageArea.classList.add('text-indigo-600');
         
         setTimeout(() => {
-          const selectedTeam = teams[Math.floor(Math.random() * teams.length)];
+          // Select random team from available teams only
+          const selectedTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+          console.log('Selected team:', selectedTeam.name, 'from', availableTeams.length, 'available teams');
           
           // Save team assignment to user account
           window.SuperSteaksAuth.addTeamAssignment(contestName, selectedTeam.name);
@@ -679,7 +700,8 @@
           enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
           enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
           
-          messageArea.textContent = `Congratulations! You've been assigned: ${selectedTeam.name}`;
+          const remainingTeams = availableTeams.length - 1;
+          messageArea.innerHTML = `Congratulations! You've been assigned: ${selectedTeam.name}<br><small class="text-sm">${remainingTeams} teams remaining</small><br><a href="teams.html" class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition duration-200">🏆 View All Teams</a>`;
           messageArea.classList.remove('text-indigo-600');
           messageArea.classList.add('text-green-600');
         }, 2000);
