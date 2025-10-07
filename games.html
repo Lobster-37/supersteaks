@@ -8,11 +8,11 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK - Load first -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
-    <!-- Firebase Configuration -->
+    <!-- Firebase Configuration - Initialize immediately -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCaqMFsLv72_lhsbue7IWZSQsndY-o8QpU",
@@ -23,7 +23,14 @@
             appId: "1:738316680653:web:7671710f073edbe22b5884",
             measurementId: "G-JB93BZSFW3"
         };
-        firebase.initializeApp(firebaseConfig);
+        
+        // Initialize Firebase immediately
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully in head');
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+        }
     </script>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -64,8 +71,6 @@
                 <div class="text-center sm:text-left">
                     <a href="index.html" class="hover:opacity-80 transition-opacity">
                         <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
-                    </a>
-                </div>
                     </a>
                 </div>
                 <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -110,6 +115,8 @@
                             </li>
                         </ul>
                     </nav>
+                </div>
+            </div>
         </div>
     </header>
 
