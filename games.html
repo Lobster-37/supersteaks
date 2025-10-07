@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperSteaks - Enter Random Team Draw</title>
+    <meta name="description" content="Enter the latest SuperSteaks sports sweepstakes draw for free. Get your random team assignment and join the fun!">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK - Load first -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Configuration - Initialize immediately -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaqMFsLv72_lhsbue7IWZSQsndY-o8QpU",
+            authDomain: "super-steaks.firebaseapp.com",
+            projectId: "super-steaks",
+            storageBucket: "super-steaks.appspot.com",
+            messagingSenderId: "738316680653",
+            appId: "1:738316680653:web:7671710f073edbe22b5884",
+            measurementId: "G-JB93BZSFW3"
+        };
+        
+        // Initialize Firebase immediately
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully in head');
+            
+            // Set a global flag that Firebase is ready
+            window.firebaseReady = true;
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            window.firebaseReady = false;
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        html { 
+            overflow-y: scroll;
+            height: 100%;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f0f4f8; 
+            overflow-x: hidden;
+            overflow-y: visible;
+            height: auto;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+        .main-content {
+            min-height: calc(100vh - 200px);
+        }
+        /* Ensure scroll is always available */
+        * {
+            scrollbar-width: auto;
+        }
+    </style>
+    
+    <!-- User Account System -->
+    <script src="js/user-accounts.js"></script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header & Navigation -->
+    <header class="bg-indigo-800 text-white shadow-xl">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                <div class="text-center sm:text-left">
+                    <a href="index.html" class="hover:opacity-80 transition-opacity">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
+                    </a>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <!-- User Account Section -->
+                    <div id="user-account-section">
+                        <!-- Login/Register buttons (shown when not logged in) -->
+                        <div id="auth-buttons" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                            <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition text-sm">
+                                Login
+                            </button>
+                            <button id="register-btn" class="bg-transparent border-2 border-yellow-400 text-yellow-400 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 hover:text-indigo-800 transition text-sm">
+                                Register
+                            </button>
+                        </div>
+                        <!-- User info (shown when logged in) -->
+                        <div id="user-info" class="hidden text-center sm:text-right">
+                            <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display"></span>!</p>
+                            <button id="logout-btn" class="text-indigo-200 hover:text-white underline text-xs mt-1">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                    <nav aria-label="Main navigation">
+                        <ul class="flex flex-wrap justify-center space-x-3 sm:space-x-6">
+                            <li>
+                                <a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
+                            </li>
+                            <li>
+                                <a href="contests.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Our Draws</a>
+                            </li>
+                            <li>
+                                <a href="games.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base">Enter Now</a>
+                            </li>
+                            <li>
+                                <a href="teams.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">🏆 Teams</a>
+                            </li>
+                            <li>
+                                <a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a>
+                            </li>
+                            <li>
+                                <a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full mx-4 relative max-h-screen overflow-y-auto">
+            <div id="login-form">
+                <h2 class="text-2xl font-bold text-indigo-800 mb-6">Login to Your Account</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="login-username" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="login-password" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
+                            Login
+                        </button>
+                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">
+                            Need an account?
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <h2 class="text-2xl font-bold text-indigo-800 mb-6">Create New Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="register-username" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="register-email" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="register-password" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
+                            Register
+                        </button>
+                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">
+                            Already have an account?
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
+                ×
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow main-content" id="main-content">
+        <section class="text-center bg-white p-4 sm:p-6 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+            <h2 class="text-2xl sm:text-4xl md:text-5xl font-black text-indigo-900 mb-4 leading-tight">
+                Current <span class="text-yellow-500">Free Draw</span>
+            </h2>
+            <p class="text-sm sm:text-lg text-gray-700 max-w-4xl mx-auto mb-6 sm:mb-8">
+                Ready for the fun? Click "Enter Draw" below to get your random team assignment!
+            </p>
+
+            <!-- Draw Card -->
+            <div id="draw-card" class="max-w-xl mx-auto bg-indigo-50 p-8 rounded-2xl shadow-xl transition-all duration-500">
+                <div id="app-content">
+                    <h3 class="text-3xl font-extrabold text-indigo-800 mb-4">Random Team Assignment Draw!</h3>
+                    <p class="text-gray-600 mb-6">
+                        Draw ID: <span id="draw-id" class="font-mono bg-yellow-100 p-1 rounded">champleague25/26</span>
+                    </p>
+
+                    <!-- User's Assigned Team -->
+                    <div id="team-container" class="p-4 sm:p-8 bg-white rounded-lg shadow-inner mb-6 h-24 sm:h-32 border-4 border-yellow-400">
+                        <p class="text-lg sm:text-xl font-semibold text-indigo-700 mb-2">Your Current Team:</p>
+                        <div id="team-display" class="flex flex-col items-center mt-2 sm:mt-4">
+                            <img id="team-badge" src="" alt="Team Badge" class="w-16 h-16 sm:w-20 sm:h-20 mb-3 team-badge hidden">
+                            <p id="assigned-team" class="text-xl sm:text-4xl font-black text-yellow-600 text-center px-2 js-ui-element">
+                                Awaiting Entry...
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-0 items-center justify-center js-ui-element">
+                        <button id="enter-button" onclick="enterDraw()" 
+                                class="bg-yellow-500 hover:bg-yellow-400 text-indigo-800 font-extrabold py-3 px-6 sm:px-8 rounded-full text-base sm:text-lg shadow-lg transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50 w-full sm:w-auto">
+                            Enter Draw Now!
+                        </button>
+                        
+                        <!-- Test Login Button -->
+                        <button onclick="console.log('Testing...'); console.log('SuperSteaksAuth:', window.SuperSteaksAuth); enterDraw();" 
+                                class="ml-0 sm:ml-2 bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg text-sm hover:bg-blue-600 transition duration-300 w-full sm:w-auto">
+                            Test Login Version
+                        </button>
+                        
+                        <!-- Reset Button (for testing) -->
+                        <button onclick="resetDraw()" 
+                                class="ml-0 sm:ml-2 bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg text-sm hover:bg-gray-600 transition duration-300 w-full sm:w-auto">
+                            Reset Draw
+                        </button>
+                    </div>
+                    
+                    <p id="message-area" aria-live="polite" class="text-center text-base sm:text-lg mt-4 text-indigo-600">Click the button to get your random team!</p>
+                </div>
+            </div>
+
+            <script>
+                // Simplified approach - just show static logged-out state
+                // Remove all dynamic state changes to eliminate flickering
+            </script>
+
+            <!-- User ID Footer -->
+            <p class="mt-8 text-sm text-gray-500">
+                Your Unique ID (needed for tracking): <span id="user-id-display" class="font-mono text-xs bg-gray-200 p-1 rounded">demo_xxxxxxxxx</span>
+            </p>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-indigo-900 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2025 SuperSteaks. All Rights Reserved. </p>
+        </div>
+    </footer>
+
+    <!-- Teams data and game logic starts here -->
+    <script>
+      // Updated teams with specific stripe patterns and border colors
+      const teams = [
+        { name: "Ajax", pattern: "ajax-stripe", borderColor: "#D2122E" },
+        { name: "Arsenal", color: "#EF0107", borderColor: "#FFFFFF" },
+        { name: "Atalanta", pattern: "stripes-vertical-blue-black", borderColor: "#1E63B0" },
+        { name: "Athletic Club", pattern: "stripes-vertical-red-white", borderColor: "#EE2523" },
+        { name: "Atlético Madrid", pattern: "stripes-vertical-red-white", borderColor: "#CE3524" },
+        { name: "Barcelona", pattern: "stripes-vertical-blue-garnet", borderColor: "#A50044" },
+        { name: "Bayer Leverkusen", color: "#000000", borderColor: "#E32221" },
+        { name: "Bayern München", color: "#DC052D", borderColor: "#0066B2" },
+        { name: "Benfica", color: "#E20E0E", borderColor: "#FFFFFF" },
+        { name: "Bodø/Glimt", color: "#FFD700", borderColor: "#000000" },
+        { name: "Borussia Dortmund", color: "#FDE100", borderColor: "#000000" },
+        { name: "Chelsea", color: "#034694", borderColor: "#FFFFFF" },
+        { name: "Club Brugge", pattern: "stripes-vertical-blue-black", borderColor: "#0032A0" },
+        { name: "Copenhagen", color: "#FFFFFF", borderColor: "#1F4E79" },
+        { name: "Eintracht Frankfurt", color: "#000000", borderColor: "#E1001C" },
+        { name: "Galatasaray", pattern: "diagonal-half-yellow-red", borderColor: "#FFD700" },
+        { name: "Inter Milan", pattern: "stripes-vertical-blue-black", borderColor: "#0068A8" },
+        { name: "Juventus", pattern: "stripes-vertical-black-white", borderColor: "#000000" },
+        { name: "Kairat Almaty", pattern: "stripes-vertical-yellow-black", borderColor: "#FFD700" },
+        { name: "Liverpool", color: "#C8102E", borderColor: "#FFD700" },
+        { name: "Manchester City", color: "#6CABDD", borderColor: "#FFFFFF" },
+        { name: "Marseille", color: "#FFFFFF", borderColor: "#009EDB" },
+        { name: "Monaco", pattern: "diagonal-half-red-white", borderColor: "#C8102E" },
+        { name: "Napoli", color: "#87CEEB", borderColor: "#FFFFFF" },
+        { name: "Newcastle United", pattern: "stripes-vertical-black-white", borderColor: "#000000" },
+        { name: "Olympiacos", pattern: "stripes-vertical-red-white", borderColor: "#DC143C" },
+        { name: "Pafos FC", color: "#0066CC", borderColor: "#FFFFFF" },
+        { name: "Paris Saint-Germain", color: "#004170", borderColor: "#C8102E" },
+        { name: "PSV Eindhoven", pattern: "stripes-vertical-red-white", borderColor: "#ED1C24" },
+        { name: "Qarabağ", color: "#000000", borderColor: "#FFFFFF" },
+        { name: "Real Madrid", color: "#FFFFFF", borderColor: "#FFD700" },
+        { name: "Slavia Praha", pattern: "diagonal-half-red-white", borderColor: "#C8102E" },
+        { name: "Sporting CP", pattern: "stripes-horizontal-green-white", borderColor: "#006837" },
+        { name: "Tottenham Hotspur", color: "#FFFFFF", borderColor: "#132257" },
+        { name: "Union Saint-Gilloise", color: "#FFD100", borderColor: "#0033A0" },
+        { name: "Villarreal", color: "#FFE667", borderColor: "#003366" }
+      ];
+      const currentDrawId = 'champleague25/26';
+
+      // DOM elements
+      const loadingSpinner = document.getElementById('loading-spinner');
+      const appContent = document.getElementById('app-content');
+      const assignedTeamEl = document.getElementById('assigned-team');
+      
+      // Immediate scroll fix - run as soon as DOM elements are available
+      (function() {
+        document.body.style.overflow = 'visible';
+        document.body.style.overflowY = 'auto';
+        document.documentElement.style.overflow = 'visible';
+        document.documentElement.style.overflowY = 'auto';
+      })();
+      const teamBadgeEl = document.getElementById('team-badge');
+      const teamContainerEl = document.getElementById('team-container');
+      const teamShirtEl = document.getElementById('team-shirt');
+      const shirtBodyEl = document.getElementById('shirt-body');
+      const shirtCollarEl = document.getElementById('shirt-collar');
+      const shirtSleeveLeftEl = document.getElementById('shirt-sleeve-left');
+      const shirtSleeveRightEl = document.getElementById('shirt-sleeve-right');
+      const shirtTextEl = document.getElementById('shirt-text');
+      const shirtNumberEl = document.getElementById('shirt-number');
+      const enterButton = document.getElementById('enter-button');
+      const messageArea = document.getElementById('message-area');
+      const userIdDisplay = document.getElementById('user-id-display');
+
+      let userId = null;
+      let db = null;
+
+      // Helper function to darken colors for gradient effect
+      function darkenColor(color, percent) {
+        const num = parseInt(color.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent * 100);
+        const R = (num >> 16) - amt;
+        const G = (num >> 8 & 0x00FF) - amt;
+        const B = (num & 0x0000FF) - amt;
+        return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+          (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+          (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+      }
+
+      window.onload = function() {
+        // Force enable scrolling immediately
+        document.body.style.overflow = 'visible';
+        document.documentElement.style.overflow = 'visible';
+        document.body.style.overflowY = 'auto';
+        document.documentElement.style.overflowY = 'auto';
+        
+        console.log('Games page loaded');
+        console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
+        console.log('Firebase ready:', !!window.firebaseReady);
+        
+        // Wait for both Firebase and user account system to be ready
+        if (window.firebaseReady && window.SuperSteaksAuth) {
+          console.log('Both Firebase and SuperSteaksAuth are ready, initializing...');
+          
+          // Check if user is logged in and has team assignment
+          if (window.SuperSteaksAuth.isLoggedIn()) {
+            console.log('User is already logged in');
+            
+            // Update UI to show logged in state
+            const currentUser = window.SuperSteaksAuth.getCurrentUser();
+            console.log('Current user from SuperSteaksAuth:', currentUser);
+            
+            if (currentUser && currentUser.username) {
+              updateUIForLoggedInState(currentUser);
+              
+              const userAssignments = window.SuperSteaksAuth.getUserAssignments();
+              const contestName = 'Champions League Draw';
+              const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
+              
+              if (existingAssignment) {
+                // User has a team assigned - display it
+                const teamName = existingAssignment.team;
+                const selectedTeam = teams.find(team => team.name === teamName);
+                
+                if (selectedTeam) {
+                  assignedTeamEl.textContent = teamName;
+                  assignedTeamEl.classList.add('text-green-600');
+                  
+                  // Apply team styling
+                  teamContainerEl.style.borderColor = selectedTeam.borderColor || '#10B981';
+                  
+                  if (selectedTeam.pattern) {
+                    teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
+                    teamContainerEl.classList.add(selectedTeam.pattern);
+                    teamContainerEl.style.backgroundColor = 'transparent';
+                  } else {
+                    teamContainerEl.style.backgroundColor = selectedTeam.color || '#4f46e5';
+                  }
+                  
+                  enterButton.disabled = true;
+                  enterButton.textContent = 'Team Already Assigned!';
+                  enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                  enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                  messageArea.textContent = `Welcome back! You're supporting ${teamName}. Good luck!`;
+                  messageArea.classList.remove('text-indigo-600');
+                  messageArea.classList.add('text-green-600');
+                }
+              }
+            } else {
+              console.log('User appears logged in but no valid user data found, logging out');
+              window.SuperSteaksAuth.logout();
+              updateUIForLoggedOutState();
+            }
+          }
+        } else {
+          console.log('Waiting for Firebase and SuperSteaksAuth to be ready...');
+          console.log('Firebase ready:', !!window.firebaseReady);
+          console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
+        }
+        
+        // Generate a simple local user ID for demo purposes
+        userId = 'demo_' + Math.random().toString(36).substr(2, 9);
+        userIdDisplay.textContent = userId;
+
+        // Fallback: Check old localStorage system for backward compatibility
+        const existingEntry = localStorage.getItem(`entry_${currentDrawId}`);
+        
+        if (existingEntry) {
+          const entry = JSON.parse(existingEntry);
+          const teamName = entry.assignedTeam;
+          
+          // Check if this is an old entry without initials - if so, clear it
+          if (!entry.teamInitials) {
+            localStorage.removeItem(`entry_${currentDrawId}`);
+            // Reset to fresh state
+            assignedTeamEl.textContent = 'Awaiting Entry...';
+            enterButton.disabled = false;
+            enterButton.textContent = 'Enter Draw Now!';
+          } else {
+            // Valid entry with team assignment
+            assignedTeamEl.textContent = teamName;
+            assignedTeamEl.classList.add('text-green-600');
+            
+            // Apply team styling
+            teamContainerEl.style.borderColor = entry.borderColor || '#fbbf24';
+            
+            if (entry.pattern) {
+              teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
+              teamContainerEl.classList.add(entry.pattern);
+              teamContainerEl.style.backgroundColor = 'transparent';
+            } else {
+              teamContainerEl.style.backgroundColor = entry.teamColor || '#4f46e5';
+            }
+            
+            enterButton.disabled = true;
+            enterButton.textContent = 'Already Entered!';
+            enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+            enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+            messageArea.textContent = `You are cheering for ${teamName}! Good luck!`;
+            messageArea.classList.remove('text-indigo-600');
+            messageArea.classList.add('text-green-600');
+          }
+        }
+      };
+
+
+
+
+      // Fallback function that works without login (for testing)
+      function enterDrawSimple() {
+        console.log('enterDrawSimple called - no login required');
+        
+        // Check if all required elements exist
+        if (!enterButton) {
+          console.error('enterButton not found');
+          return;
+        }
+        if (!messageArea) {
+          console.error('messageArea not found');
+          return;
+        }
+        if (!assignedTeamEl) {
+          console.error('assignedTeamEl not found');
+          return;
+        }
+        if (!teamContainerEl) {
+          console.error('teamContainerEl not found');
+          return;
+        }
+        
+        console.log('All elements found, starting draw process');
+        
+        enterButton.disabled = true;
+        enterButton.textContent = 'Drawing Team...';
+        messageArea.textContent = 'Processing your entry...';
+        messageArea.classList.remove('text-red-600', 'text-green-600');
+        messageArea.classList.add('text-indigo-600');
+
+        setTimeout(() => {
+          const selectedTeam = teams[Math.floor(Math.random() * teams.length)];
+          console.log('Selected team:', selectedTeam);
+
+          // Update UI
+          assignedTeamEl.textContent = selectedTeam.name;
+          assignedTeamEl.classList.add('text-green-600');
+          
+          // Apply team styling
+          teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
+          teamContainerEl.style.borderColor = selectedTeam.borderColor || '#10B981';
+          
+          if (selectedTeam.pattern) {
+            teamContainerEl.classList.add(selectedTeam.pattern);
+            teamContainerEl.style.backgroundColor = 'transparent';
+          } else {
+            teamContainerEl.style.backgroundColor = selectedTeam.color || '#4f46e5';
+          }
+          
+          enterButton.disabled = true;
+          enterButton.textContent = 'Team Assigned!';
+          enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+          enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+          messageArea.innerHTML = `Congratulations! You've been assigned: ${selectedTeam.name}<br><a href="teams.html" class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition duration-200">🏆 View All Teams</a>`;
+          messageArea.classList.remove('text-red-600', 'text-indigo-600');
+          messageArea.classList.add('text-green-600');
+          
+          console.log('Team assignment completed successfully');
+        }, 1000);
+      }
+
+      // Reset function for testing
+      function resetDraw() {
+        localStorage.clear();
+        assignedTeamEl.textContent = 'Awaiting Entry...';
+        assignedTeamEl.classList.remove('text-green-600');
+        // Reset container to default white background
+        teamContainerEl.className = 'p-8 bg-white rounded-lg shadow-inner mb-6 min-h-32 border-4 border-yellow-400';
+        enterButton.disabled = false;
+        enterButton.textContent = 'Enter Draw Now!';
+        enterButton.classList.add('bg-yellow-500', 'hover:bg-yellow-400');
+        enterButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        messageArea.textContent = 'Click the button to get your random team!';
+        messageArea.classList.remove('text-green-600', 'text-red-600');
+        messageArea.classList.add('text-indigo-600');
+      };
+
+      // ===== USER ACCOUNT SYSTEM =====
+      
+      // Account Management Functions
+      function createAccount(username, email, password) {
+        console.log('Attempting registration for:', username);
+        console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
+        
+        if (!window.SuperSteaksAuth) {
+          throw new Error('Authentication system not loaded');
+        }
+        
+        return window.SuperSteaksAuth.register(username, email, password);
+      }
+      
+      function loginUser(username, password) {
+        console.log('Attempting login for:', username);
+        console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
+        
+        if (!window.SuperSteaksAuth) {
+          throw new Error('Authentication system not loaded');
+        }
+        
+        return window.SuperSteaksAuth.login(username, password);
+      }
+      
+      function getCurrentUser() {
+        return window.SuperSteaksAuth.getCurrentUser();
+      }
+      
+      function logoutUser() {
+        window.SuperSteaksAuth.logout();
+        updateUIForLoggedOutState();
+      }
+      
+      function assignTeamToUser(username, team) {
+        const users = JSON.parse(localStorage.getItem('champLeagueUsers') || '{}');
+        if (users[username]) {
+          users[username].assignedTeam = team;
+          users[username].drawHistory.push({
+            team: team,
+            drawId: currentDrawId,
+            timestamp: new Date().toISOString()
+          });
+          localStorage.setItem('champLeagueUsers', JSON.stringify(users));
+        }
+      }
+      
+      // UI Management Functions
+      function updateUIForLoggedInState(user) {
+        console.log('Updating UI for logged in user:', user);
+        
+        // Validate user object
+        if (!user || !user.username) {
+          console.error('Invalid user object passed to updateUIForLoggedInState:', user);
+          updateUIForLoggedOutState();
+          return;
+        }
+        
+        document.getElementById('auth-buttons').classList.add('hidden');
+        document.getElementById('user-info').classList.remove('hidden');
+        document.getElementById('username-display').textContent = user.username;
+        
+        // Check if user has a team assignment for this contest
+        const userAssignments = window.SuperSteaksAuth.getUserAssignments();
+        console.log('User assignments:', userAssignments);
+        const contestName = 'Champions League Draw';
+        const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
+        console.log('Existing assignment for Champions League Draw:', existingAssignment);
+        
+        if (existingAssignment) {
+          console.log('Found team assignment:', existingAssignment.team);
+          // Find the team object for display
+          const assignedTeam = teams.find(team => team.name === existingAssignment.team);
+          console.log('Found team object:', assignedTeam);
+          if (assignedTeam) {
+            displayUserTeam(assignedTeam);
+          }
+          enterButton.disabled = true;
+          enterButton.textContent = 'Team Already Assigned!';
+          enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+          enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+          messageArea.textContent = `You are cheering for ${existingAssignment.team}! Good luck!`;
+          messageArea.classList.remove('text-indigo-600');
+          messageArea.classList.add('text-green-600');
+        } else {
+          console.log('No existing assignment found');
+        }
+      }
+      
+      function updateUIForLoggedOutState() {
+        document.getElementById('auth-buttons').classList.remove('hidden');
+        document.getElementById('user-info').classList.add('hidden');
+        
+        // Reset the draw interface but allow interaction
+        assignedTeamEl.textContent = 'Awaiting Entry...';
+        assignedTeamEl.classList.remove('text-green-600');
+        teamContainerEl.className = 'p-8 bg-white rounded-lg shadow-inner mb-6 min-h-32 border-4 border-yellow-400';
+        enterButton.disabled = false;
+        enterButton.textContent = 'Enter Draw Now!';
+        enterButton.classList.add('bg-yellow-500', 'hover:bg-yellow-400');
+        enterButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        messageArea.textContent = 'Click the button to get your random team!';
+        messageArea.classList.add('text-indigo-600');
+        messageArea.classList.remove('text-red-600', 'text-green-600');
+      }
+      
+      function displayUserTeam(team) {
+        assignedTeamEl.textContent = team.name;
+        assignedTeamEl.classList.add('text-green-600');
+        
+        // Apply team pattern/color to container
+        teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
+        teamContainerEl.style.borderColor = team.borderColor;
+        
+        if (team.pattern) {
+          teamContainerEl.classList.add(team.pattern);
+          teamContainerEl.style.backgroundColor = 'transparent';
+        } else {
+          teamContainerEl.style.backgroundColor = team.color;
+        }
+        
+        messageArea.textContent = `You are supporting ${team.name}! Good luck!`;
+        messageArea.classList.remove('text-red-600', 'text-indigo-600');
+        messageArea.classList.add('text-green-600');
+      }
+      
+      // Modal Management
+      function showAuthModal(showRegister = false) {
+        document.getElementById('auth-modal').classList.remove('hidden');
+        if (showRegister) {
+          document.getElementById('login-form').classList.add('hidden');
+          document.getElementById('register-form').classList.remove('hidden');
+        } else {
+          document.getElementById('login-form').classList.remove('hidden');
+          document.getElementById('register-form').classList.add('hidden');
+        }
+      }
+      
+      function hideAuthModal() {
+        document.getElementById('auth-modal').classList.add('hidden');
+        // Clear form inputs
+        document.getElementById('login-form-element').reset();
+        document.getElementById('register-form-element').reset();
+      }
+      
+      // Updated Enter Draw Function
+      async function enterDraw() {
+        console.log('enterDraw called');
+        console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
+        console.log('User logged in:', window.SuperSteaksAuth.isLoggedIn());
+        
+        // Check if user is logged in using our new system
+        if (!window.SuperSteaksAuth || !window.SuperSteaksAuth.isLoggedIn()) {
+          console.log('User not logged in, showing modal');
+          if (window.SuperSteaksAuth && window.SuperSteaksAuth.showModal) {
+            window.SuperSteaksAuth.showModal();
+          } else {
+            showAuthModal(false);
+          }
+          return;
+        }
+        
+        // Verify user data is valid
+        const currentUser = window.SuperSteaksAuth.getCurrentUser();
+        if (!currentUser || !currentUser.username) {
+          console.log('Invalid user data, forcing logout and re-login');
+          window.SuperSteaksAuth.logout();
+          updateUIForLoggedOutState();
+          showAuthModal(false);
+          return;
+        }
+        
+        console.log('Valid user found:', currentUser.username);
+        
+        // Refresh data from cloud to get latest team assignments
+        await window.SuperSteaksAuth.refreshFromCloud();
+        
+        // Check if user already has a team for this contest
+        const userAssignments = window.SuperSteaksAuth.getUserAssignments();
+        const contestName = 'Champions League Draw';
+        const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
+        
+        if (existingAssignment) {
+          messageArea.textContent = `You already have ${existingAssignment.team} assigned for this contest!`;
+          messageArea.classList.remove('text-green-600', 'text-indigo-600');
+          messageArea.classList.add('text-red-600');
+          return;
+        }
+        
+        // Get available teams (not yet assigned to other users)
+        const availableTeams = window.SuperSteaksAuth.getAvailableTeamsForContest(contestName, teams);
+        console.log('Available teams:', availableTeams.length, 'out of', teams.length);
+        
+        // Check if any teams are still available
+        if (availableTeams.length === 0) {
+          messageArea.textContent = 'Sorry! All teams have been assigned. Contest is full!';
+          messageArea.classList.remove('text-green-600', 'text-indigo-600');
+          messageArea.classList.add('text-red-600');
+          enterButton.disabled = true;
+          enterButton.textContent = 'Contest Full';
+          enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+          enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+          return;
+        }
+        
+        // Start the draw animation
+        enterButton.disabled = true;
+        enterButton.textContent = 'Drawing...';
+        messageArea.textContent = `Spinning the wheel of destiny... (${availableTeams.length} teams available)`;
+        messageArea.classList.remove('text-red-600', 'text-green-600');
+        messageArea.classList.add('text-indigo-600');
+        
+        setTimeout(async () => {
+          // Select random team from available teams only
+          const selectedTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+          console.log('Selected team:', selectedTeam.name, 'from', availableTeams.length, 'available teams');
+          
+          // Save team assignment to cloud database
+          await window.SuperSteaksAuth.addTeamAssignment(contestName, selectedTeam.name);
+          
+          // Update UI
+          displayUserTeam(selectedTeam);
+          
+          enterButton.textContent = 'Team Assigned!';
+          enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+          enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+          
+          const remainingTeams = availableTeams.length - 1;
+          messageArea.innerHTML = `Congratulations! You've been assigned: ${selectedTeam.name}<br><small class="text-sm">${remainingTeams} teams remaining</small><br><a href="teams.html" class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition duration-200">🏆 View All Teams</a>`;
+          messageArea.classList.remove('text-indigo-600');
+          messageArea.classList.add('text-green-600');
+        }, 2000);
+      }
+      
+      // Event Listeners
+      document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
+      document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
+      document.getElementById('close-modal').addEventListener('click', hideAuthModal);
+      document.getElementById('logout-btn').addEventListener('click', logoutUser);
+      
+      document.getElementById('switch-to-register').addEventListener('click', () => {
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('register-form').classList.remove('hidden');
+      });
+      
+      document.getElementById('switch-to-login').addEventListener('click', () => {
+        document.getElementById('register-form').classList.add('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+      });
+      
+      // Form Submissions
+      document.getElementById('login-form-element').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+        
+        try {
+          console.log('Login attempt - Username:', username, 'Password length:', password.length);
+          const user = await loginUser(username, password);
+          console.log('Login successful, user:', user);
+          updateUIForLoggedInState(user);
+          hideAuthModal();
+          messageArea.textContent = `Welcome back, ${user.username}!`;
+          messageArea.classList.remove('text-red-600', 'text-indigo-600');
+          messageArea.classList.add('text-green-600');
+        } catch (error) {
+          console.error('Login error:', error);
+          alert(error.message);
+        }
+      });
+      
+      document.getElementById('register-form-element').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('register-username').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        
+        try {
+          await createAccount(username, email, password);
+          const user = await loginUser(username, password); // Auto-login after registration
+          updateUIForLoggedInState(user);
+          hideAuthModal();
+          messageArea.textContent = `Account created! Welcome, ${user.username}!`;
+          messageArea.classList.remove('text-red-600', 'text-indigo-600');
+          messageArea.classList.add('text-green-600');
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+      
+      // Close modal when clicking outside
+      document.getElementById('auth-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'auth-modal') {
+          hideAuthModal();
+        }
+      });
+    </script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperSteaks - Free Random Team Assignment Draws</title>
+    <meta name="description" content="Join SuperSteaks for free random team assignment draws. Get assigned teams from major sports competitions and win prizes if your team wins!">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+    </style>
+    
+    <!-- User Account System -->
+    <script src="js/user-accounts.js"></script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header & Navigation -->
+    <header class="bg-indigo-800 text-white shadow-xl">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                <div class="text-center sm:text-left">
+                    <a href="index.html" class="hover:opacity-80 transition-opacity">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
+                    </a>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <!-- User Account Section -->
+                    <div id="user-account-section">
+                        <!-- Login/Register buttons (shown when not logged in) -->
+                        <div id="auth-buttons" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                            <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition text-sm">
+                                Login
+                            </button>
+                            <button id="register-btn" class="bg-transparent border-2 border-yellow-400 text-yellow-400 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 hover:text-indigo-800 transition text-sm">
+                                Register
+                            </button>
+                        </div>
+                        <!-- User info (shown when logged in) -->
+                        <div id="user-info" class="hidden text-center sm:text-right">
+                            <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display"></span>!</p>
+                            <button id="logout-btn" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                    <nav aria-label="Main navigation">
+                        <ul class="flex flex-wrap justify-center space-x-3 sm:space-x-6">
+                            <li>
+                                <a href="index.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600 text-sm sm:text-base">Home</a>
+                            </li>
+                            <li>
+                                <a href="contests.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Our Draws</a>
+                            </li>
+                            <li>
+                                <a href="games.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base">Enter Now</a>
+                            </li>
+                            <li>
+                                <a href="teams.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">🏆 Teams</a>
+                            </li>
+                            <li>
+                                <a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a>
+                            </li>
+                            <li>
+                                <a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full mx-4 relative max-h-screen overflow-y-auto">
+            <div id="login-form">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="login-username" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="login-password" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
+                            Login
+                        </button>
+                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">
+                            Need an account?
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Create New Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="register-username" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="register-email" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="register-password" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
+                            Register
+                        </button>
+                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">
+                            Already have an account?
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
+                ×
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
+        <section class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+            <h2 class="text-3xl sm:text-5xl md:text-6xl font-black text-indigo-900 mb-4 sm:mb-6 leading-tight">
+                Welcome to <span class="text-yellow-500">SuperSteaks</span>:
+                <br class="hidden sm:inline"> Your Home for Random Team Draws!
+            </h2>
+            <p class="text-lg sm:text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto mb-6 sm:mb-8">
+                Join our free team assignment draws! We randomly assign you a team from major sports competitions.
+                No picking, no predictions - just pure luck and the excitement of supporting your assigned team!
+            </p>
+            <div class="mt-6 sm:mt-8">
+                <a href="games.html" class="inline-block bg-yellow-500 text-indigo-800 font-extrabold py-3 sm:py-4 px-8 sm:px-12 rounded-full text-lg sm:text-xl shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50">
+                    🎲 Get Your Random Team Assignment!
+                </a>
+            </div>
+            <div class="mt-8 sm:mt-12 grid sm:grid-cols-3 gap-4 sm:gap-6 text-left">
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🎲 Random Assignment</h3>
+                    <p class="text-sm sm:text-base text-gray-600">We randomly assign you a team from competitions like Champions League, Premier League, and more. No choosing - it's all about luck!</p>
+                </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🏆 Support Your Team</h3>
+                    <p class="text-sm sm:text-base text-gray-600">Once assigned, cheer for your team throughout the competition! If they win, you win prizes too!</p>
+                </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🥇 Free to Join</h3>
+                    <p class="text-sm sm:text-base text-gray-600">All our random team draws are completely free to enter. Just sign up and see which team you get!</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+        <footer class="bg-indigo-900 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests. </p>
+        </div>
+    </footer>
+
+    <script>
+        // ===== USER ACCOUNT SYSTEM =====
+        
+        function getCurrentUser() {
+            const currentUsername = localStorage.getItem('currentUser');
+            if (!currentUsername) return null;
+            
+            const users = JSON.parse(localStorage.getItem('champLeagueUsers') || '{}');
+            return users[currentUsername] || null;
+        }
+        
+        function logoutUser() {
+            localStorage.removeItem('currentUser');
+            updateUIForLoggedOutState();
+        }
+        
+        function updateUIForLoggedInState(user) {
+            document.getElementById('auth-buttons').classList.add('hidden');
+            document.getElementById('user-info').classList.remove('hidden');
+            document.getElementById('username-display').textContent = user.username;
+        }
+        
+        function updateUIForLoggedOutState() {
+            document.getElementById('auth-buttons').classList.remove('hidden');
+            document.getElementById('user-info').classList.add('hidden');
+        }
+        
+        function showAuthModal(showRegister = false) {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            if (showRegister) {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            } else {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('register-form').classList.add('hidden');
+            }
+        }
+        
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('login-form-element').reset();
+            document.getElementById('register-form-element').reset();
+        }
+        
+        // Event Listeners
+        document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
+        document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
+        document.getElementById('close-modal').addEventListener('click', hideAuthModal);
+        document.getElementById('logout-btn').addEventListener('click', logoutUser);
+        
+        document.getElementById('switch-to-register').addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        });
+        
+        document.getElementById('switch-to-login').addEventListener('click', () => {
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        });
+        
+        // Form submissions - redirect to games.html for actual account creation/login
+        document.getElementById('login-form-element').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Please go to the "Enter Now" page to login or create an account!');
+            window.location.href = 'games.html';
+        });
+        
+        document.getElementById('register-form-element').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Please go to the "Enter Now" page to create your account!');
+            window.location.href = 'games.html';
+        });
+        
+        // Close modal when clicking outside
+        document.getElementById('auth-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'auth-modal') {
+                hideAuthModal();
+            }
+        });
+        
+        // Initialize UI on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                updateUIForLoggedInState(currentUser);
+            } else {
+                updateUIForLoggedOutState();
+            }
+        });
+    </script>
+</body>
+</html>

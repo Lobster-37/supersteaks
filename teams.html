@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Directory - SuperSteaks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+        <!-- User Account System -->
+    <script src="js/user-accounts.js"></script>
+</head>
+<body class="bg-gradient-to-br from-green-800 via-green-700 to-green-900 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-green-900 bg-opacity-50 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <img src="images/supersteaks-logo.png" alt="SuperSteaks Logo" class="h-12 w-12">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">SuperSteaks</h1>
+                    <p class="text-green-200 text-sm">Team Directory</p>
+                </div>
+            </div>
+            
+            <!-- User Account Section -->
+            <div class="flex items-center space-x-4">
+                <!-- Show when not logged in -->
+                <div id="auth-buttons" class="space-x-2">
+                    <button id="login-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Login
+                    </button>
+                    <button id="register-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Sign Up
+                    </button>
+                </div>
+                
+                <!-- Show when logged in -->
+                <div id="user-info" class="hidden flex items-center space-x-4">
+                    <span class="text-white">Welcome, <span id="username-display" class="font-semibold"></span>!</span>
+                    <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-4">Team Directory</h1>
+            <p class="text-green-200 text-lg">See who's supporting which teams!</p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-center space-x-4 mb-8">
+            <a href="index.html" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition duration-200">
+                🏠 Home
+            </a>
+            <a href="games.html" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg transition duration-200">
+                🎮 Games
+            </a>
+            <button id="refresh-teams" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition duration-200">
+                🔄 Refresh
+            </button>
+        </div>
+
+        <!-- Teams Display Area -->
+        <div id="teams-container" class="max-w-4xl mx-auto">
+            <!-- Loading message -->
+            <div id="loading-message" class="text-center text-white text-lg">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+                Loading teams...
+            </div>
+            
+            <!-- No teams message -->
+            <div id="no-teams-message" class="hidden text-center bg-yellow-100 border border-yellow-400 text-yellow-700 px-6 py-4 rounded-lg">
+                <h3 class="font-bold text-lg mb-2">No Teams Assigned Yet!</h3>
+                <p>Be the first to join a contest and get your team assignment!</p>
+                <a href="games.html" class="inline-block mt-4 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg transition duration-200">
+                    Go to Games
+                </a>
+            </div>
+            
+            <!-- Teams list -->
+            <div id="teams-list" class="space-y-4">
+                <!-- Teams will be populated here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication Modal (same as other pages) -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Account</h2>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="login-form">
+                <form id="login-form-element" class="space-y-4">
+                    <div>
+                        <label for="login-username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input type="text" id="login-username" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="login-password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition duration-200">
+                        Login
+                    </button>
+                </form>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Don't have an account? 
+                    <button id="switch-to-register" class="text-blue-600 hover:text-blue-800 font-medium">Sign up here</button>
+                </p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="register-form" class="hidden">
+                <form id="register-form-element" class="space-y-4">
+                    <div>
+                        <label for="register-username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input type="text" id="register-username" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="register-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="register-email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label for="register-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="register-password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition duration-200">
+                        Create Account
+                    </button>
+                </form>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Already have an account? 
+                    <button id="switch-to-login" class="text-blue-600 hover:text-blue-800 font-medium">Login here</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Teams page functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Teams page loaded');
+            
+            // Wait for user account system to be ready
+            setTimeout(() => {
+                loadAllTeams();
+                setupRefreshButton();
+            }, 500);
+        });
+
+        async function loadAllTeams() {
+            console.log('Loading all teams from cloud...');
+            
+            if (!window.SuperSteaksAuth) {
+                console.log('Auth system not ready yet');
+                setTimeout(loadAllTeams, 500);
+                return;
+            }
+
+            const loadingMessage = document.getElementById('loading-message');
+            const noTeamsMessage = document.getElementById('no-teams-message');
+            const teamsList = document.getElementById('teams-list');
+            
+            try {
+                // Refresh data from cloud database
+                const allTeams = await window.SuperSteaksAuth.refreshFromCloud();
+                console.log('All teams loaded from cloud:', allTeams);
+                
+                // Hide loading message
+                loadingMessage.classList.add('hidden');
+                
+                if (allTeams.length === 0) {
+                    // Show no teams message
+                    noTeamsMessage.classList.remove('hidden');
+                    teamsList.innerHTML = '';
+                } else {
+                    // Hide no teams message and show teams
+                    noTeamsMessage.classList.add('hidden');
+                    displayTeams(allTeams);
+                }
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                loadingMessage.innerHTML = '<div class="text-red-500">Error loading teams. Please try again.</div>';
+            }
+        }
+
+        function displayTeams(teams) {
+            const teamsList = document.getElementById('teams-list');
+            
+            if (teams.length === 0) {
+                teamsList.innerHTML = '<div class="text-center text-white">No teams assigned yet!</div>';
+                return;
+            }
+
+            // Group teams by contest
+            const teamsByContest = {};
+            teams.forEach(team => {
+                if (!teamsByContest[team.contest]) {
+                    teamsByContest[team.contest] = [];
+                }
+                teamsByContest[team.contest].push(team);
+            });
+
+            let html = '';
+            
+            for (const contestName in teamsByContest) {
+                const contestTeams = teamsByContest[contestName];
+                const totalPossibleTeams = 36; // Champions League has 36 teams
+                const teamsAssigned = contestTeams.length;
+                const teamsRemaining = totalPossibleTeams - teamsAssigned;
+                
+                html += `
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                        <div class="text-center mb-4">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">${contestName}</h3>
+                            <div class="flex justify-center space-x-4 text-sm">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                                    ${teamsAssigned} Teams Assigned
+                                </span>
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                                    ${teamsRemaining} Teams Available
+                                </span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                `;
+                
+                contestTeams.forEach(assignment => {
+                    const date = new Date(assignment.date).toLocaleDateString();
+                    const isCurrentUser = window.SuperSteaksAuth.getCurrentUser() && 
+                                         window.SuperSteaksAuth.getCurrentUser().username === assignment.username;
+                    
+                    html += `
+                        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border-2 ${isCurrentUser ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'}">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-bold text-gray-800 ${isCurrentUser ? 'text-green-700' : ''}">${assignment.username}</span>
+                                ${isCurrentUser ? '<span class="text-green-600 text-sm font-medium">(You)</span>' : ''}
+                            </div>
+                            <div class="text-lg font-semibold text-blue-700 mb-1">${assignment.team}</div>
+                            <div class="text-sm text-gray-500">Assigned: ${date}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                        ${teamsRemaining > 0 ? `
+                            <div class="text-center mt-6">
+                                <a href="games.html" class="inline-block bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200">
+                                    🎮 Join Contest (${teamsRemaining} spots left!)
+                                </a>
+                            </div>
+                        ` : `
+                            <div class="text-center mt-6">
+                                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                                    <strong>Contest Full!</strong> All teams have been assigned.
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                `;
+            }
+            
+            teamsList.innerHTML = html;
+        }
+
+        function setupRefreshButton() {
+            const refreshBtn = document.getElementById('refresh-teams');
+            refreshBtn.addEventListener('click', () => {
+                console.log('Refreshing teams...');
+                
+                // Show loading message
+                const loadingMessage = document.getElementById('loading-message');
+                const noTeamsMessage = document.getElementById('no-teams-message');
+                const teamsList = document.getElementById('teams-list');
+                
+                loadingMessage.classList.remove('hidden');
+                noTeamsMessage.classList.add('hidden');
+                teamsList.innerHTML = '';
+                
+                // Reload teams after a short delay
+                setTimeout(loadAllTeams, 500);
+            });
+        }
+    </script>
+</body>
+</html>
