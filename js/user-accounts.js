@@ -1,22 +1,86 @@
 // SuperSteaks User Account Management System
-// Uses localStorage for simple user management (no backend required)
+// Uses Firebase Firestore for cloud-based user management
 
 class UserAccountSystem {
     constructor() {
         this.currentUser = null;
-        this.users = this.loadUsers();
+        this.users = {};
+        this.db = null;
+        this.initializeFirebase();
         this.initializeEventListeners();
         this.checkExistingSession();
     }
 
-    // Load users from localStorage
-    loadUsers() {
-        const usersData = localStorage.getItem('supersteaks_users');
-        return usersData ? JSON.parse(usersData) : {};
+    // Initialize Firebase
+    async initializeFirebase() {
+        // Wait for Firebase to be loaded
+        if (typeof firebase === 'undefined') {
+            console.log('Firebase not loaded yet, waiting...');
+            setTimeout(() => this.initializeFirebase(), 1000);
+            return;
+        }
+        
+        try {
+            this.db = firebase.firestore();
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            // Fallback to localStorage if Firebase fails
+            this.db = null;
+        }
     }
 
-    // Save users to localStorage
-    saveUsers() {
+    // Load users from Firestore or localStorage fallback
+    async loadUsers() {
+        if (this.db) {
+            try {
+                const snapshot = await this.db.collection('users').get();
+                const users = {};
+                snapshot.forEach(doc => {
+                    users[doc.id] = doc.data();
+                });
+                this.users = users;
+                console.log('Users loaded from Firestore:', Object.keys(users));
+                return users;
+            } catch (error) {
+                console.error('Error loading users from Firestore:', error);
+                return this.loadUsersFromLocalStorage();
+            }
+        } else {
+            return this.loadUsersFromLocalStorage();
+        }
+    }
+
+    // Fallback to localStorage
+    loadUsersFromLocalStorage() {
+        const usersData = localStorage.getItem('supersteaks_users');
+        this.users = usersData ? JSON.parse(usersData) : {};
+        return this.users;
+    }
+
+    // Save users to Firestore or localStorage fallback
+    async saveUsers() {
+        if (this.db) {
+            try {
+                // Save each user document
+                const batch = this.db.batch();
+                for (const [username, userData] of Object.entries(this.users)) {
+                    const userRef = this.db.collection('users').doc(username.toLowerCase());
+                    batch.set(userRef, userData);
+                }
+                await batch.commit();
+                console.log('Users saved to Firestore');
+            } catch (error) {
+                console.error('Error saving to Firestore:', error);
+                this.saveUsersToLocalStorage();
+            }
+        } else {
+            this.saveUsersToLocalStorage();
+        }
+    }
+
+    // Fallback to localStorage
+    saveUsersToLocalStorage() {
         localStorage.setItem('supersteaks_users', JSON.stringify(this.users));
     }
 
@@ -35,7 +99,10 @@ class UserAccountSystem {
     }
 
     // Check for existing session on page load
-    checkExistingSession() {
+    async checkExistingSession() {
+        // Load users first
+        await this.loadUsers();
+        
         const session = localStorage.getItem('supersteaks_session');
         if (session) {
             const sessionData = JSON.parse(session);
@@ -53,7 +120,10 @@ class UserAccountSystem {
     }
 
     // Register new user
-    register(username, email, password) {
+    async register(username, email, password) {
+        // Load latest users from cloud
+        await this.loadUsers();
+        
         // Validation
         if (!username || !email || !password) {
             throw new Error('All fields are required');
@@ -94,14 +164,17 @@ class UserAccountSystem {
         };
 
         this.users[username.toLowerCase()] = newUser;
-        this.saveUsers();
+        await this.saveUsers();
 
         return { username, email };
     }
 
     // Login user
-    login(username, password) {
+    async login(username, password) {
         console.log('Login attempt:', username);
+        
+        // Load latest users from cloud
+        await this.loadUsers();
         console.log('Available users:', Object.keys(this.users));
         
         if (!username || !password) {
@@ -156,7 +229,7 @@ class UserAccountSystem {
     }
 
     // Add team assignment to user
-    addTeamAssignment(contestName, teamName) {
+    async addTeamAssignment(contestName, teamName) {
         console.log('addTeamAssignment called:', contestName, teamName);
         console.log('Current user:', this.currentUser);
         
@@ -164,6 +237,9 @@ class UserAccountSystem {
             console.log('No current user - cannot save assignment');
             return;
         }
+
+        // Load latest users to prevent conflicts
+        await this.loadUsers();
 
         const user = this.users[this.currentUser.username.toLowerCase()];
         console.log('Found user in database:', user);
@@ -177,8 +253,8 @@ class UserAccountSystem {
             console.log('Adding assignment:', assignment);
             user.teamAssignments.push(assignment);
             user.contestsEntered.push(contestName);
-            this.saveUsers();
-            console.log('Assignment saved successfully');
+            await this.saveUsers();
+            console.log('Assignment saved successfully to cloud');
         } else {
             console.log('User not found in database');
         }
@@ -233,6 +309,13 @@ class UserAccountSystem {
     getAvailableTeamsForContest(contestName, allPossibleTeams) {
         const assignedTeams = this.getAssignedTeamsForContest(contestName);
         return allPossibleTeams.filter(team => !assignedTeams.includes(team.name));
+    }
+
+    // Refresh data from cloud (for teams page)
+    async refreshFromCloud() {
+        console.log('Refreshing data from cloud...');
+        await this.loadUsers();
+        return this.getAllTeamAssignments();
     }
 
     // Update UI based on login status
@@ -387,12 +470,12 @@ class UserAccountSystem {
     }
 
     // Handle login form submission
-    handleLogin() {
+    async handleLogin() {
         const username = document.getElementById('login-username')?.value;
         const password = document.getElementById('login-password')?.value;
 
         try {
-            const user = this.login(username, password);
+            const user = await this.login(username, password);
             this.updateUI(true);
             this.hideModal();
             this.showSuccess('Login successful! Welcome back, ' + user.username + '!');
@@ -402,13 +485,13 @@ class UserAccountSystem {
     }
 
     // Handle register form submission
-    handleRegister() {
+    async handleRegister() {
         const username = document.getElementById('register-username')?.value;
         const email = document.getElementById('register-email')?.value;
         const password = document.getElementById('register-password')?.value;
 
         try {
-            const user = this.register(username, email, password);
+            const user = await this.register(username, email, password);
             // Auto-login after registration
             this.currentUser = user;
             this.saveSession(user);
