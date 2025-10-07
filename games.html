@@ -7,6 +7,25 @@
     <meta name="description" content="Enter the latest SuperSteaks sports sweepstakes draw for free. Get your random team assignment and join the fun!">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaqMFsLv72_lhsbue7IWZSQsndY-o8QpU",
+            authDomain: "super-steaks.firebaseapp.com",
+            projectId: "super-steaks",
+            storageBucket: "super-steaks.appspot.com",
+            messagingSenderId: "738316680653",
+            appId: "1:738316680653:web:7671710f073edbe22b5884",
+            measurementId: "G-JB93BZSFW3"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         html { 
@@ -224,28 +243,8 @@
         </div>
     </footer>
 
-    <!-- Firebase SDKs (Version 9 compatibility) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+    <!-- Teams data and game logic starts here -->
     <script>
-      // Your web app's Firebase configuration
-      const firebaseConfig = {
-        apiKey: "AIzaSyCaqMFsLv72_lhsbue7IWZSQsndY-o8QpU",
-        authDomain: "super-steaks.firebaseapp.com",
-        projectId: "super-steaks",
-        storageBucket: "super-steaks.appspot.com",
-        messagingSenderId: "738316680653",
-        appId: "1:738316680653:web:7671710f073edbe22b5884",
-        measurementId: "G-JB93BZSFW3"
-      };
-
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      firebase.analytics();
-
       // Updated teams with specific stripe patterns and border colors
       const teams = [
         { name: "Ajax", pattern: "ajax-stripe", borderColor: "#D2122E" },
@@ -643,16 +642,19 @@
       }
       
       // Updated Enter Draw Function
-      function enterDraw() {
+      async function enterDraw() {
         // Check if user is logged in using our new system
         if (!window.SuperSteaksAuth.isLoggedIn()) {
           window.SuperSteaksAuth.showModal();
           return;
         }
         
+        // Refresh data from cloud to get latest team assignments
+        await window.SuperSteaksAuth.refreshFromCloud();
+        
         // Check if user already has a team for this contest
         const userAssignments = window.SuperSteaksAuth.getUserAssignments();
-        const contestName = 'Champions League Draw'; // You can make this dynamic
+        const contestName = 'Champions League Draw';
         const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
         
         if (existingAssignment) {
@@ -685,13 +687,13 @@
         messageArea.classList.remove('text-red-600', 'text-green-600');
         messageArea.classList.add('text-indigo-600');
         
-        setTimeout(() => {
+        setTimeout(async () => {
           // Select random team from available teams only
           const selectedTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
           console.log('Selected team:', selectedTeam.name, 'from', availableTeams.length, 'available teams');
           
-          // Save team assignment to user account
-          window.SuperSteaksAuth.addTeamAssignment(contestName, selectedTeam.name);
+          // Save team assignment to cloud database
+          await window.SuperSteaksAuth.addTeamAssignment(contestName, selectedTeam.name);
           
           // Update UI
           displayUserTeam(selectedTeam);
