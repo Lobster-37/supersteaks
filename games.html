@@ -28,8 +28,12 @@
         try {
             firebase.initializeApp(firebaseConfig);
             console.log('Firebase initialized successfully in head');
+            
+            // Set a global flag that Firebase is ready
+            window.firebaseReady = true;
         } catch (error) {
             console.error('Firebase initialization failed:', error);
+            window.firebaseReady = false;
         }
     </script>
     
@@ -342,91 +346,108 @@
         
         console.log('Games page loaded');
         console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
+        console.log('Firebase ready:', !!window.firebaseReady);
+        
+        // Wait for both Firebase and user account system to be ready
+        if (window.firebaseReady && window.SuperSteaksAuth) {
+          console.log('Both Firebase and SuperSteaksAuth are ready, initializing...');
+          
+          // Initialize the user account system with Firebase
+          window.SuperSteaksAuth.initialize().then(() => {
+            console.log('SuperSteaksAuth initialized successfully');
+            
+            // Check if user is logged in and has team assignment
+            if (window.SuperSteaksAuth.isLoggedIn()) {
+              console.log('User is already logged in');
+              
+              // Update UI to show logged in state
+              const currentUser = window.SuperSteaksAuth.getCurrentUser();
+              updateUIForLoggedInState(currentUser);
+              
+              const userAssignments = window.SuperSteaksAuth.getUserAssignments();
+              const contestName = 'Champions League Draw';
+              const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
+              
+              if (existingAssignment) {
+                // User has a team assigned - display it
+                const teamName = existingAssignment.team;
+                const selectedTeam = teams.find(team => team.name === teamName);
+                
+                if (selectedTeam) {
+                  assignedTeamEl.textContent = teamName;
+                  assignedTeamEl.classList.add('text-green-600');
+                  
+                  // Apply team styling
+                  teamContainerEl.style.borderColor = selectedTeam.borderColor || '#10B981';
+                  
+                  if (selectedTeam.pattern) {
+                    teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
+                    teamContainerEl.classList.add(selectedTeam.pattern);
+                    teamContainerEl.style.backgroundColor = 'transparent';
+                  } else {
+                    teamContainerEl.style.backgroundColor = selectedTeam.color || '#4f46e5';
+                  }
+                  
+                  enterButton.disabled = true;
+                  enterButton.textContent = 'Team Already Assigned!';
+                  enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                  enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                  messageArea.textContent = `Welcome back! You're supporting ${teamName}. Good luck!`;
+                  messageArea.classList.remove('text-indigo-600');
+                  messageArea.classList.add('text-green-600');
+                }
+              }
+            }
+          }).catch(error => {
+            console.error('Failed to initialize SuperSteaksAuth:', error);
+          });
+        } else {
+          console.log('Waiting for Firebase and SuperSteaksAuth to be ready...');
+          console.log('Firebase ready:', !!window.firebaseReady);
+          console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
+        }
         
         // Generate a simple local user ID for demo purposes
         userId = 'demo_' + Math.random().toString(36).substr(2, 9);
         userIdDisplay.textContent = userId;
 
-        // Check if user is logged in and has team assignment
-        if (window.SuperSteaksAuth && window.SuperSteaksAuth.isLoggedIn()) {
-          console.log('User is already logged in');
+        // Fallback: Check old localStorage system for backward compatibility
+        const existingEntry = localStorage.getItem(`entry_${currentDrawId}`);
+        
+        if (existingEntry) {
+          const entry = JSON.parse(existingEntry);
+          const teamName = entry.assignedTeam;
           
-          // Update UI to show logged in state
-          const currentUser = window.SuperSteaksAuth.getCurrentUser();
-          updateUIForLoggedInState(currentUser);
-          
-          const userAssignments = window.SuperSteaksAuth.getUserAssignments();
-          const contestName = 'Champions League Draw';
-          const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
-          
-          if (existingAssignment) {
-            // User has a team assigned - display it
-            const teamName = existingAssignment.team;
-            const selectedTeam = teams.find(team => team.name === teamName);
+          // Check if this is an old entry without initials - if so, clear it
+          if (!entry.teamInitials) {
+            localStorage.removeItem(`entry_${currentDrawId}`);
+            // Reset to fresh state
+            assignedTeamEl.textContent = 'Awaiting Entry...';
+            enterButton.disabled = false;
+            enterButton.textContent = 'Enter Draw Now!';
+          } else {
+            // Valid entry with team assignment
+            assignedTeamEl.textContent = teamName;
+            assignedTeamEl.classList.add('text-green-600');
             
-            if (selectedTeam) {
-              assignedTeamEl.textContent = teamName;
-              assignedTeamEl.classList.add('text-green-600');
-              
-              // Apply team styling
-              teamContainerEl.style.borderColor = selectedTeam.borderColor || '#10B981';
-              
-              if (selectedTeam.pattern) {
-                teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
-                teamContainerEl.classList.add(selectedTeam.pattern);
-                teamContainerEl.style.backgroundColor = 'transparent';
-              } else {
-                teamContainerEl.style.backgroundColor = selectedTeam.color || '#4f46e5';
-              }
-              
-              enterButton.disabled = true;
-              enterButton.textContent = 'Team Already Assigned!';
-              enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
-              enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-              messageArea.textContent = `Welcome back! You're supporting ${teamName}. Good luck!`;
-              messageArea.classList.remove('text-indigo-600');
-              messageArea.classList.add('text-green-600');
-            }
-          }
-        } else {
-          // Check old localStorage system for backward compatibility
-          const existingEntry = localStorage.getItem(`entry_${currentDrawId}`);
-          
-          if (existingEntry) {
-            const entry = JSON.parse(existingEntry);
-            const teamName = entry.assignedTeam;
+            // Apply team styling
+            teamContainerEl.style.borderColor = entry.borderColor || '#fbbf24';
             
-            // Check if this is an old entry without initials - if so, clear it
-            if (!entry.teamInitials) {
-              localStorage.removeItem(`entry_${currentDrawId}`);
-              // Reset to fresh state
-              assignedTeamEl.textContent = 'Awaiting Entry...';
-              enterButton.disabled = false;
-              enterButton.textContent = 'Enter Draw Now!';
+            if (entry.pattern) {
+              teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
+              teamContainerEl.classList.add(entry.pattern);
+              teamContainerEl.style.backgroundColor = 'transparent';
             } else {
-              // Valid entry with team assignment
-              assignedTeamEl.textContent = teamName;
-              assignedTeamEl.classList.add('text-green-600');
-              
-              // Apply team styling
-              teamContainerEl.style.borderColor = entry.borderColor || '#fbbf24';
-              
-              if (entry.pattern) {
-                teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
-                teamContainerEl.classList.add(entry.pattern);
-                teamContainerEl.style.backgroundColor = 'transparent';
-              } else {
-                teamContainerEl.style.backgroundColor = entry.teamColor || '#4f46e5';
-              }
-              
-              enterButton.disabled = true;
-              enterButton.textContent = 'Already Entered!';
-              enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
-              enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-              messageArea.textContent = `You are cheering for ${teamName}! Good luck!`;
-              messageArea.classList.remove('text-indigo-600');
-              messageArea.classList.add('text-green-600');
+              teamContainerEl.style.backgroundColor = entry.teamColor || '#4f46e5';
             }
+            
+            enterButton.disabled = true;
+            enterButton.textContent = 'Already Entered!';
+            enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+            enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+            messageArea.textContent = `You are cheering for ${teamName}! Good luck!`;
+            messageArea.classList.remove('text-indigo-600');
+            messageArea.classList.add('text-green-600');
           }
         }
       };
