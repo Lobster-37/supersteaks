@@ -358,40 +358,48 @@
             
             // Update UI to show logged in state
             const currentUser = window.SuperSteaksAuth.getCurrentUser();
-            updateUIForLoggedInState(currentUser);
+            console.log('Current user from SuperSteaksAuth:', currentUser);
             
-            const userAssignments = window.SuperSteaksAuth.getUserAssignments();
-            const contestName = 'Champions League Draw';
-            const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
-            
-            if (existingAssignment) {
-              // User has a team assigned - display it
-              const teamName = existingAssignment.team;
-              const selectedTeam = teams.find(team => team.name === teamName);
+            if (currentUser && currentUser.username) {
+              updateUIForLoggedInState(currentUser);
               
-              if (selectedTeam) {
-                assignedTeamEl.textContent = teamName;
-                assignedTeamEl.classList.add('text-green-600');
+              const userAssignments = window.SuperSteaksAuth.getUserAssignments();
+              const contestName = 'Champions League Draw';
+              const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
+              
+              if (existingAssignment) {
+                // User has a team assigned - display it
+                const teamName = existingAssignment.team;
+                const selectedTeam = teams.find(team => team.name === teamName);
                 
-                // Apply team styling
-                teamContainerEl.style.borderColor = selectedTeam.borderColor || '#10B981';
-                
-                if (selectedTeam.pattern) {
-                  teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
-                  teamContainerEl.classList.add(selectedTeam.pattern);
-                  teamContainerEl.style.backgroundColor = 'transparent';
-                } else {
-                  teamContainerEl.style.backgroundColor = selectedTeam.color || '#4f46e5';
+                if (selectedTeam) {
+                  assignedTeamEl.textContent = teamName;
+                  assignedTeamEl.classList.add('text-green-600');
+                  
+                  // Apply team styling
+                  teamContainerEl.style.borderColor = selectedTeam.borderColor || '#10B981';
+                  
+                  if (selectedTeam.pattern) {
+                    teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
+                    teamContainerEl.classList.add(selectedTeam.pattern);
+                    teamContainerEl.style.backgroundColor = 'transparent';
+                  } else {
+                    teamContainerEl.style.backgroundColor = selectedTeam.color || '#4f46e5';
+                  }
+                  
+                  enterButton.disabled = true;
+                  enterButton.textContent = 'Team Already Assigned!';
+                  enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                  enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                  messageArea.textContent = `Welcome back! You're supporting ${teamName}. Good luck!`;
+                  messageArea.classList.remove('text-indigo-600');
+                  messageArea.classList.add('text-green-600');
                 }
-                
-                enterButton.disabled = true;
-                enterButton.textContent = 'Team Already Assigned!';
-                enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
-                enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-                messageArea.textContent = `Welcome back! You're supporting ${teamName}. Good luck!`;
-                messageArea.classList.remove('text-indigo-600');
-                messageArea.classList.add('text-green-600');
               }
+            } else {
+              console.log('User appears logged in but no valid user data found, logging out');
+              window.SuperSteaksAuth.logout();
+              updateUIForLoggedOutState();
             }
           }
         } else {
@@ -575,6 +583,14 @@
       // UI Management Functions
       function updateUIForLoggedInState(user) {
         console.log('Updating UI for logged in user:', user);
+        
+        // Validate user object
+        if (!user || !user.username) {
+          console.error('Invalid user object passed to updateUIForLoggedInState:', user);
+          updateUIForLoggedOutState();
+          return;
+        }
+        
         document.getElementById('auth-buttons').classList.add('hidden');
         document.getElementById('user-info').classList.remove('hidden');
         document.getElementById('username-display').textContent = user.username;
@@ -664,11 +680,32 @@
       
       // Updated Enter Draw Function
       async function enterDraw() {
+        console.log('enterDraw called');
+        console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
+        console.log('User logged in:', window.SuperSteaksAuth.isLoggedIn());
+        
         // Check if user is logged in using our new system
-        if (!window.SuperSteaksAuth.isLoggedIn()) {
-          window.SuperSteaksAuth.showModal();
+        if (!window.SuperSteaksAuth || !window.SuperSteaksAuth.isLoggedIn()) {
+          console.log('User not logged in, showing modal');
+          if (window.SuperSteaksAuth && window.SuperSteaksAuth.showModal) {
+            window.SuperSteaksAuth.showModal();
+          } else {
+            showAuthModal(false);
+          }
           return;
         }
+        
+        // Verify user data is valid
+        const currentUser = window.SuperSteaksAuth.getCurrentUser();
+        if (!currentUser || !currentUser.username) {
+          console.log('Invalid user data, forcing logout and re-login');
+          window.SuperSteaksAuth.logout();
+          updateUIForLoggedOutState();
+          showAuthModal(false);
+          return;
+        }
+        
+        console.log('Valid user found:', currentUser.username);
         
         // Refresh data from cloud to get latest team assignments
         await window.SuperSteaksAuth.refreshFromCloud();
