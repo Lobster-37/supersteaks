@@ -582,26 +582,36 @@
       
       // UI Management Functions
       function updateUIForLoggedInState(user) {
+        // Defensive: allow callers to pass either a user object or a Promise that resolves to one.
+        if (user && typeof user.then === 'function') {
+          // If a Promise-like object was passed, wait for it and re-call this function with the resolved value.
+          user.then(resolved => updateUIForLoggedInState(resolved)).catch(err => {
+            console.error('Error resolving user Promise for UI update:', err);
+            updateUIForLoggedOutState();
+          });
+          return;
+        }
+
         console.log('Updating UI for logged in user:', user);
-        
+
         // Validate user object
         if (!user || !user.username) {
           console.error('Invalid user object passed to updateUIForLoggedInState:', user);
           updateUIForLoggedOutState();
           return;
         }
-        
+
         document.getElementById('auth-buttons').classList.add('hidden');
         document.getElementById('user-info').classList.remove('hidden');
         document.getElementById('username-display').textContent = user.username;
-        
+
         // Check if user has a team assignment for this contest
         const userAssignments = window.SuperSteaksAuth.getUserAssignments();
         console.log('User assignments:', userAssignments);
         const contestName = 'Champions League Draw';
         const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
         console.log('Existing assignment for Champions League Draw:', existingAssignment);
-        
+
         if (existingAssignment) {
           console.log('Found team assignment:', existingAssignment.team);
           // Find the team object for display

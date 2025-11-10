@@ -44,6 +44,12 @@ class UserAccountSystem {
                 return users;
             } catch (error) {
                 console.error('Error loading users from Firestore:', error);
+                // Detect if a browser extension is blocking Firebase network requests
+                try {
+                    this.handleFirebaseBlocked && this.handleFirebaseBlocked(error);
+                } catch (e) {
+                    console.error('Error while handling Firebase block detection:', e);
+                }
                 return this.loadUsersFromLocalStorage();
             }
         } else {
@@ -350,6 +356,33 @@ class UserAccountSystem {
                 console.log('User info hidden');
             }
         }
+    }
+
+    // Detect and show a user-visible banner when Firebase network calls are blocked by extensions
+    handleFirebaseBlocked(error) {
+        // Basic detection from error message or common network error patterns
+        const msg = (error && (error.message || '')).toString().toLowerCase();
+        const likelyBlocked = msg.includes('blocked') || msg.includes('err_blocked_by_client') || msg.includes('networkerror') || msg.includes('fetch') || msg.includes('typeerror');
+
+        if (!likelyBlocked) return;
+
+        // Don't add multiple banners
+        if (document.getElementById('firebase-blocked-banner')) return;
+
+        const banner = document.createElement('div');
+        banner.id = 'firebase-blocked-banner';
+        banner.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:9999;padding:12px;text-align:center;background:#fff3cd;border-bottom:1px solid #ffeeba;color:#856404;font-family:Inter,system-ui,sans-serif;';
+        banner.innerHTML = `Firebase network requests appear to be blocked by a browser extension (e.g. an ad-blocker). This prevents login and cloud sync. Please disable or whitelist this site and refresh the page. <button id="fb-unblock-info" style="margin-left:8px;padding:6px 10px;background:#fff;border:1px solid #856404;border-radius:6px;cursor:pointer;">How to fix</button>`;
+        document.body.appendChild(banner);
+
+        document.getElementById('fb-unblock-info').addEventListener('click', () => {
+            const info = `Try one of these options:\n\n` +
+                `1) Open an Incognito/Private window (extensions are usually disabled there) and try the site again.\n` +
+                `2) Disable or pause your ad-blocker/privacy extension for this site.\n` +
+                `3) Whitelist these domains in your extension: firestore.googleapis.com, firebase.googleapis.com, gstatic.com, googleapis.com, firebaseapp.com.\n\n` +
+                `If you need help, tell me which browser and which ad-blocker you're using and I can give exact steps.`;
+            alert(info);
+        });
     }
 
     // Initialize event listeners
