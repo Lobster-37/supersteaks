@@ -114,6 +114,11 @@
                     <div class="mb-6">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
                         <input type="password" id="login-password" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                        <div class="mt-2 text-right">
+                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium underline">
+                                Forgot Password?
+                            </button>
+                        </div>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
                         <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
@@ -155,6 +160,31 @@
             <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
                 ×
             </button>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Reset Password</h2>
+            <form id="reset-password-form-element">
+                <div class="mb-4">
+                    <label for="reset-email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="reset-email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <p id="reset-validation-text" class="text-sm text-gray-600 mb-4">
+                    Enter your email address and we'll send you a link to reset your password.
+                </p>
+                <div class="flex gap-3">
+                    <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
+                        Send Reset Email
+                    </button>
+                    <button type="button" id="cancel-reset" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition w-full sm:w-auto">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+            <button id="close-reset-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
     </div>
 
@@ -264,51 +294,81 @@
             document.getElementById('register-form-element').reset();
         }
         
-        // Event Listeners
-        document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
-        document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
-        document.getElementById('close-modal').addEventListener('click', hideAuthModal);
-        document.getElementById('logout-btn').addEventListener('click', logoutUser);
+        function showResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.remove('hidden');
+        }
         
-        document.getElementById('switch-to-register').addEventListener('click', () => {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-        });
+        function hideResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.add('hidden');
+            document.getElementById('reset-password-form-element').reset();
+        }
         
-        document.getElementById('switch-to-login').addEventListener('click', () => {
-            document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-        });
+        async function resetPassword(email) {
+            await window.SuperSteaksAuth.resetPassword(email);
+        }
         
-        // Form submissions - redirect to games.html for actual account creation/login
-        document.getElementById('login-form-element').addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Please go to the "Enter Now" page to login or create an account!');
-            window.location.href = 'games.html';
-        });
-        
-        document.getElementById('register-form-element').addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Please go to the "Enter Now" page to create your account!');
-            window.location.href = 'games.html';
-        });
-        
-        // Close modal when clicking outside
-        document.getElementById('auth-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'auth-modal') {
-                hideAuthModal();
-            }
-        });
-        
-        // Initialize UI on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        // Event Listeners - wrapped in DOMContentLoaded for proper timing
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
+            document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
+            document.getElementById('close-modal').addEventListener('click', hideAuthModal);
+            document.getElementById('logout-btn').addEventListener('click', logoutUser);
+            
+            // Password Reset Event Listeners
+            document.getElementById('forgot-password-link').addEventListener('click', showResetPasswordModal);
+            document.getElementById('close-reset-modal').addEventListener('click', hideResetPasswordModal);
+            document.getElementById('cancel-reset').addEventListener('click', hideResetPasswordModal);
+            
+            document.getElementById('switch-to-register').addEventListener('click', () => {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            });
+            
+            document.getElementById('switch-to-login').addEventListener('click', () => {
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+            });
+            
+            // Form submissions - redirect to games.html for actual account creation/login
+            document.getElementById('login-form-element').addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('Please go to the "Enter Now" page to login or create an account!');
+                window.location.href = 'games.html';
+            });
+            
+            document.getElementById('register-form-element').addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('Please go to the "Enter Now" page to create your account!');
+                window.location.href = 'games.html';
+            });
+            
+            document.getElementById('reset-password-form-element').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('reset-email').value;
+                
+                try {
+                    await resetPassword(email);
+                } catch (error) {
+                    console.error('Password reset error:', error);
+                }
+            });
+            
+            // Close modal when clicking outside
+            document.getElementById('auth-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'auth-modal') {
+                    hideAuthModal();
+                }
+            });
+            
+            // Initialize UI on page load
             const currentUser = getCurrentUser();
             if (currentUser) {
                 updateUIForLoggedInState(currentUser);
             } else {
                 updateUIForLoggedOutState();
             }
-        });
+            
+        }); // End DOMContentLoaded
     </script>
 </body>
 </html>
