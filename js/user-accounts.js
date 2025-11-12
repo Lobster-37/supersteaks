@@ -422,9 +422,13 @@ Email: ${email}`);
             });
         }
         
-        // Clear local state
+        // Clear all local state and storage
         this.currentUser = null;
         this.clearSession();
+        
+        // Clear any other session-related localStorage items
+        localStorage.removeItem('supersteaks_users');
+        
         this.updateUI(false);
     }
 
