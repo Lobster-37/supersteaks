@@ -38,11 +38,54 @@ class UserAccountSystem {
             }
             
             // Set up auth state listener
-            this.auth.onAuthStateChanged((user) => {
+            this.auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     console.log('Auth state changed - user signed in:', user.email, 'verified:', user.emailVerified);
+                    
+                    // Update internal current user state
+                    try {
+                        // Try to get user metadata from Firestore
+                        const userDoc = await this.db.collection('users').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            this.currentUser = {
+                                uid: user.uid,
+                                email: user.email,
+                                emailVerified: user.emailVerified,
+                                username: userDoc.data().username || user.email
+                            };
+                        } else {
+                            // Fallback to basic Firebase user info
+                            this.currentUser = {
+                                uid: user.uid,
+                                email: user.email,
+                                emailVerified: user.emailVerified,
+                                username: user.email
+                            };
+                        }
+                        console.log('Internal currentUser updated:', this.currentUser);
+                        
+                        // Update UI
+                        if (window.updateUIForLoggedInState) {
+                            window.updateUIForLoggedInState(this.currentUser);
+                        }
+                    } catch (error) {
+                        console.error('Error updating currentUser from Firebase auth state:', error);
+                        // Basic fallback
+                        this.currentUser = {
+                            uid: user.uid,
+                            email: user.email,
+                            emailVerified: user.emailVerified,
+                            username: user.email
+                        };
+                    }
                 } else {
                     console.log('Auth state changed - user signed out');
+                    this.currentUser = null;
+                    
+                    // Update UI
+                    if (window.updateUIForLoggedOutState) {
+                        window.updateUIForLoggedOutState();
+                    }
                 }
             });
             
