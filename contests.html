@@ -6,11 +6,6 @@
     <title>SuperSteaks - Random Team Assignment Draws</title>
     <meta name="description" content="Browse SuperSteaks random team assignment draws. Enter for free and get randomly assigned teams from major sports competitions.">
     
-    <!-- TEST: THIS SHOULD MAKE THE BACKGROUND RED -->
-    <style>
-        body { background: red !important; }
-    </style>
-    
     <!-- Firebase CDN Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -458,7 +453,7 @@
         });
     </script>
     
-    <!-- Temporarily comment out user-accounts.js to test standalone -->
-    <!-- <script src="js/user-accounts.js"></script> -->
+    <!-- Load user accounts system AFTER DOM is available -->
+    <script src="js/user-accounts.js"></script>
 </body>
 </html>
