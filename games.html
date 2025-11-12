@@ -10,18 +10,18 @@
     
     <!-- Firebase SDK - Load first -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
     <!-- Firebase Configuration - Initialize immediately -->
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCaqMFsLv72_lhsbue7IWZSQsndY-o8QpU",
-            authDomain: "super-steaks.firebaseapp.com",
-            projectId: "super-steaks",
-            storageBucket: "super-steaks.appspot.com",
-            messagingSenderId: "738316680653",
-            appId: "1:738316680653:web:7671710f073edbe22b5884",
-            measurementId: "G-JB93BZSFW3"
+            apiKey: "AIzaSyCSQMJH6G3aO_2HXlW6rQiJx7o5AhGTrWA",
+            authDomain: "supersteaks-240f7.firebaseapp.com",
+            projectId: "supersteaks-240f7",
+            storageBucket: "supersteaks-240f7.firebasestorage.app",
+            messagingSenderId: "1049020570701",
+            appId: "1:1049020570701:web:d5c9bfeaaf7a9c7ae8c6f5"
         };
         
         // Initialize Firebase immediately
@@ -131,8 +131,8 @@
                 <h2 class="text-2xl font-bold text-indigo-800 mb-6">Login to Your Account</h2>
                 <form id="login-form-element">
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
-                        <input type="text" id="login-username" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username or Email</label>
+                        <input type="text" id="login-identifier" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="Enter your username or email" required>
                     </div>
                     <div class="mb-6">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>

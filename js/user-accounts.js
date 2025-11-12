@@ -125,11 +125,8 @@ class UserAccountSystem {
         this.updateUI(false);
     }
 
-    // Register new user
+    // Register new user with Firebase Authentication
     async register(username, email, password) {
-        // Load latest users from cloud
-        await this.loadUsers();
-        
         // Validation
         if (!username || !email || !password) {
             throw new Error('All fields are required');
@@ -147,67 +144,143 @@ class UserAccountSystem {
             throw new Error('Please enter a valid email address');
         }
 
-        // Check if user already exists
-        if (this.users[username.toLowerCase()]) {
-            throw new Error('Username already exists');
-        }
-
-        // Check if email already exists
-        for (let user of Object.values(this.users)) {
-            if (user.email.toLowerCase() === email.toLowerCase()) {
-                throw new Error('Email already registered');
+        try {
+            // Create user with Firebase Auth
+            const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+            const firebaseUser = userCredential.user;
+            
+            // Send email verification
+            await firebaseUser.sendEmailVerification();
+            
+            console.log('Firebase registration successful, verification email sent');
+            
+            // Store user metadata in Firestore (optional)
+            if (this.db) {
+                try {
+                    await this.db.collection('users').doc(firebaseUser.uid).set({
+                        username: username,
+                        email: email,
+                        registeredDate: new Date().toISOString(),
+                        teamAssignments: [],
+                        contestsEntered: []
+                    });
+                } catch (firestoreError) {
+                    console.warn('Failed to save user metadata to Firestore:', firestoreError);
+                }
+            }
+            
+            return { 
+                username: username, 
+                email: email,
+                uid: firebaseUser.uid,
+                emailVerified: firebaseUser.emailVerified
+            };
+            
+        } catch (error) {
+            console.error('Firebase registration error:', error);
+            
+            // Provide user-friendly error messages
+            if (error.code === 'auth/email-already-in-use') {
+                throw new Error('An account with this email address already exists.');
+            } else if (error.code === 'auth/weak-password') {
+                throw new Error('Password is too weak. Please choose a stronger password.');
+            } else if (error.code === 'auth/invalid-email') {
+                throw new Error('Invalid email address format.');
+            } else {
+                throw new Error(error.message || 'Registration failed. Please try again.');
             }
         }
-
-        // Create new user
-        const newUser = {
-            username: username,
-            email: email,
-            password: this.hashPassword(password), // Simple hash
-            registeredDate: new Date().toISOString(),
-            teamAssignments: [],
-            contestsEntered: []
-        };
-
-        this.users[username.toLowerCase()] = newUser;
-        await this.saveUsers();
-
-        return { username, email };
     }
 
-    // Login user
-    async login(username, password) {
-        console.log('Login attempt:', username);
+    // Login user with Firebase Authentication (supports username or email)
+    async login(identifier, password) {
+        console.log('Firebase login attempt with identifier:', identifier);
         
-        // Load latest users from cloud
-        await this.loadUsers();
-        console.log('Available users:', Object.keys(this.users));
-        
-        if (!username || !password) {
-            throw new Error('Username and password are required');
+        if (!identifier || !password) {
+            throw new Error('Username/Email and password are required');
         }
 
-        const user = this.users[username.toLowerCase()];
-        console.log('Found user:', !!user);
-        
-        if (!user) {
-            console.log('User not found in database');
-            throw new Error('Invalid username or password');
-        }
+        let email = identifier;
+        let username = '';
 
-        const hashedPassword = this.hashPassword(password);
-        console.log('Password check - Stored:', user.password, 'Provided hash:', hashedPassword);
-        
-        if (user.password !== hashedPassword) {
-            console.log('Password mismatch');
-            throw new Error('Invalid username or password');
-        }
+        try {
+            // If identifier is not an email, try to find the email by username
+            if (!identifier.includes('@')) {
+                // Look up email by username in our Firestore user metadata
+                if (this.db) {
+                    try {
+                        const usersSnapshot = await this.db.collection('users').where('username', '==', identifier).get();
+                        if (!usersSnapshot.empty) {
+                            const userDoc = usersSnapshot.docs[0];
+                            email = userDoc.data().email;
+                            username = userDoc.data().username;
+                        } else {
+                            throw new Error('Username not found. Please use your email address or check your username.');
+                        }
+                    } catch (firestoreError) {
+                        console.warn('Failed to lookup username in Firestore:', firestoreError);
+                        throw new Error('Username lookup failed. Please try logging in with your email address.');
+                    }
+                } else {
+                    throw new Error('Username login not available. Please use your email address.');
+                }
+            } else {
+                // Extract username from email if logging in with email
+                username = email.split('@')[0];
+            }
 
-        console.log('Login successful');
-        this.currentUser = { username: user.username, email: user.email };
-        this.saveSession(this.currentUser);
-        this.restoreUserTeamAssignments();
-        return this.currentUser;
+            // Sign in with Firebase Auth using email
+            const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+            const firebaseUser = userCredential.user;
+            
+            // Check if email is verified
+            if (!firebaseUser.emailVerified) {
+                throw new Error('Please verify your email address before logging in. Check your inbox for the verification email.');
+            }
+            
+            console.log('Firebase login successful');
+            
+            // If we logged in with email but don't have username, try to get it from Firestore
+            if (!username || username === email.split('@')[0]) {
+                if (this.db) {
+                    try {
+                        const userDoc = await this.db.collection('users').doc(firebaseUser.uid).get();
+                        if (userDoc.exists) {
+                            username = userDoc.data().username || email.split('@')[0];
+                        }
+                    } catch (error) {
+                        console.warn('Could not retrieve username from Firestore:', error);
+                        username = email.split('@')[0]; // fallback
+                    }
+                }
+            }
+            
+            this.currentUser = { 
+                username: username,
+                email: email,
+                uid: firebaseUser.uid
+            };
+            
+            this.saveSession(this.currentUser);
+            this.restoreUserTeamAssignments();
+            return this.currentUser;
+            
+        } catch (error) {
+            console.error('Firebase login error:', error);
+            
+            // Provide user-friendly error messages
+            if (error.code === 'auth/user-not-found') {
+                throw new Error('No account found with this email address.');
+            } else if (error.code === 'auth/wrong-password') {
+                throw new Error('Incorrect password.');
+            } else if (error.code === 'auth/invalid-email') {
+                throw new Error('Invalid email address format.');
+            } else if (error.code === 'auth/too-many-requests') {
+                throw new Error('Too many failed attempts. Please try again later.');
+            } else {
+                throw new Error(error.message || 'Login failed. Please try again.');
+            }
+        }
     }
 
     // Logout user
@@ -504,11 +577,11 @@ class UserAccountSystem {
 
     // Handle login form submission
     async handleLogin() {
-        const username = document.getElementById('login-username')?.value;
+        const identifier = document.getElementById('login-identifier')?.value;
         const password = document.getElementById('login-password')?.value;
 
         try {
-            const user = await this.login(username, password);
+            const user = await this.login(identifier, password);
             this.updateUI(true);
             this.hideModal();
             this.showSuccess('Login successful! Welcome back, ' + user.username + '!');
