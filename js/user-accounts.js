@@ -411,6 +411,18 @@ Email: ${email}`);
 
     // Logout user
     logout() {
+        console.log('Logging out user...');
+        
+        // Sign out from Firebase Auth
+        if (this.auth) {
+            this.auth.signOut().then(() => {
+                console.log('Firebase signOut successful');
+            }).catch((error) => {
+                console.error('Error signing out from Firebase:', error);
+            });
+        }
+        
+        // Clear local state
         this.currentUser = null;
         this.clearSession();
         this.updateUI(false);
