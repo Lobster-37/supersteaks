@@ -432,6 +432,44 @@ Email: ${email}`);
         this.updateUI(false);
     }
 
+    // Password reset functionality
+    async resetPassword(email) {
+        console.log('Attempting password reset for email:', email);
+        
+        if (!email || !this.isValidEmail(email)) {
+            throw new Error('Please enter a valid email address');
+        }
+        
+        if (!this.auth) {
+            throw new Error('Authentication system not available');
+        }
+        
+        try {
+            await this.auth.sendPasswordResetEmail(email);
+            console.log('Password reset email sent successfully');
+            return { 
+                success: true, 
+                message: `Password reset email sent to ${email}. Please check your inbox and follow the instructions to reset your password.` 
+            };
+        } catch (error) {
+            console.error('Password reset error:', error);
+            
+            // Handle specific Firebase Auth errors
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    throw new Error('No account found with this email address. Please check your email or create a new account.');
+                case 'auth/invalid-email':
+                    throw new Error('Please enter a valid email address');
+                case 'auth/too-many-requests':
+                    throw new Error('Too many password reset attempts. Please wait a moment and try again.');
+                case 'auth/network-request-failed':
+                    throw new Error('Network error. Please check your internet connection and try again.');
+                default:
+                    throw new Error('Failed to send password reset email. Please try again later.');
+            }
+        }
+    }
+
     // Simple password hashing (not secure for production!)
     hashPassword(password) {
         let hash = 0;
