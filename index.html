@@ -285,24 +285,8 @@
         
         // Password Reset Modal Functions
         function showResetPasswordModal() {
-            console.log('showResetPasswordModal called');
-            const authModal = document.getElementById('auth-modal');
-            const resetModal = document.getElementById('reset-password-modal');
-            
-            console.log('Modal elements:', {
-                authModal: !!authModal,
-                resetModal: !!resetModal
-            });
-            
-            if (authModal) {
-                authModal.classList.add('hidden');
-            }
-            if (resetModal) {
-                resetModal.classList.remove('hidden');
-                console.log('Reset modal should now be visible');
-            } else {
-                console.error('reset-password-modal element not found');
-            }
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('reset-password-modal').classList.remove('hidden');
         }
         
         function hideResetPasswordModal() {
@@ -339,74 +323,28 @@
             updateUIForLoggedOutState();
         }
         
-        // Set up event listeners (script is at end of body, so elements should be available)
-        console.log('Setting up event listeners...');
-        
-        // Debug: Check if elements exist
-        const loginBtn = document.getElementById('login-btn');
-        const forgotPasswordLink = document.getElementById('forgot-password-link');
-        const resetModal = document.getElementById('reset-password-modal');
-        
-        console.log('Elements found:', {
-            loginBtn: !!loginBtn,
-            forgotPasswordLink: !!forgotPasswordLink,
-            resetModal: !!resetModal
-        });
-        
-        // Event Listeners
-        if (loginBtn) {
-            loginBtn.addEventListener('click', () => showAuthModal(false));
-        } else {
-            console.error('login-btn not found');
-        }
-        
-        const registerBtn = document.getElementById('register-btn');
-        if (registerBtn) {
-            registerBtn.addEventListener('click', () => showAuthModal(true));
-        }
-        
-        const closeModal = document.getElementById('close-modal');
-        if (closeModal) {
-            closeModal.addEventListener('click', hideAuthModal);
-        }
-        
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', logoutUser);
-        }
+        // Event Listeners (matching games.html working version)
+        document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
+        document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
+        document.getElementById('close-modal').addEventListener('click', hideAuthModal);
+        document.getElementById('logout-btn').addEventListener('click', logoutUser);
         
         // Password Reset Event Listeners
-        if (forgotPasswordLink) {
-            forgotPasswordLink.addEventListener('click', function() {
-                console.log('Forgot password link clicked!');
-                showResetPasswordModal();
-            });
-        } else {
-            console.error('forgot-password-link not found');
-        }
+        document.getElementById('forgot-password-link').addEventListener('click', showResetPasswordModal);
+        document.getElementById('close-reset-modal').addEventListener('click', hideResetPasswordModal);
+        document.getElementById('cancel-reset').addEventListener('click', hideResetPasswordModal);
+        document.getElementById('switch-to-register').addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        });
         
-        const closeResetModal = document.getElementById('close-reset-modal');
-        if (closeResetModal) {
-            closeResetModal.addEventListener('click', hideResetPasswordModal);
-        }
+        document.getElementById('switch-to-login').addEventListener('click', () => {
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        });
         
-        const cancelReset = document.getElementById('cancel-reset');
-        if (cancelReset) {
-            cancelReset.addEventListener('click', hideResetPasswordModal);
-        }
-            
-            document.getElementById('switch-to-register').addEventListener('click', () => {
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('register-form').classList.remove('hidden');
-            });
-            
-            document.getElementById('switch-to-login').addEventListener('click', () => {
-                document.getElementById('register-form').classList.add('hidden');
-                document.getElementById('login-form').classList.remove('hidden');
-            });
-            
-            // Form Submissions
-            document.getElementById('login-form-element').addEventListener('submit', async (e) => {
+        // Form Submissions
+        document.getElementById('login-form-element').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
