@@ -135,6 +135,11 @@
                     <div>
                         <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                         <input type="password" id="login-password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div class="mt-2 text-right">
+                            <button type="button" id="forgot-password-link" class="text-sm text-blue-600 hover:text-blue-800 font-medium underline">
+                                Forgot Password?
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition duration-200">
                         Login
@@ -170,6 +175,31 @@
                     <button id="switch-to-login" class="text-blue-600 hover:text-blue-800 font-medium">Login here</button>
                 </p>
             </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Reset Password</h2>
+            <form id="reset-password-form-element">
+                <div class="mb-4">
+                    <label for="reset-email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="reset-email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <p id="reset-validation-text" class="text-sm text-gray-600 mb-4">
+                    Enter your email address and we'll send you a link to reset your password.
+                </p>
+                <div class="flex gap-3">
+                    <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
+                        Send Reset Email
+                    </button>
+                    <button type="button" id="cancel-reset" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition w-full sm:w-auto">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+            <button id="close-reset-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
     </div>
 
@@ -361,6 +391,19 @@
             if (registerForm) registerForm.reset();
         }
         
+        function showResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.remove('hidden');
+        }
+        
+        function hideResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.add('hidden');
+            document.getElementById('reset-password-form-element').reset();
+        }
+        
+        async function resetPassword(email) {
+            await window.SuperSteaksAuth.resetPassword(email);
+        }
+        
         function createAccount(username, email, password) {
             if (!window.SuperSteaksAuth) {
                 throw new Error('Authentication system not loaded');
@@ -392,19 +435,26 @@
             }
             
             // Set up auth event listeners
-            const loginBtn = document.getElementById('login-btn');
-            const registerBtn = document.getElementById('register-btn');
-            const logoutBtn = document.getElementById('logout-btn');
+            document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
+            document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
+            document.getElementById('logout-btn').addEventListener('click', logoutUser);
             
-            if (loginBtn) {
-                loginBtn.addEventListener('click', () => showAuthModal(false));
-            }
-            if (registerBtn) {
-                registerBtn.addEventListener('click', () => showAuthModal(true));
-            }
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', logoutUser);
-            }
+            // Password Reset Event Listeners
+            document.getElementById('forgot-password-link').addEventListener('click', showResetPasswordModal);
+            document.getElementById('close-reset-modal').addEventListener('click', hideResetPasswordModal);
+            document.getElementById('cancel-reset').addEventListener('click', hideResetPasswordModal);
+            
+            // Password Reset Form Submission
+            document.getElementById('reset-password-form-element').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('reset-email').value;
+                
+                try {
+                    await resetPassword(email);
+                } catch (error) {
+                    console.error('Password reset error:', error);
+                }
+            });
             
             // Set up modal close functionality
             const authModal = document.getElementById('auth-modal');
