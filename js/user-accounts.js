@@ -143,7 +143,7 @@ class UserAccountSystem {
             if (Date.now() - sessionData.loginTime < 7 * 24 * 60 * 60 * 1000) {
                 this.currentUser = sessionData;
                 this.updateUI(true);
-                this.restoreUserTeamAssignments();
+                await this.restoreUserTeamAssignments();
                 return;
             } else {
                 this.clearSession();
@@ -335,7 +335,7 @@ Email: ${email}`);
             };
             
             this.saveSession(this.currentUser);
-            this.restoreUserTeamAssignments();
+            await this.restoreUserTeamAssignments();
             return this.currentUser;
             
         } catch (error) {
@@ -385,38 +385,98 @@ Email: ${email}`);
         console.log('addTeamAssignment called:', contestName, teamName);
         console.log('Current user:', this.currentUser);
         
-        if (!this.currentUser) {
-            console.log('No current user - cannot save assignment');
+        if (!this.currentUser || !this.currentUser.uid) {
+            console.log('No current user or UID - cannot save assignment');
             return;
         }
 
-        // Load latest users to prevent conflicts
-        await this.loadUsers();
-
-        const user = this.users[this.currentUser.username.toLowerCase()];
-        console.log('Found user in database:', user);
+        const assignment = {
+            contest: contestName,
+            team: teamName,
+            date: new Date().toISOString()
+        };
         
-        if (user) {
-            const assignment = {
-                contest: contestName,
-                team: teamName,
-                date: new Date().toISOString()
-            };
-            console.log('Adding assignment:', assignment);
-            user.teamAssignments.push(assignment);
-            user.contestsEntered.push(contestName);
-            await this.saveUsers();
-            console.log('Assignment saved successfully to cloud');
-        } else {
-            console.log('User not found in database');
+        console.log('Adding assignment:', assignment);
+
+        try {
+            // Save to Firestore using user's UID
+            if (this.db) {
+                const userRef = this.db.collection('users').doc(this.currentUser.uid);
+                const userDoc = await userRef.get();
+                
+                let userData = {};
+                if (userDoc.exists) {
+                    userData = userDoc.data();
+                }
+                
+                // Initialize arrays if they don't exist
+                if (!userData.teamAssignments) userData.teamAssignments = [];
+                if (!userData.contestsEntered) userData.contestsEntered = [];
+                
+                // Add new assignment
+                userData.teamAssignments.push(assignment);
+                if (!userData.contestsEntered.includes(contestName)) {
+                    userData.contestsEntered.push(contestName);
+                }
+                
+                // Update Firestore
+                await userRef.set(userData, { merge: true });
+                console.log('Assignment saved successfully to Firestore');
+                
+                // Also save to localStorage as backup
+                this.saveAssignmentToLocalStorage(assignment);
+                
+            } else {
+                // Fallback to localStorage only
+                console.log('Firestore not available, saving to localStorage only');
+                this.saveAssignmentToLocalStorage(assignment);
+            }
+        } catch (error) {
+            console.error('Error saving assignment:', error);
+            // Fallback to localStorage
+            this.saveAssignmentToLocalStorage(assignment);
         }
     }
+    
+    // Save assignment to localStorage as backup
+    saveAssignmentToLocalStorage(assignment) {
+        if (!this.currentUser) return;
+        
+        const key = `teamAssignments_${this.currentUser.email}`;
+        let assignments = JSON.parse(localStorage.getItem(key) || '[]');
+        assignments.push(assignment);
+        localStorage.setItem(key, JSON.stringify(assignments));
+        console.log('Assignment saved to localStorage as backup');
+    }
 
-    // Get user's team assignments
-    getUserAssignments() {
+    // Get user's team assignments from Firestore
+    async getUserAssignments() {
         if (!this.currentUser) return [];
-        const user = this.users[this.currentUser.username.toLowerCase()];
-        return user ? user.teamAssignments : [];
+        
+        try {
+            // Try to get from Firestore first
+            if (this.db && this.currentUser.uid) {
+                const userDoc = await this.db.collection('users').doc(this.currentUser.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    console.log('Loaded assignments from Firestore:', userData.teamAssignments);
+                    return userData.teamAssignments || [];
+                }
+            }
+            
+            // Fallback to localStorage
+            const key = `teamAssignments_${this.currentUser.email}`;
+            const assignments = JSON.parse(localStorage.getItem(key) || '[]');
+            console.log('Loaded assignments from localStorage:', assignments);
+            return assignments;
+            
+        } catch (error) {
+            console.error('Error loading assignments:', error);
+            
+            // Final fallback to localStorage
+            const key = `teamAssignments_${this.currentUser.email}`;
+            return JSON.parse(localStorage.getItem(key) || '[]');
+        }
     }
 
     // Get all users and their team assignments (public data only)
@@ -737,10 +797,11 @@ If you don't see the email, check your spam folder.`;
     }
 
     // Restore user's team assignments when they log back in
-    restoreUserTeamAssignments() {
+    async restoreUserTeamAssignments() {
         if (!this.currentUser) return;
 
-        const assignments = this.getUserAssignments();
+        const assignments = await this.getUserAssignments();
+        console.log('Restoring assignments for user:', this.currentUser.username, assignments);
         
         // If we're on the games page, check if user has a team for the current contest
         if (window.location.pathname.includes('games.html') || document.getElementById('assigned-team')) {
@@ -748,7 +809,10 @@ If you don't see the email, check your spam folder.`;
             const existingAssignment = assignments.find(assignment => assignment.contest === contestName);
             
             if (existingAssignment) {
+                console.log('Found existing assignment:', existingAssignment);
                 this.displaySavedTeam(existingAssignment);
+            } else {
+                console.log('No existing assignment found for contest:', contestName);
             }
         }
     }
