@@ -14,38 +14,28 @@
     <!-- Firebase Configuration -->
         <!-- Firebase Configuration -->
     <script>
-        // Wait for all scripts to load before initializing Firebase
-        window.addEventListener('load', function() {
-            console.log('Page fully loaded, checking Firebase...');
-            console.log('typeof firebase:', typeof firebase);
+        const firebaseConfig = {
+            apiKey: "AIzaSyCj9HI0wU7FWXIFXkkWfvBuDLgdvW5GVwo",
+            authDomain: "supersteaks-240f7.firebaseapp.com",
+            projectId: "supersteaks-240f7",
+            storageBucket: "supersteaks-240f7.firebasestorage.app",
+            messagingSenderId: "325643072121",
+            appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
+        };
+        
+        // Set global config for user-accounts.js
+        window.firebaseConfig = firebaseConfig;
+        
+        // Initialize Firebase immediately
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully in head');
             
-            const firebaseConfig = {
-                apiKey: "AIzaSyCj9HI0wU7FWXIFXkkWfvBuDLgdvW5GVwo",
-                authDomain: "supersteaks-240f7.firebaseapp.com",
-                projectId: "supersteaks-240f7",
-                storageBucket: "supersteaks-240f7.firebasestorage.app",
-                messagingSenderId: "325643072121",
-                appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
-            };
-            
-            // Set global config for user-accounts.js
-            window.firebaseConfig = firebaseConfig;
-            
-            // Initialize Firebase after page load
-            try {
-                if (typeof firebase !== 'undefined') {
-                    firebase.initializeApp(firebaseConfig);
-                    console.log('Firebase initialized successfully after page load');
-                    
-                    // Set a global flag that Firebase is ready
-                    window.firebaseReady = true;
-                } else {
-                    console.error('Firebase is still undefined after page load');
-                }
-            } catch (error) {
-                console.error('Firebase initialization failed:', error);
-            }
-        });
+            // Set a global flag that Firebase is ready
+            window.firebaseReady = true;
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+        }
     </script>
     
     <script src="https://cdn.tailwindcss.com"></script>
