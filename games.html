@@ -778,7 +778,7 @@
       });
       
       // Close modal when clicking outside
-      document.getElementById('auth-modal').addEventListener('click', (e) => {
+      document.getElementById('auth-modal').addEventListener('click', function(e) {
         if (e.target.id === 'auth-modal') {
           hideAuthModal();
         }
