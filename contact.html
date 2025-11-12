@@ -307,58 +307,106 @@
             await window.SuperSteaksAuth.resetPassword(email);
         }
         
-        // Event Listeners - wrapped in DOMContentLoaded for proper timing
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
-            document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
-            document.getElementById('close-modal').addEventListener('click', hideAuthModal);
-            document.getElementById('logout-btn').addEventListener('click', logoutUser);
+        // Simple direct event listeners with timeout fallback
+        function setupEventListeners() {
+            console.log('Setting up event listeners for contact page...');
+            
+            // Auth button listeners
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const closeModal = document.getElementById('close-modal');
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            // Password reset listeners
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const closeResetModal = document.getElementById('close-reset-modal');
+            const cancelReset = document.getElementById('cancel-reset');
+            
+            console.log('Found elements:', {
+                loginBtn: !!loginBtn,
+                forgotPasswordLink: !!forgotPasswordLink,
+                closeResetModal: !!closeResetModal
+            });
+            
+            if (loginBtn) loginBtn.addEventListener('click', () => showAuthModal(false));
+            if (registerBtn) registerBtn.addEventListener('click', () => showAuthModal(true));
+            if (closeModal) closeModal.addEventListener('click', hideAuthModal);
+            if (logoutBtn) logoutBtn.addEventListener('click', logoutUser);
             
             // Password Reset Event Listeners
-            document.getElementById('forgot-password-link').addEventListener('click', showResetPasswordModal);
-            document.getElementById('close-reset-modal').addEventListener('click', hideResetPasswordModal);
-            document.getElementById('cancel-reset').addEventListener('click', hideResetPasswordModal);
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', function() {
+                    console.log('Forgot password clicked on contact page!');
+                    showResetPasswordModal();
+                });
+            } else {
+                console.error('forgot-password-link not found on contact page!');
+            }
             
-            document.getElementById('switch-to-register').addEventListener('click', () => {
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('register-form').classList.remove('hidden');
-            });
+            if (closeResetModal) closeResetModal.addEventListener('click', hideResetPasswordModal);
+            if (cancelReset) cancelReset.addEventListener('click', hideResetPasswordModal);
             
-            document.getElementById('switch-to-login').addEventListener('click', () => {
-                document.getElementById('register-form').classList.add('hidden');
-                document.getElementById('login-form').classList.remove('hidden');
-            });
+            // Form switching
+            const switchToRegister = document.getElementById('switch-to-register');
+            const switchToLogin = document.getElementById('switch-to-login');
             
-            // Form submissions - redirect to games.html for actual account creation/login
-            document.getElementById('login-form-element').addEventListener('submit', (e) => {
-                e.preventDefault();
-                alert('Please go to the "Enter Now" page to login or create an account!');
-                window.location.href = 'games.html';
-            });
+            if (switchToRegister) {
+                switchToRegister.addEventListener('click', () => {
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                });
+            }
             
-            document.getElementById('register-form-element').addEventListener('submit', (e) => {
-                e.preventDefault();
-                alert('Please go to the "Enter Now" page to create your account!');
-                window.location.href = 'games.html';
-            });
+            if (switchToLogin) {
+                switchToLogin.addEventListener('click', () => {
+                    document.getElementById('register-form').classList.add('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                });
+            }
             
-            document.getElementById('reset-password-form-element').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('reset-email').value;
-                
-                try {
-                    await resetPassword(email);
-                } catch (error) {
-                    console.error('Password reset error:', error);
-                }
-            });
+            // Form submissions
+            const loginForm = document.getElementById('login-form-element');
+            const registerForm = document.getElementById('register-form-element');
+            const resetForm = document.getElementById('reset-password-form-element');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    alert('Please go to the "Enter Now" page to login or create an account!');
+                    window.location.href = 'games.html';
+                });
+            }
+            
+            if (registerForm) {
+                registerForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    alert('Please go to the "Enter Now" page to create your account!');
+                    window.location.href = 'games.html';
+                });
+            }
+            
+            if (resetForm) {
+                resetForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('reset-email').value;
+                    
+                    try {
+                        await resetPassword(email);
+                    } catch (error) {
+                        console.error('Password reset error:', error);
+                    }
+                });
+            }
             
             // Close modal when clicking outside
-            document.getElementById('auth-modal').addEventListener('click', (e) => {
-                if (e.target.id === 'auth-modal') {
-                    hideAuthModal();
-                }
-            });
+            const authModal = document.getElementById('auth-modal');
+            if (authModal) {
+                authModal.addEventListener('click', (e) => {
+                    if (e.target.id === 'auth-modal') {
+                        hideAuthModal();
+                    }
+                });
+            }
             
             // Initialize UI on page load
             const currentUser = getCurrentUser();
@@ -367,8 +415,17 @@
             } else {
                 updateUIForLoggedOutState();
             }
-            
-        }); // End DOMContentLoaded
+        }
+        
+        // Try to set up immediately, with fallbacks
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupEventListeners);
+        } else {
+            setupEventListeners();
+        }
+        
+        // Also try after a short delay as backup
+        setTimeout(setupEventListeners, 100);
     </script>
 </body>
 </html>
