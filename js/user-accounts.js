@@ -587,6 +587,12 @@ Email: ${email}`);
                 usernameDisplay.textContent = this.currentUser.username;
                 console.log('Username display updated:', this.currentUser.username);
             }
+            
+            // Restore team assignments when UI is updated for logged-in user
+            setTimeout(() => {
+                console.log('Calling restoreUserTeamAssignments from updateUI');
+                this.restoreUserTeamAssignments();
+            }, 500); // Small delay to ensure page is ready
         } else {
             if (authButtons) {
                 authButtons.classList.remove('hidden');
