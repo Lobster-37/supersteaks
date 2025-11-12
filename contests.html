@@ -297,10 +297,7 @@
         }
         
         function showAuthModal(showRegister = false) {
-            console.log('showAuthModal called with showRegister:', showRegister);
-            const modal = document.getElementById('auth-modal');
-            console.log('Found auth-modal element:', modal);
-            modal.classList.remove('hidden');
+            document.getElementById('auth-modal').classList.remove('hidden');
             if (showRegister) {
                 document.getElementById('login-form').classList.add('hidden');
                 document.getElementById('register-form').classList.remove('hidden');
@@ -317,37 +314,7 @@
         }
         
         // Event Listeners
-        // FORCE override any existing login button handlers
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, setting up login override...');
-            
-            const loginBtn = document.getElementById('login-btn');
-            console.log('Found login button:', loginBtn);
-            
-            if (loginBtn) {
-                // Remove any existing event listeners by cloning the element
-                const newLoginBtn = loginBtn.cloneNode(true);
-                loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
-                
-                // Add our event listener to the new button
-                newLoginBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    alert('CUSTOM LOGIN CLICKED - BYPASSING USER-ACCOUNTS.JS');
-                    showAuthModal(false);
-                });
-                console.log('Login button override complete');
-            } else {
-                console.error('Login button not found');
-            }
-        });
-
-        // Keep the original event listener as backup
-        document.getElementById('login-btn').addEventListener('click', () => {
-            console.log('Login button clicked - showing auth modal');
-            alert('LOGIN BUTTON CLICKED - CHECK IF MODAL OPENS');
-            showAuthModal(false);
-        });
+        document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
         document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
         document.getElementById('close-modal').addEventListener('click', hideAuthModal);
         document.getElementById('logout-btn').addEventListener('click', logoutUser);
