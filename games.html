@@ -728,6 +728,9 @@
         
         // Check if user already has a team for this contest
         const userAssignments = await window.SuperSteaksAuth.getUserAssignments();
+        console.log('enterDraw - userAssignments type:', typeof userAssignments);
+        console.log('enterDraw - userAssignments value:', userAssignments);
+        console.log('enterDraw - userAssignments is array:', Array.isArray(userAssignments));
         const contestName = 'Champions League Draw';
         const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
         
