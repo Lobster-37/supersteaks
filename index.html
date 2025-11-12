@@ -285,8 +285,24 @@
         
         // Password Reset Modal Functions
         function showResetPasswordModal() {
-            document.getElementById('auth-modal').classList.add('hidden');
-            document.getElementById('reset-password-modal').classList.remove('hidden');
+            console.log('showResetPasswordModal called');
+            const authModal = document.getElementById('auth-modal');
+            const resetModal = document.getElementById('reset-password-modal');
+            
+            console.log('Modal elements:', {
+                authModal: !!authModal,
+                resetModal: !!resetModal
+            });
+            
+            if (authModal) {
+                authModal.classList.add('hidden');
+            }
+            if (resetModal) {
+                resetModal.classList.remove('hidden');
+                console.log('Reset modal should now be visible');
+            } else {
+                console.error('reset-password-modal element not found');
+            }
         }
         
         function hideResetPasswordModal() {
@@ -325,16 +341,55 @@
         
         // Wait for DOM to be loaded before setting up event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up event listeners...');
+            
+            // Debug: Check if elements exist
+            const loginBtn = document.getElementById('login-btn');
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const resetModal = document.getElementById('reset-password-modal');
+            
+            console.log('Elements found:', {
+                loginBtn: !!loginBtn,
+                forgotPasswordLink: !!forgotPasswordLink,
+                resetModal: !!resetModal
+            });
+            
             // Event Listeners
-            document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
-            document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
-            document.getElementById('close-modal').addEventListener('click', hideAuthModal);
-            document.getElementById('logout-btn').addEventListener('click', logoutUser);
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => showAuthModal(false));
+            } else {
+                console.error('login-btn not found');
+            }
+            
+            if (document.getElementById('register-btn')) {
+                document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
+            }
+            
+            if (document.getElementById('close-modal')) {
+                document.getElementById('close-modal').addEventListener('click', hideAuthModal);
+            }
+            
+            if (document.getElementById('logout-btn')) {
+                document.getElementById('logout-btn').addEventListener('click', logoutUser);
+            }
             
             // Password Reset Event Listeners
-            document.getElementById('forgot-password-link').addEventListener('click', showResetPasswordModal);
-            document.getElementById('close-reset-modal').addEventListener('click', hideResetPasswordModal);
-            document.getElementById('cancel-reset').addEventListener('click', hideResetPasswordModal);
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', function() {
+                    console.log('Forgot password link clicked!');
+                    showResetPasswordModal();
+                });
+            } else {
+                console.error('forgot-password-link not found');
+            }
+            
+            if (document.getElementById('close-reset-modal')) {
+                document.getElementById('close-reset-modal').addEventListener('click', hideResetPasswordModal);
+            }
+            
+            if (document.getElementById('cancel-reset')) {
+                document.getElementById('cancel-reset').addEventListener('click', hideResetPasswordModal);
+            }
             
             document.getElementById('switch-to-register').addEventListener('click', () => {
                 document.getElementById('login-form').classList.add('hidden');
