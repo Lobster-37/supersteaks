@@ -6,6 +6,50 @@
     <title>SuperSteaks - Random Team Assignment Draws</title>
     <meta name="description" content="Browse SuperSteaks random team assignment draws. Enter for free and get randomly assigned teams from major sports competitions.">
     
+    <!-- TEST: THIS SHOULD MAKE THE BACKGROUND RED -->
+    <style>
+        body { background: red !important; }
+    </style>
+    
+    <!-- Firebase CDN Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        // Wait for all scripts to load before initializing Firebase
+        window.addEventListener('load', function() {
+            console.log('Page fully loaded, checking Firebase...');
+            console.log('typeof firebase:', typeof firebase);
+            
+            const firebaseConfig = {
+                apiKey: "AIzaSyCj9HI0wU7FWXIFXkkWfvBuDLgdvW5GVwo",
+                authDomain: "supersteaks-240f7.firebaseapp.com",
+                projectId: "supersteaks-240f7",
+                storageBucket: "supersteaks-240f7.firebasestorage.app",
+                messagingSenderId: "325643072121",
+                appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
+            };
+            
+            // Initialize Firebase after page load
+            try {
+                if (typeof firebase !== 'undefined') {
+                    firebase.initializeApp(firebaseConfig);
+                    console.log('Firebase initialized successfully after page load');
+                    
+                    // Set a global flag that Firebase is ready
+                    window.firebaseReady = true;
+                    window.firebaseConfig = firebaseConfig;
+                } else {
+                    console.error('Firebase is still undefined after page load');
+                }
+            } catch (error) {
+                console.error('Firebase initialization failed:', error);
+            }
+        });
+    </script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -18,9 +62,7 @@
             box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2);
         }
     </style>
-    
-    <!-- User Account System -->
-    <script src="js/user-accounts.js"></script>
+
 </head>
 <body class="min-h-screen flex flex-col">
 
@@ -92,6 +134,15 @@
                     <div class="mb-6">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
                         <input type="password" id="login-password" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                        <div class="text-right mt-2">
+                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:underline">
+                                Forgot Password?
+                            </button>
+                        </div>
+                        <!-- TEST: This should be visible -->
+                        <div style="background: red; color: white; padding: 10px; font-weight: bold; text-align: center; margin: 10px 0;">
+                            TEST: FORGOT PASSWORD SHOULD BE ABOVE THIS
+                        </div>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
                         <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
@@ -131,6 +182,31 @@
             </div>
 
             <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
+                ×
+            </button>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full mx-4 relative">
+            <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Reset Password</h2>
+            <form id="reset-password-form">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
+                    <input type="email" id="reset-email" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required placeholder="Enter your email address">
+                </div>
+                <div class="flex justify-between items-center">
+                    <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                        Send Reset Link
+                    </button>
+                    <button type="button" id="close-reset-modal" class="text-gray-600 hover:underline text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+            <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
+            <button id="close-reset-modal-x" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
                 ×
             </button>
         </div>
@@ -230,7 +306,10 @@
         }
         
         function showAuthModal(showRegister = false) {
-            document.getElementById('auth-modal').classList.remove('hidden');
+            console.log('showAuthModal called with showRegister:', showRegister);
+            const modal = document.getElementById('auth-modal');
+            console.log('Found auth-modal element:', modal);
+            modal.classList.remove('hidden');
             if (showRegister) {
                 document.getElementById('login-form').classList.add('hidden');
                 document.getElementById('register-form').classList.remove('hidden');
@@ -247,7 +326,37 @@
         }
         
         // Event Listeners
-        document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
+        // FORCE override any existing login button handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up login override...');
+            
+            const loginBtn = document.getElementById('login-btn');
+            console.log('Found login button:', loginBtn);
+            
+            if (loginBtn) {
+                // Remove any existing event listeners by cloning the element
+                const newLoginBtn = loginBtn.cloneNode(true);
+                loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
+                
+                // Add our event listener to the new button
+                newLoginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('CUSTOM LOGIN CLICKED - BYPASSING USER-ACCOUNTS.JS');
+                    showAuthModal(false);
+                });
+                console.log('Login button override complete');
+            } else {
+                console.error('Login button not found');
+            }
+        });
+
+        // Keep the original event listener as backup
+        document.getElementById('login-btn').addEventListener('click', () => {
+            console.log('Login button clicked - showing auth modal');
+            alert('LOGIN BUTTON CLICKED - CHECK IF MODAL OPENS');
+            showAuthModal(false);
+        });
         document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
         document.getElementById('close-modal').addEventListener('click', hideAuthModal);
         document.getElementById('logout-btn').addEventListener('click', logoutUser);
@@ -281,7 +390,23 @@
                 hideAuthModal();
             }
         });
-        
+
+        // Password Reset Functionality
+        function showResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function hideResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.add('hidden');
+            document.getElementById('reset-message').classList.add('hidden');
+        }
+
+        // Forgot password link handler
+        // Reset password form handler
+        // Close reset modal handlers
+        // Close reset modal when clicking outside
+
         // Initialize UI on page load
         document.addEventListener('DOMContentLoaded', () => {
             const currentUser = getCurrentUser();
@@ -290,8 +415,50 @@
             } else {
                 updateUIForLoggedOutState();
             }
+            
+            // Debug: Check if forgot password link exists
+            const forgotLink = document.getElementById('forgot-password-link');
+            console.log('Forgot password link found:', forgotLink);
+            console.log('Forgot password link visible:', forgotLink ? forgotLink.style.display : 'N/A');
+            
+            // Setup password reset event listeners after DOM is loaded
+            if (forgotLink) {
+                forgotLink.addEventListener('click', showResetPasswordModal);
+                console.log('Event listener added to forgot password link');
+            } else {
+                console.error('Could not find forgot-password-link element');
+            }
+
+            document.getElementById('reset-password-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const email = document.getElementById('reset-email').value;
+                const messageDiv = document.getElementById('reset-message');
+                
+                try {
+                    await firebase.auth().sendPasswordResetEmail(email);
+                    messageDiv.textContent = 'Password reset email sent! Check your inbox.';
+                    messageDiv.className = 'mt-4 p-3 rounded-lg bg-green-100 text-green-700';
+                    messageDiv.classList.remove('hidden');
+                    document.getElementById('reset-email').value = '';
+                } catch (error) {
+                    messageDiv.textContent = 'Error: ' + error.message;
+                    messageDiv.className = 'mt-4 p-3 rounded-lg bg-red-100 text-red-700';
+                    messageDiv.classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('close-reset-modal').addEventListener('click', hideResetPasswordModal);
+            document.getElementById('close-reset-modal-x').addEventListener('click', hideResetPasswordModal);
+
+            document.getElementById('reset-password-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'reset-password-modal') {
+                    hideResetPasswordModal();
+                }
+            });
         });
     </script>
-
+    
+    <!-- Temporarily comment out user-accounts.js to test standalone -->
+    <!-- <script src="js/user-accounts.js"></script> -->
 </body>
 </html>

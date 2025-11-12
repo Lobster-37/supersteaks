@@ -37,7 +37,6 @@
     </script>
     
     <!-- User Account System -->
-    <script src="js/user-accounts.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -50,9 +49,7 @@
             box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2);
         }
     </style>
-    
-    <!-- User Account System -->
-    <script src="js/user-accounts.js"></script>
+
 </head>
 <body class="min-h-screen flex flex-col">
 
@@ -433,5 +430,8 @@
             }
         });
     </script>
+    
+    <!-- Load user accounts system AFTER DOM is available -->
+    <script src="js/user-accounts.js"></script>
 </body>
 </html>
