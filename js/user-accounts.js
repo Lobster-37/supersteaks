@@ -382,11 +382,14 @@ Email: ${email}`);
 
     // Add team assignment to user
     async addTeamAssignment(contestName, teamName) {
-        console.log('addTeamAssignment called:', contestName, teamName);
+        console.log('=== ADD TEAM ASSIGNMENT START ===');
+        console.log('Contest:', contestName);
+        console.log('Team:', teamName);
         console.log('Current user:', this.currentUser);
         
         if (!this.currentUser || !this.currentUser.uid) {
-            console.log('No current user or UID - cannot save assignment');
+            console.error('No current user or UID - cannot save assignment');
+            console.log('Current user object:', this.currentUser);
             return;
         }
 
@@ -396,17 +399,22 @@ Email: ${email}`);
             date: new Date().toISOString()
         };
         
-        console.log('Adding assignment:', assignment);
+        console.log('Assignment object to save:', assignment);
 
         try {
             // Save to Firestore using user's UID
             if (this.db) {
+                console.log('Attempting to save to Firestore...');
                 const userRef = this.db.collection('users').doc(this.currentUser.uid);
+                console.log('User document reference:', userRef.path);
+                
                 const userDoc = await userRef.get();
+                console.log('User document exists:', userDoc.exists);
                 
                 let userData = {};
                 if (userDoc.exists) {
                     userData = userDoc.data();
+                    console.log('Existing user data:', userData);
                 }
                 
                 // Initialize arrays if they don't exist
@@ -419,9 +427,11 @@ Email: ${email}`);
                     userData.contestsEntered.push(contestName);
                 }
                 
+                console.log('Updated user data to save:', userData);
+                
                 // Update Firestore
                 await userRef.set(userData, { merge: true });
-                console.log('Assignment saved successfully to Firestore');
+                console.log('✅ Assignment saved successfully to Firestore');
                 
                 // Also save to localStorage as backup
                 this.saveAssignmentToLocalStorage(assignment);
@@ -432,10 +442,11 @@ Email: ${email}`);
                 this.saveAssignmentToLocalStorage(assignment);
             }
         } catch (error) {
-            console.error('Error saving assignment:', error);
+            console.error('❌ Error saving assignment:', error);
             // Fallback to localStorage
             this.saveAssignmentToLocalStorage(assignment);
         }
+        console.log('=== ADD TEAM ASSIGNMENT END ===');
     }
     
     // Save assignment to localStorage as backup
@@ -451,31 +462,55 @@ Email: ${email}`);
 
     // Get user's team assignments from Firestore
     async getUserAssignments() {
-        if (!this.currentUser) return [];
+        console.log('=== GET USER ASSIGNMENTS START ===');
+        
+        if (!this.currentUser) {
+            console.log('No current user, returning empty array');
+            return [];
+        }
+        
+        console.log('Getting assignments for user:', this.currentUser);
         
         try {
             // Try to get from Firestore first
             if (this.db && this.currentUser.uid) {
+                console.log('Attempting to load from Firestore with UID:', this.currentUser.uid);
                 const userDoc = await this.db.collection('users').doc(this.currentUser.uid).get();
+                console.log('Firestore user document exists:', userDoc.exists);
+                
                 if (userDoc.exists) {
                     const userData = userDoc.data();
-                    console.log('Loaded assignments from Firestore:', userData.teamAssignments);
-                    return userData.teamAssignments || [];
+                    console.log('Firestore user data:', userData);
+                    const assignments = userData.teamAssignments || [];
+                    console.log('✅ Loaded assignments from Firestore:', assignments);
+                    console.log('=== GET USER ASSIGNMENTS END (Firestore) ===');
+                    return assignments;
+                } else {
+                    console.log('User document does not exist in Firestore');
                 }
+            } else {
+                console.log('Firestore not available or no UID');
+                console.log('this.db:', !!this.db);
+                console.log('this.currentUser.uid:', this.currentUser.uid);
             }
             
             // Fallback to localStorage
             const key = `teamAssignments_${this.currentUser.email}`;
+            console.log('Falling back to localStorage with key:', key);
             const assignments = JSON.parse(localStorage.getItem(key) || '[]');
-            console.log('Loaded assignments from localStorage:', assignments);
+            console.log('✅ Loaded assignments from localStorage:', assignments);
+            console.log('=== GET USER ASSIGNMENTS END (localStorage) ===');
             return assignments;
             
         } catch (error) {
-            console.error('Error loading assignments:', error);
+            console.error('❌ Error loading assignments:', error);
             
             // Final fallback to localStorage
             const key = `teamAssignments_${this.currentUser.email}`;
-            return JSON.parse(localStorage.getItem(key) || '[]');
+            const fallbackAssignments = JSON.parse(localStorage.getItem(key) || '[]');
+            console.log('Final fallback assignments:', fallbackAssignments);
+            console.log('=== GET USER ASSIGNMENTS END (error fallback) ===');
+            return fallbackAssignments;
         }
     }
 
@@ -798,7 +833,13 @@ If you don't see the email, check your spam folder.`;
 
     // Restore user's team assignments when they log back in
     async restoreUserTeamAssignments() {
-        if (!this.currentUser) return;
+        console.log('=== RESTORE TEAM ASSIGNMENTS START ===');
+        console.log('Current user:', this.currentUser);
+        
+        if (!this.currentUser) {
+            console.log('No current user, skipping restore');
+            return;
+        }
 
         const assignments = await this.getUserAssignments();
         console.log('Restoring assignments for user:', this.currentUser.username, assignments);
@@ -806,6 +847,7 @@ If you don't see the email, check your spam folder.`;
         // If we're on the games page, check if user has a team for the current contest
         if (window.location.pathname.includes('games.html') || document.getElementById('assigned-team')) {
             const contestName = 'Champions League Draw'; // Match the contest name used in enterDraw
+            console.log('Looking for assignment with contest name:', contestName);
             const existingAssignment = assignments.find(assignment => assignment.contest === contestName);
             
             if (existingAssignment) {
@@ -813,8 +855,12 @@ If you don't see the email, check your spam folder.`;
                 this.displaySavedTeam(existingAssignment);
             } else {
                 console.log('No existing assignment found for contest:', contestName);
+                console.log('Available assignments:', assignments.map(a => a.contest));
             }
+        } else {
+            console.log('Not on games page, current path:', window.location.pathname);
         }
+        console.log('=== RESTORE TEAM ASSIGNMENTS END ===');
     }
 
     // Display a saved team assignment on the games page
