@@ -21,9 +21,21 @@ class UserAccountSystem {
         }
         
         try {
+            console.log('Initializing Firebase with project:', window.firebaseConfig?.projectId);
             this.db = firebase.firestore();
             this.auth = firebase.auth();
             console.log('Firebase initialized successfully (Firestore + Auth)');
+            
+            // Test Firebase connection
+            try {
+                await this.auth.getRedirectResult(); // Test auth connection
+                console.log('Firebase Auth connection test successful');
+            } catch (authTestError) {
+                console.error('Firebase Auth connection test failed:', authTestError);
+                if (authTestError.code === 'auth/api-key-not-valid') {
+                    console.error('CRITICAL: Invalid Firebase API key! Please check Firebase configuration.');
+                }
+            }
             
             // Set up auth state listener
             this.auth.onAuthStateChanged((user) => {
@@ -36,6 +48,9 @@ class UserAccountSystem {
             
         } catch (error) {
             console.error('Firebase initialization failed:', error);
+            if (error.code === 'auth/api-key-not-valid') {
+                console.error('CRITICAL: Invalid Firebase API key! Check Firebase project configuration.');
+            }
             // Fallback to localStorage if Firebase fails
             this.db = null;
             this.auth = null;
@@ -233,27 +248,41 @@ class UserAccountSystem {
         try {
             // If identifier is not an email, try to find the email by username
             if (!identifier.includes('@')) {
-                // Look up email by username in our Firestore user metadata
+                // For now, if username is provided but Firestore isn't available or fails,
+                // provide a helpful message to use email instead
                 if (this.db) {
                     try {
+                        console.log('Attempting username lookup in Firestore...');
                         const usersSnapshot = await this.db.collection('users').where('username', '==', identifier).get();
                         if (!usersSnapshot.empty) {
                             const userDoc = usersSnapshot.docs[0];
                             email = userDoc.data().email;
                             username = userDoc.data().username;
+                            console.log('Username found, mapped to email:', email);
                         } else {
-                            throw new Error('Username not found. Please use your email address or check your username.');
+                            throw new Error(`Username "${identifier}" not found in our records. 
+
+Since you created your account recently, please try logging in with your EMAIL ADDRESS instead of your username.
+
+The username lookup feature requires the database to be fully set up.`);
                         }
                     } catch (firestoreError) {
-                        console.warn('Failed to lookup username in Firestore:', firestoreError);
-                        throw new Error('Username lookup failed. Please try logging in with your email address.');
+                        console.warn('Firestore username lookup failed:', firestoreError);
+                        throw new Error(`Username lookup is currently unavailable. 
+
+Please log in using your EMAIL ADDRESS instead of your username.
+
+Error details: ${firestoreError.message}`);
                     }
                 } else {
-                    throw new Error('Username login not available. Please use your email address.');
+                    throw new Error(`Username login is currently unavailable. 
+
+Please log in using your EMAIL ADDRESS instead of your username.`);
                 }
             } else {
-                // Extract username from email if logging in with email
+                // If email is provided, extract username from email as fallback
                 username = email.split('@')[0];
+                console.log('Email provided, using email:', email);
             }
 
             // Sign in with Firebase Auth using email
