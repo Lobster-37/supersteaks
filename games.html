@@ -363,16 +363,16 @@
             if (currentUser && currentUser.username) {
               updateUIForLoggedInState(currentUser);
               
-              const userAssignments = window.SuperSteaksAuth.getUserAssignments();
-              const contestName = 'Champions League Draw';
-              const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
-              
-              if (existingAssignment) {
-                // User has a team assigned - display it
-                const teamName = existingAssignment.team;
-                const selectedTeam = teams.find(team => team.name === teamName);
+              window.SuperSteaksAuth.getUserAssignments().then(userAssignments => {
+                const contestName = 'Champions League Draw';
+                const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
                 
-                if (selectedTeam) {
+                if (existingAssignment) {
+                  // User has a team assigned - display it
+                  const teamName = existingAssignment.team;
+                  const selectedTeam = teams.find(team => team.name === teamName);
+                  
+                  if (selectedTeam) {
                   assignedTeamEl.textContent = teamName;
                   assignedTeamEl.classList.add('text-green-600');
                   
@@ -395,6 +395,9 @@
                   messageArea.classList.remove('text-indigo-600');
                   messageArea.classList.add('text-green-600');
                 }
+                }).catch(err => {
+                  console.error('Error loading user assignments during initialization:', err);
+                });
               }
             } else {
               console.log('User appears logged in but no valid user data found, logging out');
@@ -606,13 +609,13 @@
         document.getElementById('username-display').textContent = user.username;
 
         // Check if user has a team assignment for this contest
-        const userAssignments = window.SuperSteaksAuth.getUserAssignments();
-        console.log('User assignments:', userAssignments);
-        const contestName = 'Champions League Draw';
-        const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
-        console.log('Existing assignment for Champions League Draw:', existingAssignment);
+        window.SuperSteaksAuth.getUserAssignments().then(userAssignments => {
+          console.log('User assignments:', userAssignments);
+          const contestName = 'Champions League Draw';
+          const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
+          console.log('Existing assignment for Champions League Draw:', existingAssignment);
 
-        if (existingAssignment) {
+          if (existingAssignment) {
           console.log('Found team assignment:', existingAssignment.team);
           // Find the team object for display
           const assignedTeam = teams.find(team => team.name === existingAssignment.team);
@@ -630,6 +633,9 @@
         } else {
           console.log('No existing assignment found');
         }
+        }).catch(err => {
+          console.error('Error loading user assignments:', err);
+        });
       }
       
       function updateUIForLoggedOutState() {
@@ -721,7 +727,7 @@
         await window.SuperSteaksAuth.refreshFromCloud();
         
         // Check if user already has a team for this contest
-        const userAssignments = window.SuperSteaksAuth.getUserAssignments();
+        const userAssignments = await window.SuperSteaksAuth.getUserAssignments();
         const contestName = 'Champions League Draw';
         const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
         
