@@ -22,11 +22,23 @@ class UserAccountSystem {
         
         try {
             this.db = firebase.firestore();
-            console.log('Firebase initialized successfully');
+            this.auth = firebase.auth();
+            console.log('Firebase initialized successfully (Firestore + Auth)');
+            
+            // Set up auth state listener
+            this.auth.onAuthStateChanged((user) => {
+                if (user) {
+                    console.log('Auth state changed - user signed in:', user.email, 'verified:', user.emailVerified);
+                } else {
+                    console.log('Auth state changed - user signed out');
+                }
+            });
+            
         } catch (error) {
             console.error('Firebase initialization failed:', error);
             // Fallback to localStorage if Firebase fails
             this.db = null;
+            this.auth = null;
         }
     }
 
@@ -149,12 +161,20 @@ class UserAccountSystem {
             const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
             const firebaseUser = userCredential.user;
             
+            console.log('Firebase user created:', firebaseUser.email, 'UID:', firebaseUser.uid);
+            
             // Send email verification
-            await firebaseUser.sendEmailVerification();
+            try {
+                await firebaseUser.sendEmailVerification({
+                    url: window.location.origin + '/games.html', // URL to redirect to after verification
+                });
+                console.log('Verification email sent successfully to:', email);
+            } catch (emailError) {
+                console.error('Failed to send verification email:', emailError);
+                throw new Error('Account created but failed to send verification email. Please contact support.');
+            }
             
-            console.log('Firebase registration successful, verification email sent');
-            
-            // Store user metadata in Firestore (optional)
+            // Store user metadata in Firestore
             if (this.db) {
                 try {
                     await this.db.collection('users').doc(firebaseUser.uid).set({
@@ -164,16 +184,23 @@ class UserAccountSystem {
                         teamAssignments: [],
                         contestsEntered: []
                     });
+                    console.log('User metadata stored in Firestore');
                 } catch (firestoreError) {
                     console.warn('Failed to save user metadata to Firestore:', firestoreError);
                 }
             }
             
+            // Important: Sign out the user immediately after registration
+            // This prevents auto-login before email verification
+            await firebase.auth().signOut();
+            console.log('User signed out after registration - must verify email first');
+            
             return { 
                 username: username, 
                 email: email,
                 uid: firebaseUser.uid,
-                emailVerified: firebaseUser.emailVerified
+                emailVerified: false, // Always false for new accounts
+                message: 'Account created! Please check your email and click the verification link before logging in.'
             };
             
         } catch (error) {
@@ -233,9 +260,26 @@ class UserAccountSystem {
             const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
             const firebaseUser = userCredential.user;
             
-            // Check if email is verified
-            if (!firebaseUser.emailVerified) {
-                throw new Error('Please verify your email address before logging in. Check your inbox for the verification email.');
+            console.log('Firebase signin successful for:', email);
+            console.log('Email verified status:', firebaseUser.emailVerified);
+            console.log('User UID:', firebaseUser.uid);
+            
+            // IMPORTANT: Reload user to get latest verification status
+            await firebaseUser.reload();
+            const refreshedUser = firebase.auth().currentUser;
+            console.log('After reload - Email verified status:', refreshedUser.emailVerified);
+            
+            // Check if email is verified (with better error message)
+            if (!refreshedUser.emailVerified) {
+                // Sign out the unverified user
+                await firebase.auth().signOut();
+                throw new Error(`Please verify your email address before logging in. 
+
+Check your inbox for an email from Firebase/SuperSteaks and click the verification link. 
+
+If you haven't received the email, try checking your spam folder or contact support.
+
+Email: ${email}`);
             }
             
             console.log('Firebase login successful');
@@ -597,13 +641,21 @@ class UserAccountSystem {
         const password = document.getElementById('register-password')?.value;
 
         try {
-            const user = await this.register(username, email, password);
-            // Auto-login after registration
-            this.currentUser = user;
-            this.saveSession(user);
-            this.updateUI(true);
+            const result = await this.register(username, email, password);
+            
+            // Don't auto-login - user must verify email first
             this.hideModal();
-            this.showSuccess('Account created successfully! Welcome to SuperSteaks, ' + user.username + '!');
+            
+            // Show success message about email verification
+            const message = result.message || `Account created successfully! 
+
+A verification email has been sent to ${email}. 
+
+Please check your inbox and click the verification link before logging in.
+
+If you don't see the email, check your spam folder.`;
+            
+            this.showSuccess(message);
         } catch (error) {
             this.showError(error.message, 'register');
         }
@@ -625,15 +677,18 @@ class UserAccountSystem {
     showSuccess(message) {
         // Create and show success notification
         const successDiv = document.createElement('div');
-        successDiv.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg z-50';
-        successDiv.innerHTML = `<strong>Success!</strong> ${message}`;
+        successDiv.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg z-50 max-w-md';
+        
+        // Handle multi-line messages
+        const formattedMessage = message.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+        successDiv.innerHTML = `<strong>Success!</strong><br>${formattedMessage}`;
 
         document.body.appendChild(successDiv);
 
-        // Remove after 5 seconds
+        // Remove after 8 seconds for longer messages
         setTimeout(() => {
             successDiv.remove();
-        }, 5000);
+        }, 8000);
     }
 
     // Clear form errors
