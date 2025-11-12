@@ -179,6 +179,12 @@ class UserAccountSystem {
         // Load users first
         await this.loadUsers();
         
+        // If we have Firebase Auth, let the auth state listener handle the UI
+        if (this.auth && this.auth.currentUser) {
+            console.log('Firebase user already authenticated, letting auth state listener handle UI');
+            return;
+        }
+        
         const session = localStorage.getItem('supersteaks_session');
         if (session) {
             const sessionData = JSON.parse(session);
@@ -192,7 +198,11 @@ class UserAccountSystem {
                 this.clearSession();
             }
         }
-        this.updateUI(false);
+        
+        // Only set logged-out state if no Firebase user and no valid session
+        if (!this.auth || !this.auth.currentUser) {
+            this.updateUI(false);
+        }
     }
 
     // Register new user with Firebase Authentication
