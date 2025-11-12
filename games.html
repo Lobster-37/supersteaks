@@ -362,43 +362,6 @@
             
             if (currentUser && currentUser.username) {
               updateUIForLoggedInState(currentUser);
-              
-              window.SuperSteaksAuth.getUserAssignments().then(userAssignments => {
-                const contestName = 'Champions League Draw';
-                const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
-                
-                if (existingAssignment) {
-                  // User has a team assigned - display it
-                  const teamName = existingAssignment.team;
-                  const selectedTeam = teams.find(team => team.name === teamName);
-                  
-                  if (selectedTeam) {
-                  assignedTeamEl.textContent = teamName;
-                  assignedTeamEl.classList.add('text-green-600');
-                  
-                  // Apply team styling
-                  teamContainerEl.style.borderColor = selectedTeam.borderColor || '#10B981';
-                  
-                  if (selectedTeam.pattern) {
-                    teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
-                    teamContainerEl.classList.add(selectedTeam.pattern);
-                    teamContainerEl.style.backgroundColor = 'transparent';
-                  } else {
-                    teamContainerEl.style.backgroundColor = selectedTeam.color || '#4f46e5';
-                  }
-                  
-                  enterButton.disabled = true;
-                  enterButton.textContent = 'Team Already Assigned!';
-                  enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
-                  enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-                  messageArea.textContent = `Welcome back! You're supporting ${teamName}. Good luck!`;
-                  messageArea.classList.remove('text-indigo-600');
-                  messageArea.classList.add('text-green-600');
-                }
-                }).catch(err => {
-                  console.error('Error loading user assignments during initialization:', err);
-                });
-              }
             } else {
               console.log('User appears logged in but no valid user data found, logging out');
               window.SuperSteaksAuth.logout();
@@ -608,34 +571,9 @@
         document.getElementById('user-info').classList.remove('hidden');
         document.getElementById('username-display').textContent = user.username;
 
-        // Check if user has a team assignment for this contest
-        window.SuperSteaksAuth.getUserAssignments().then(userAssignments => {
-          console.log('User assignments:', userAssignments);
-          const contestName = 'Champions League Draw';
-          const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
-          console.log('Existing assignment for Champions League Draw:', existingAssignment);
-
-          if (existingAssignment) {
-          console.log('Found team assignment:', existingAssignment.team);
-          // Find the team object for display
-          const assignedTeam = teams.find(team => team.name === existingAssignment.team);
-          console.log('Found team object:', assignedTeam);
-          if (assignedTeam) {
-            displayUserTeam(assignedTeam);
-          }
-          enterButton.disabled = true;
-          enterButton.textContent = 'Team Already Assigned!';
-          enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
-          enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-          messageArea.textContent = `You are cheering for ${existingAssignment.team}! Good luck!`;
-          messageArea.classList.remove('text-indigo-600');
-          messageArea.classList.add('text-green-600');
-        } else {
-          console.log('No existing assignment found');
-        }
-        }).catch(err => {
-          console.error('Error loading user assignments:', err);
-        });
+        // Team assignment checking is now handled by restoreUserTeamAssignments
+        // which is called automatically when the user logs in
+        console.log('UI updated for logged in user:', user.username);
       }
       
       function updateUIForLoggedOutState() {
