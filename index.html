@@ -7,6 +7,35 @@
     <meta name="description" content="Join SuperSteaks for free random team assignment draws. Get assigned teams from major sports competitions and win prizes if your team wins!">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase CDN Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCj9HI0wU7FWXIFXkkWfvBuDLgdvW5GVwo",
+            authDomain: "supersteaks-240f7.firebaseapp.com",
+            projectId: "supersteaks-240f7",
+            storageBucket: "supersteaks-240f7.firebasestorage.app",
+            messagingSenderId: "325643072121",
+            appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
+        };
+        
+        // Initialize Firebase immediately
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully in head');
+            
+            // Set a global flag that Firebase is ready
+            window.firebaseReady = true;
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+        }
+    </script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
@@ -172,25 +201,33 @@
     </footer>
 
     <script>
-        // ===== USER ACCOUNT SYSTEM =====
+        // ===== FIREBASE AUTHENTICATION SYSTEM =====
         
-        function getCurrentUser() {
-            const currentUsername = localStorage.getItem('currentUser');
-            if (!currentUsername) return null;
+        // Initialize authentication when page loads
+        window.addEventListener('load', function() {
+            console.log('Index page loaded, initializing auth...');
             
-            const users = JSON.parse(localStorage.getItem('champLeagueUsers') || '{}');
-            return users[currentUsername] || null;
-        }
+            if (window.SuperSteaksAuth) {
+                window.SuperSteaksAuth.checkExistingSession();
+                console.log('SuperSteaksAuth initialized');
+            } else {
+                console.error('SuperSteaksAuth not available');
+            }
+        });
         
-        function logoutUser() {
-            localStorage.removeItem('currentUser');
-            updateUIForLoggedOutState();
-        }
-        
+        // UI Management Functions
         function updateUIForLoggedInState(user) {
+            if (!user || !user.username) {
+                console.error('Invalid user object passed to updateUIForLoggedInState:', user);
+                updateUIForLoggedOutState();
+                return;
+            }
+            
             document.getElementById('auth-buttons').classList.add('hidden');
             document.getElementById('user-info').classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
+            
+            console.log('UI updated for logged in user:', user.username);
         }
         
         function updateUIForLoggedOutState() {
@@ -198,6 +235,7 @@
             document.getElementById('user-info').classList.add('hidden');
         }
         
+        // Modal Functions
         function showAuthModal(showRegister = false) {
             document.getElementById('auth-modal').classList.remove('hidden');
             if (showRegister) {
@@ -213,6 +251,28 @@
             document.getElementById('auth-modal').classList.add('hidden');
             document.getElementById('login-form-element').reset();
             document.getElementById('register-form-element').reset();
+        }
+        
+        // Account Management Functions
+        function createAccount(username, email, password) {
+            if (!window.SuperSteaksAuth) {
+                throw new Error('Authentication system not loaded');
+            }
+            return window.SuperSteaksAuth.register(username, email, password);
+        }
+        
+        function loginUser(username, password) {
+            if (!window.SuperSteaksAuth) {
+                throw new Error('Authentication system not loaded');
+            }
+            return window.SuperSteaksAuth.login(username, password);
+        }
+        
+        function logoutUser() {
+            if (window.SuperSteaksAuth) {
+                window.SuperSteaksAuth.logout();
+            }
+            updateUIForLoggedOutState();
         }
         
         // Event Listeners
@@ -231,33 +291,53 @@
             document.getElementById('login-form').classList.remove('hidden');
         });
         
-        // Form submissions - redirect to games.html for actual account creation/login
-        document.getElementById('login-form-element').addEventListener('submit', (e) => {
+        // Form Submissions
+        document.getElementById('login-form-element').addEventListener('submit', async (e) => {
             e.preventDefault();
-            alert('Please go to the "Enter Now" page to login or create an account!');
-            window.location.href = 'games.html';
-        });
-        
-        document.getElementById('register-form-element').addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Please go to the "Enter Now" page to create your account!');
-            window.location.href = 'games.html';
-        });
-        
-        // Close modal when clicking outside
-        document.getElementById('auth-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'auth-modal') {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const user = await loginUser(username, password);
+                updateUIForLoggedInState(user);
                 hideAuthModal();
+                
+                // Show success message
+                setTimeout(() => {
+                    alert(`Welcome back, ${user.username}! You are now logged in.`);
+                }, 100);
+            } catch (error) {
+                console.error('Login error:', error);
+                alert(error.message);
             }
         });
         
-        // Initialize UI on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const currentUser = getCurrentUser();
-            if (currentUser) {
-                updateUIForLoggedInState(currentUser);
-            } else {
-                updateUIForLoggedOutState();
+        document.getElementById('register-form-element').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            
+            try {
+                await createAccount(username, email, password);
+                const user = await loginUser(username, password);
+                updateUIForLoggedInState(user);
+                hideAuthModal();
+                
+                // Show success message
+                setTimeout(() => {
+                    alert(`Account created! Welcome, ${user.username}!`);
+                }, 100);
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert(error.message);
+            }
+        });
+        
+        // Close modal when clicking outside
+        document.getElementById('auth-modal').addEventListener('click', function(e) {
+            if (e.target.id === 'auth-modal') {
+                hideAuthModal();
             }
         });
     </script>

@@ -5,7 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Directory - SuperSteaks</title>
     <script src="https://cdn.tailwindcss.com"></script>
-        <!-- User Account System -->
+    
+    <!-- Firebase CDN Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCj9HI0wU7FWXIFXkkWfvBuDLgdvW5GVwo",
+            authDomain: "supersteaks-240f7.firebaseapp.com",
+            projectId: "supersteaks-240f7",
+            storageBucket: "supersteaks-240f7.firebasestorage.app",
+            messagingSenderId: "325643072121",
+            appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
+        };
+        
+        // Initialize Firebase immediately
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully in head');
+            
+            // Set a global flag that Firebase is ready
+            window.firebaseReady = true;
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+        }
+    </script>
+    
+    <!-- User Account System -->
     <script src="js/user-accounts.js"></script>
 </head>
 <body class="bg-gradient-to-br from-green-800 via-green-700 to-green-900 min-h-screen">
@@ -290,6 +319,103 @@
                 setTimeout(loadAllTeams, 500);
             });
         }
+
+        // ===== AUTHENTICATION UI FUNCTIONS =====
+        
+        function updateUIForLoggedInState(user) {
+            if (!user || !user.username) {
+                console.error('Invalid user object passed to updateUIForLoggedInState:', user);
+                updateUIForLoggedOutState();
+                return;
+            }
+            
+            document.getElementById('auth-buttons').classList.add('hidden');
+            document.getElementById('user-info').classList.remove('hidden');
+            document.getElementById('username-display').textContent = user.username;
+            
+            console.log('UI updated for logged in user:', user.username);
+        }
+        
+        function updateUIForLoggedOutState() {
+            document.getElementById('auth-buttons').classList.remove('hidden');
+            document.getElementById('user-info').classList.add('hidden');
+        }
+        
+        function showAuthModal(showRegister = false) {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            if (showRegister) {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            } else {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('register-form').classList.add('hidden');
+            }
+        }
+        
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            // Reset forms if they exist
+            const loginForm = document.getElementById('login-form-element');
+            const registerForm = document.getElementById('register-form-element');
+            if (loginForm) loginForm.reset();
+            if (registerForm) registerForm.reset();
+        }
+        
+        function createAccount(username, email, password) {
+            if (!window.SuperSteaksAuth) {
+                throw new Error('Authentication system not loaded');
+            }
+            return window.SuperSteaksAuth.register(username, email, password);
+        }
+        
+        function loginUser(username, password) {
+            if (!window.SuperSteaksAuth) {
+                throw new Error('Authentication system not loaded');
+            }
+            return window.SuperSteaksAuth.login(username, password);
+        }
+        
+        function logoutUser() {
+            if (window.SuperSteaksAuth) {
+                window.SuperSteaksAuth.logout();
+            }
+            updateUIForLoggedOutState();
+        }
+        
+        // Initialize authentication when page loads
+        window.addEventListener('load', function() {
+            console.log('Teams page loaded, initializing auth...');
+            
+            if (window.SuperSteaksAuth) {
+                window.SuperSteaksAuth.checkExistingSession();
+                console.log('SuperSteaksAuth initialized on teams page');
+            }
+            
+            // Set up auth event listeners
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => showAuthModal(false));
+            }
+            if (registerBtn) {
+                registerBtn.addEventListener('click', () => showAuthModal(true));
+            }
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logoutUser);
+            }
+            
+            // Set up modal close functionality
+            const authModal = document.getElementById('auth-modal');
+            if (authModal) {
+                authModal.addEventListener('click', function(e) {
+                    if (e.target.id === 'auth-modal') {
+                        hideAuthModal();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
