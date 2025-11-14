@@ -22,6 +22,9 @@
             appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
         };
         
+        // Set global config for user-accounts.js
+        window.firebaseConfig = firebaseConfig;
+        
         // Initialize Firebase immediately
         try {
             firebase.initializeApp(firebaseConfig);
@@ -190,6 +193,7 @@
                 <p id="reset-validation-text" class="text-sm text-gray-600 mb-4">
                     Enter your email address and we'll send you a link to reset your password.
                 </p>
+                <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
                 <div class="flex gap-3">
                     <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
                         Send Reset Email
@@ -401,7 +405,28 @@
         }
         
         async function resetPassword(email) {
-            await window.SuperSteaksAuth.resetPassword(email);
+            console.log('Reset password function called with email:', email);
+            const messageDiv = document.getElementById('reset-message');
+            
+            try {
+                console.log('Attempting to send Firebase reset email...');
+                await firebase.auth().sendPasswordResetEmail(email);
+                console.log('Firebase reset email sent successfully');
+                
+                if (messageDiv) {
+                    messageDiv.textContent = 'Password reset email sent! Check your inbox.';
+                    messageDiv.className = 'mt-4 p-3 rounded-lg bg-green-100 text-green-700';
+                    messageDiv.classList.remove('hidden');
+                }
+                document.getElementById('reset-email').value = '';
+            } catch (error) {
+                console.error('Firebase reset email error:', error);
+                if (messageDiv) {
+                    messageDiv.textContent = 'Error: ' + error.message;
+                    messageDiv.className = 'mt-4 p-3 rounded-lg bg-red-100 text-red-700';
+                    messageDiv.classList.remove('hidden');
+                }
+            }
         }
         
         function createAccount(username, email, password) {
