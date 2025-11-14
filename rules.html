@@ -305,7 +305,24 @@
         }
         
         async function resetPassword(email) {
-            await window.SuperSteaksAuth.resetPassword(email);
+            console.log('Reset password function called with email:', email);
+            const messageDiv = document.getElementById('reset-message');
+            
+            try {
+                console.log('Attempting to send Firebase reset email...');
+                await firebase.auth().sendPasswordResetEmail(email);
+                console.log('Firebase reset email sent successfully');
+                
+                messageDiv.textContent = 'Password reset email sent! Check your inbox.';
+                messageDiv.className = 'mt-4 p-3 rounded-lg bg-green-100 text-green-700';
+                messageDiv.classList.remove('hidden');
+                document.getElementById('reset-email').value = '';
+            } catch (error) {
+                console.error('Firebase reset email error:', error);
+                messageDiv.textContent = 'Error: ' + error.message;
+                messageDiv.className = 'mt-4 p-3 rounded-lg bg-red-100 text-red-700';
+                messageDiv.classList.remove('hidden');
+            }
         }
         
         // Simple direct event listeners with timeout fallback
@@ -387,9 +404,12 @@
             }
             
             if (resetForm) {
+                console.log('Reset form found, adding event listener');
                 resetForm.addEventListener('submit', async (e) => {
+                    console.log('Reset form submitted!');
                     e.preventDefault();
                     const email = document.getElementById('reset-email').value;
+                    console.log('Email from form:', email);
                     
                     try {
                         await resetPassword(email);
@@ -397,6 +417,8 @@
                         console.error('Password reset error:', error);
                     }
                 });
+            } else {
+                console.error('Reset form not found!');
             }
             
             // Close modal when clicking outside
