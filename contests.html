@@ -15,7 +15,7 @@
         <!-- Firebase Configuration -->
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCj9HI0wU7FWXIFXkkWfvBuDLgdvW5GVwo",
+            apiKey: "AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s",
             authDomain: "supersteaks-240f7.firebaseapp.com",
             projectId: "supersteaks-240f7",
             storageBucket: "supersteaks-240f7.firebasestorage.app",
@@ -381,17 +381,22 @@
             }
 
             document.getElementById('reset-password-form').addEventListener('submit', async function(e) {
+                console.log('Reset password form submitted!');
                 e.preventDefault();
                 const email = document.getElementById('reset-email').value;
+                console.log('Email entered:', email);
                 const messageDiv = document.getElementById('reset-message');
                 
+                console.log('Attempting to send reset email...');
                 try {
                     await firebase.auth().sendPasswordResetEmail(email);
+                    console.log('Firebase reset email sent successfully');
                     messageDiv.textContent = 'Password reset email sent! Check your inbox.';
                     messageDiv.className = 'mt-4 p-3 rounded-lg bg-green-100 text-green-700';
                     messageDiv.classList.remove('hidden');
                     document.getElementById('reset-email').value = '';
                 } catch (error) {
+                    console.error('Firebase reset email error:', error);
                     messageDiv.textContent = 'Error: ' + error.message;
                     messageDiv.className = 'mt-4 p-3 rounded-lg bg-red-100 text-red-700';
                     messageDiv.classList.remove('hidden');
