@@ -24,6 +24,9 @@
             appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
         };
         
+        // Set global config for user-accounts.js
+        window.firebaseConfig = firebaseConfig;
+        
         // Initialize Firebase immediately
         try {
             firebase.initializeApp(firebaseConfig);
