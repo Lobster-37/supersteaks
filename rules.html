@@ -443,9 +443,6 @@
             setupEventListeners();
         }
         
-        // Also try after a short delay as backup
-        setTimeout(setupEventListeners, 100);
-        
         // Initialize UI on page load
         document.addEventListener('DOMContentLoaded', () => {
             const currentUser = getCurrentUser();
