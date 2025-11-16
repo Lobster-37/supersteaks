@@ -825,22 +825,27 @@
       document.getElementById('close-modal').addEventListener('click', hideAuthModal);
       
       // Profile dropdown functionality
-      document.addEventListener('click', function(e) {
-        const dropdownBtn = document.getElementById('profile-dropdown-btn');
-        const dropdown = document.getElementById('profile-dropdown');
-        const logoutBtnDropdown = document.getElementById('logout-btn-dropdown');
-        
-        if (dropdownBtn && e.target === dropdownBtn) {
-          console.log('Dropdown button clicked');
-          dropdown.classList.toggle('hidden');
-        } else if (dropdown && !dropdown.contains(e.target)) {
-          dropdown.classList.add('hidden');
-        }
-        
-        if (logoutBtnDropdown && e.target === logoutBtnDropdown) {
-          logoutUser();
-          dropdown.classList.add('hidden');
-        }
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('Games dropdown script loaded');
+        document.addEventListener('click', function(e) {
+          const dropdownBtn = document.getElementById('profile-dropdown-btn');
+          const dropdown = document.getElementById('profile-dropdown');
+          const logoutBtnDropdown = document.getElementById('logout-btn-dropdown');
+          
+          if (dropdownBtn && e.target === dropdownBtn) {
+            console.log('Games dropdown button clicked');
+            if (dropdown) {
+              dropdown.classList.toggle('hidden');
+            }
+          } else if (dropdown && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+          }
+          
+          if (logoutBtnDropdown && e.target === logoutBtnDropdown) {
+            logoutUser();
+            if (dropdown) dropdown.classList.add('hidden');
+          }
+        });
       });
       
       // Password Reset Event Listeners
