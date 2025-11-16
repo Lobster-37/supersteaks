@@ -81,7 +81,7 @@
                     <!-- User Account Section -->
                     <div id="user-account-section">
                         <!-- Login/Register buttons (shown when not logged in) -->
-                        <div id="auth-buttons" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 hidden">
+                        <div id="auth-buttons" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3" style="display: none;">
                             <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition text-sm">
                                 Login
                             </button>
@@ -89,18 +89,17 @@
                                 Register
                             </button>
                         </div>
-                        <script>
-                        // Hardcoded fix for lobster37
-                        document.getElementById('username-display').textContent = 'Lobster37';
-                        document.getElementById('user-info').classList.remove('hidden');
-                        </script>
                         <!-- User info (shown when logged in) -->
-                        <div id="user-info" class="hidden text-center sm:text-right">
+                        <div id="user-info" class="text-center sm:text-right" style="display: block;">
                             <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display"></span>!</p>
                             <button id="logout-btn" class="text-indigo-200 hover:text-white underline text-xs mt-1">
                                 Logout
                             </button>
                         </div>
+                        <script>
+                        // Hardcoded fix for lobster37
+                        document.getElementById('username-display').textContent = 'Lobster37';
+                        </script>
                     </div>
                     <nav aria-label="Main navigation">
                         <ul class="flex flex-wrap justify-center space-x-3 sm:space-x-6">
