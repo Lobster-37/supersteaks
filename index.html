@@ -71,13 +71,12 @@
                         <script>
                         // Immediate authentication check to prevent FOUC
                         (function() {
+                            // Check SuperSteaks session first
                             const session = localStorage.getItem('supersteaks_session');
-                            
                             if (session) {
                                 try {
                                     const sessionData = JSON.parse(session);
                                     if (Date.now() - sessionData.loginTime < 7 * 24 * 60 * 60 * 1000) {
-                                        // Valid session - show user info immediately
                                         const userInfo = document.getElementById('user-info');
                                         const usernameDisplay = document.getElementById('username-display');
                                         if (userInfo && usernameDisplay) {
@@ -90,6 +89,28 @@
                                     }
                                 } catch (e) {}
                             }
+                            
+                            // Check if we have supersteaks_users data (fallback for missing session)
+                            const usersData = localStorage.getItem('supersteaks_users');
+                            if (usersData) {
+                                try {
+                                    const users = JSON.parse(usersData);
+                                    // If there's only one user or we can identify the current user somehow
+                                    const userKeys = Object.keys(users);
+                                    if (userKeys.length === 1) {
+                                        // Assume single user is the logged in user
+                                        const user = users[userKeys[0]];
+                                        const userInfo = document.getElementById('user-info');
+                                        const usernameDisplay = document.getElementById('username-display');
+                                        if (userInfo && usernameDisplay && user.username) {
+                                            usernameDisplay.textContent = user.username;
+                                            userInfo.classList.remove('hidden');
+                                            return;
+                                        }
+                                    }
+                                } catch (e) {}
+                            }
+                            
                             // No valid session - show auth buttons
                             const authButtons = document.getElementById('auth-buttons');
                             if (authButtons) authButtons.classList.remove('hidden');

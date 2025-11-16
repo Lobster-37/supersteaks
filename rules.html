@@ -101,6 +101,25 @@
                                 } catch (e) {}
                             }
                             
+                            // Check supersteaks_users data (fallback for missing session)
+                            const usersData = localStorage.getItem('supersteaks_users');
+                            if (usersData) {
+                                try {
+                                    const users = JSON.parse(usersData);
+                                    const userKeys = Object.keys(users);
+                                    if (userKeys.length === 1) {
+                                        const user = users[userKeys[0]];
+                                        const userInfo = document.getElementById('user-info');
+                                        const usernameDisplay = document.getElementById('username-display');
+                                        if (userInfo && usernameDisplay && user.username) {
+                                            usernameDisplay.textContent = user.username;
+                                            userInfo.classList.remove('hidden');
+                                            return;
+                                        }
+                                    }
+                                } catch (e) {}
+                            }
+                            
                             // Check old auth system
                             const currentUsername = localStorage.getItem('currentUser');
                             if (currentUsername) {
