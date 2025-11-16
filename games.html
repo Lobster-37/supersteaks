@@ -872,14 +872,8 @@
         e.preventDefault();
         const email = document.getElementById('reset-email').value;
         
-        try {
-          const result = await resetPassword(email);
-          hideResetPasswordModal();
-          alert(result.message);
-        } catch (error) {
-          console.error('Password reset error:', error);
-          alert(error.message);
-        }
+        // The resetPassword function now handles all success/error messaging and modal closing
+        await resetPassword(email);
       });
       
       // Close modal when clicking outside
