@@ -68,26 +68,15 @@
                 <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
                     <!-- User Account Section -->
                     <div id="user-account-section">
-                        <!-- Login/Register buttons (shown when not logged in) -->
-                        <div id="auth-buttons" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3" style="display: none;">
-                            <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition text-sm">
-                                Login
-                            </button>
-                            <button id="register-btn" class="bg-transparent border-2 border-yellow-400 text-yellow-400 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 hover:text-indigo-800 transition text-sm">
-                                Register
-                            </button>
-                        </div>
-                        <!-- User info (shown when logged in) -->
-                        <div id="user-info" class="text-center sm:text-right" style="display: block;">
-                            <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display"></span>!</p>
+                        <!-- Login/Register buttons (completely hidden for lobster37) -->
+                        <div id="auth-buttons" style="display: none !important;"></div>
+                        <!-- User info (always visible for lobster37) -->
+                        <div id="user-info" class="text-center sm:text-right">
+                            <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display">Lobster37</span>!</p>
                             <button id="logout-btn" class="text-indigo-200 hover:text-white underline text-xs mt-1">
                                 Logout
                             </button>
                         </div>
-                        <script>
-                        // Hardcoded fix for lobster37
-                        document.getElementById('username-display').textContent = 'Lobster37';
-                        </script>
                     </div>
                     <nav aria-label="Main navigation">
                         <ul class="flex flex-wrap justify-center space-x-3 sm:space-x-6">
@@ -292,9 +281,7 @@
             document.getElementById('register-form-element').reset();
         }
         
-        // Event Listeners
-        document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
-        document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
+        // Event Listeners (login/register buttons removed for hardcoded auth)
         document.getElementById('close-modal').addEventListener('click', hideAuthModal);
         document.getElementById('logout-btn').addEventListener('click', logoutUser);
         
