@@ -57,7 +57,7 @@
     <!-- Header & Navigation -->
     <header class="bg-indigo-800 text-white shadow-xl">
         <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
                 <div class="text-center sm:text-left">
                     <a href="index.html" class="hover:opacity-80 transition-opacity">
                         <div class="flex items-center justify-center">
@@ -65,20 +65,22 @@
                         </div>
                     </a>
                 </div>
-                <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <div class="flex flex-col items-end space-y-3">
                     <!-- User Account Section -->
                     <div id="user-account-section">
                         <!-- Login/Register buttons (completely hidden for lobster37) -->
                         <div id="auth-buttons" style="display: none !important;"></div>
                         <!-- User info (always visible for lobster37) - CACHE BUST v2024.11.16.1 -->
-                        <div id="user-info" class="text-center sm:text-right">
+                        <div id="user-info" class="text-right">
                             <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display">Lobster37</span>!</p>
                             <button id="logout-btn" class="text-indigo-200 hover:text-white underline text-xs mt-1">
                                 Logout
                             </button>
                         </div>
                     </div>
-                    <nav aria-label="Main navigation">
+                </div>
+            </div>
+            <nav aria-label="Main navigation" class="mt-4">
                         <ul class="flex flex-wrap justify-center space-x-3 sm:space-x-6">
                             <li>
                                 <a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
@@ -97,8 +99,6 @@
                             </li>
                         </ul>
                     </nav>
-                </div>
-            </div>
         </div>
     </header>
 
