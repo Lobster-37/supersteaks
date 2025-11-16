@@ -59,7 +59,7 @@
                 </div>
                 <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
                     <!-- User Account Section -->
-                    <div id="user-account-section">
+                    <div id="user-account-section" style="visibility: hidden;">
                         <!-- Login/Register buttons (shown when not logged in) -->
                         <div id="auth-buttons" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 hidden">
                             <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition text-sm">
@@ -72,19 +72,20 @@
                         <script>
                         // Immediate authentication check to prevent FOUC
                         (function() {
+                            const userAccountSection = document.getElementById('user-account-section');
                             const session = localStorage.getItem('supersteaks_session');
+                            
                             if (session) {
                                 try {
                                     const sessionData = JSON.parse(session);
                                     if (Date.now() - sessionData.loginTime < 7 * 24 * 60 * 60 * 1000) {
-                                        setTimeout(() => {
-                                            const userInfo = document.getElementById('user-info');
-                                            const usernameDisplay = document.getElementById('username-display');
-                                            if (userInfo && usernameDisplay) {
-                                                usernameDisplay.textContent = sessionData.username;
-                                                userInfo.classList.remove('hidden');
-                                            }
-                                        }, 0);
+                                        const userInfo = document.getElementById('user-info');
+                                        const usernameDisplay = document.getElementById('username-display');
+                                        if (userInfo && usernameDisplay) {
+                                            usernameDisplay.textContent = sessionData.username;
+                                            userInfo.classList.remove('hidden');
+                                        }
+                                        if (userAccountSection) userAccountSection.style.visibility = 'visible';
                                         return;
                                     } else {
                                         localStorage.removeItem('supersteaks_session');
@@ -93,6 +94,7 @@
                             }
                             const authButtons = document.getElementById('auth-buttons');
                             if (authButtons) authButtons.classList.remove('hidden');
+                            if (userAccountSection) userAccountSection.style.visibility = 'visible';
                         })();
                         </script>
                         <!-- User info (shown when logged in) -->
