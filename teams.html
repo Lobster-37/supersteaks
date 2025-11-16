@@ -73,8 +73,9 @@
                         // Immediate authentication check to prevent FOUC
                         (function() {
                             const userAccountSection = document.getElementById('user-account-section');
-                            const session = localStorage.getItem('supersteaks_session');
                             
+                            // Check new SuperSteaks auth system first
+                            const session = localStorage.getItem('supersteaks_session');
                             if (session) {
                                 try {
                                     const sessionData = JSON.parse(session);
@@ -92,6 +93,27 @@
                                     }
                                 } catch (e) {}
                             }
+                            
+                            // Check old auth system
+                            const currentUsername = localStorage.getItem('currentUser');
+                            if (currentUsername) {
+                                try {
+                                    const users = JSON.parse(localStorage.getItem('champLeagueUsers') || '{}');
+                                    const user = users[currentUsername];
+                                    if (user && user.username) {
+                                        const userInfo = document.getElementById('user-info');
+                                        const usernameDisplay = document.getElementById('username-display');
+                                        if (userInfo && usernameDisplay) {
+                                            usernameDisplay.textContent = user.username;
+                                            userInfo.classList.remove('hidden');
+                                        }
+                                        if (userAccountSection) userAccountSection.style.visibility = 'visible';
+                                        return;
+                                    }
+                                } catch (e) {}
+                            }
+                            
+                            // No valid session - show auth buttons
                             const authButtons = document.getElementById('auth-buttons');
                             if (authButtons) authButtons.classList.remove('hidden');
                             if (userAccountSection) userAccountSection.style.visibility = 'visible';
