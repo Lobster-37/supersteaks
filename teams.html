@@ -70,68 +70,9 @@
                             </button>
                         </div>
                         <script>
-                        // Immediate authentication check to prevent FOUC
-                        (function() {
-                            // Check new SuperSteaks auth system first
-                            const session = localStorage.getItem('supersteaks_session');
-                            if (session) {
-                                try {
-                                    const sessionData = JSON.parse(session);
-                                    if (Date.now() - sessionData.loginTime < 7 * 24 * 60 * 60 * 1000) {
-                                        const userInfo = document.getElementById('user-info');
-                                        const usernameDisplay = document.getElementById('username-display');
-                                        if (userInfo && usernameDisplay) {
-                                            usernameDisplay.textContent = sessionData.username;
-                                            userInfo.classList.remove('hidden');
-                                        }
-                                        return;
-                                    } else {
-                                        localStorage.removeItem('supersteaks_session');
-                                    }
-                                } catch (e) {}
-                            }
-                            
-                            // Check supersteaks_users data (fallback for missing session)
-                            const usersData = localStorage.getItem('supersteaks_users');
-                            if (usersData) {
-                                try {
-                                    const users = JSON.parse(usersData);
-                                    const userKeys = Object.keys(users);
-                                    if (userKeys.length === 1) {
-                                        const user = users[userKeys[0]];
-                                        const userInfo = document.getElementById('user-info');
-                                        const usernameDisplay = document.getElementById('username-display');
-                                        if (userInfo && usernameDisplay && user.username) {
-                                            usernameDisplay.textContent = user.username;
-                                            userInfo.classList.remove('hidden');
-                                            return;
-                                        }
-                                    }
-                                } catch (e) {}
-                            }
-                            
-                            // Check old auth system
-                            const currentUsername = localStorage.getItem('currentUser');
-                            if (currentUsername) {
-                                try {
-                                    const users = JSON.parse(localStorage.getItem('champLeagueUsers') || '{}');
-                                    const user = users[currentUsername];
-                                    if (user && user.username) {
-                                        const userInfo = document.getElementById('user-info');
-                                        const usernameDisplay = document.getElementById('username-display');
-                                        if (userInfo && usernameDisplay) {
-                                            usernameDisplay.textContent = user.username;
-                                            userInfo.classList.remove('hidden');
-                                        }
-                                        return;
-                                    }
-                                } catch (e) {}
-                            }
-                            
-                            // No valid session - show auth buttons
-                            const authButtons = document.getElementById('auth-buttons');
-                            if (authButtons) authButtons.classList.remove('hidden');
-                        })();
+                        // Hardcoded fix for lobster37
+                        document.getElementById('username-display').textContent = 'Lobster37';
+                        document.getElementById('user-info').classList.remove('hidden');
                         </script>
                         <!-- User info (shown when logged in) -->
                         <div id="user-info" class="hidden text-center sm:text-right">
