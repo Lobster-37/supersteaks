@@ -553,30 +553,14 @@
             }
         });
         
-        // Authentication check for teams page
+        // Authentication check for teams page - hardcoded for lobster37
         function checkTeamsAuthentication() {
             console.log('Checking teams authentication...');
             
-            // Check multiple sources for current user
-            let currentUser = null;
+            // Hardcoded authentication for lobster37
+            const currentUser = { username: 'Lobster37' };
             
-            // Method 1: Check localStorage directly
-            const currentUsername = localStorage.getItem('currentUser');
-            if (currentUsername) {
-                const users = JSON.parse(localStorage.getItem('champLeagueUsers') || '{}');
-                currentUser = users[currentUsername] || null;
-            }
-            
-            // Method 2: Check SuperSteaksAuth if available
-            if (!currentUser && window.SuperSteaksAuth && window.SuperSteaksAuth.isLoggedIn) {
-                try {
-                    currentUser = window.SuperSteaksAuth.isLoggedIn() ? { username: currentUsername } : null;
-                } catch (e) {
-                    console.log('SuperSteaksAuth check failed:', e);
-                }
-            }
-            
-            console.log('Current user found:', !!currentUser, currentUser);
+            console.log('Hardcoded user:', currentUser);
             
             const authRequired = document.getElementById('auth-required');
             const teamsContent = document.getElementById('teams-content');
