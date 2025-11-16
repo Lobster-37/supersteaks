@@ -425,6 +425,16 @@
                 });
             }
             
+            // Add click-outside closing for reset password modal
+            const resetModal = document.getElementById('reset-password-modal');
+            if (resetModal) {
+                resetModal.addEventListener('click', (e) => {
+                    if (e.target.id === 'reset-password-modal') {
+                        hideResetPasswordModal();
+                    }
+                });
+            }
+            
             // Initialize UI on page load
             const currentUser = getCurrentUser();
             if (currentUser) {
