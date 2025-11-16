@@ -353,9 +353,9 @@
                 `;
                 
                 contestTeams.forEach(assignment => {
-                    const date = new Date(assignment.date).toLocaleDateString();
-                    const isCurrentUser = window.SuperSteaksAuth.getCurrentUser() && 
-                                         window.SuperSteaksAuth.getCurrentUser().username === assignment.username;
+                    const date = new Date(assignment.timestamp).toLocaleDateString();
+                    const currentUser = { username: 'Lobster37' };
+                    const isCurrentUser = currentUser.username === assignment.username;
                     
                     html += `
                         <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border-2 ${isCurrentUser ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'}">
