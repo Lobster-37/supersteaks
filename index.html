@@ -473,6 +473,7 @@
             const logoutBtnDropdown = document.getElementById('logout-btn-dropdown');
             
             if (dropdownBtn && e.target === dropdownBtn) {
+                console.log('Dropdown button clicked');
                 dropdown.classList.toggle('hidden');
             } else if (dropdown && !dropdown.contains(e.target)) {
                 dropdown.classList.add('hidden');

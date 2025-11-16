@@ -823,7 +823,6 @@
       document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
       document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
       document.getElementById('close-modal').addEventListener('click', hideAuthModal);
-      document.getElementById('logout-btn').addEventListener('click', logoutUser);
       
       // Profile dropdown functionality
       document.addEventListener('click', function(e) {
@@ -832,6 +831,7 @@
         const logoutBtnDropdown = document.getElementById('logout-btn-dropdown');
         
         if (dropdownBtn && e.target === dropdownBtn) {
+          console.log('Dropdown button clicked');
           dropdown.classList.toggle('hidden');
         } else if (dropdown && !dropdown.contains(e.target)) {
           dropdown.classList.add('hidden');
