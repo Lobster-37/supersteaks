@@ -133,6 +133,16 @@
                 </button>
             </div>
 
+            <!-- Debug Info -->
+            <div class="mb-8">
+                <button id="debug-storage" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200 font-semibold text-sm">
+                    🔍 Debug Storage
+                </button>
+                <div id="debug-output" class="hidden mt-4 bg-gray-100 p-4 rounded-lg text-sm text-gray-800 max-h-64 overflow-y-auto">
+                    <!-- Debug info will be shown here -->
+                </div>
+            </div>
+
             <!-- Teams Display Area -->
             <div id="teams-container" class="text-left">
             <!-- Loading message -->
@@ -248,21 +258,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Teams page loaded');
             
-            // Create sample team assignments for demo (if they don't exist)
-            const contestName = 'Champions League Draw';
-            
-            // Add your brother's Slavia Praha assignment if it doesn't exist
-            const brotherStorageKey = `supersteaks_assignment_BrotherAccount_${contestName}`;
-            if (!localStorage.getItem(brotherStorageKey)) {
-                const brotherAssignment = {
-                    contest: contestName,
-                    team: 'Slavia Praha',
-                    username: 'BrotherAccount',
-                    timestamp: new Date().toISOString()
-                };
-                localStorage.setItem(brotherStorageKey, JSON.stringify(brotherAssignment));
-                console.log('Added brother\'s Slavia Praha assignment');
-            }
+            // Look for real user accounts and team assignments
             
             // Always load teams since we use hardcoded authentication
             setTimeout(() => {
@@ -280,14 +276,46 @@
             const teamsList = document.getElementById('teams-list');
             
             try {
-                // Get all team assignments from localStorage
                 const allTeams = [];
                 
+                // Look for new format team assignments
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (key && key.startsWith('supersteaks_assignment_')) {
-                        const assignmentData = JSON.parse(localStorage.getItem(key));
-                        allTeams.push(assignmentData);
+                        try {
+                            const assignmentData = JSON.parse(localStorage.getItem(key));
+                            allTeams.push(assignmentData);
+                        } catch (e) {
+                            console.log('Skipping invalid assignment data for key:', key);
+                        }
+                    }
+                }
+                
+                // Look for old system user accounts with team assignments
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('supersteaks_users.')) {
+                        try {
+                            const userData = JSON.parse(localStorage.getItem(key));
+                            console.log('Found user data for key:', key, userData);
+                            
+                            // Extract username from key (supersteaks_users.username)
+                            const username = key.replace('supersteaks_users.', '');
+                            
+                            // Check if this user has team assignments
+                            if (userData.assignments && userData.assignments.length > 0) {
+                                userData.assignments.forEach(assignment => {
+                                    allTeams.push({
+                                        username: username,
+                                        team: assignment.team,
+                                        contest: assignment.contest,
+                                        timestamp: assignment.timestamp || assignment.date || new Date().toISOString()
+                                    });
+                                });
+                            }
+                        } catch (e) {
+                            console.log('Skipping invalid user data for key:', key);
+                        }
                     }
                 }
                 
@@ -407,6 +435,28 @@
                 
                 // Reload teams after a short delay
                 setTimeout(loadAllTeams, 500);
+            });
+            
+            // Setup debug button
+            const debugBtn = document.getElementById('debug-storage');
+            debugBtn.addEventListener('click', () => {
+                console.log('Showing debug storage info...');
+                const debugOutput = document.getElementById('debug-output');
+                
+                let debugHtml = '<h4 class="font-bold mb-2">LocalStorage Contents:</h4>';
+                
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    
+                    debugHtml += `<div class="mb-2 p-2 bg-white rounded border">`;
+                    debugHtml += `<strong>${key}:</strong><br>`;
+                    debugHtml += `<pre class="text-xs mt-1 whitespace-pre-wrap">${value}</pre>`;
+                    debugHtml += `</div>`;
+                }
+                
+                debugOutput.innerHTML = debugHtml;
+                debugOutput.classList.toggle('hidden');
             });
         }
 
