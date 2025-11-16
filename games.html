@@ -205,6 +205,7 @@
                     </button>
                 </div>
             </form>
+            <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
             <button id="close-reset-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
                 ×
             </button>
@@ -671,10 +672,28 @@
       }
       
       async function resetPassword(email) {
-        if (!window.SuperSteaksAuth) {
-          throw new Error('Authentication system not loaded');
+        console.log('Reset password function called with email:', email);
+        const messageDiv = document.getElementById('reset-message');
+        
+        try {
+          console.log('Attempting to send Firebase reset email...');
+          await firebase.auth().sendPasswordResetEmail(email);
+          console.log('Firebase reset email sent successfully');
+          
+          if (messageDiv) {
+            messageDiv.textContent = 'Password reset email sent! Check your inbox.';
+            messageDiv.className = 'mt-4 p-3 rounded-lg bg-green-100 text-green-700';
+            messageDiv.classList.remove('hidden');
+          }
+          document.getElementById('reset-email').value = '';
+        } catch (error) {
+          console.error('Firebase reset email error:', error);
+          if (messageDiv) {
+            messageDiv.textContent = 'Error: ' + error.message;
+            messageDiv.className = 'mt-4 p-3 rounded-lg bg-red-100 text-red-700';
+            messageDiv.classList.remove('hidden');
+          }
         }
-        return window.SuperSteaksAuth.resetPassword(email);
       }
       
       // Updated Enter Draw Function
