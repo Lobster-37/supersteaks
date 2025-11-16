@@ -13,6 +13,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
+    <!-- SuperSteaks Global System -->
+    <script src="js/supersteaks-global.js"></script>
+    
     <!-- Firebase Configuration - Initialize immediately -->
     <script>
         const firebaseConfig = {
@@ -109,8 +112,8 @@
                             </div>
                         </div>
                         <script>
-                        // Hardcoded fix for lobster37
-                        document.getElementById('username-display').textContent = 'Lobster37';
+                        // Authentication handled by SuperSteaks Global system
+                        // Username will be set automatically when user logs in
                         </script>
                     </div>
                 </div>
@@ -390,36 +393,34 @@
         
         console.log('Games page loaded');
         
-        // Hardcoded authentication - user is always logged in as Lobster37
-        const currentUser = { username: 'Lobster37' };
-        console.log('Current user:', currentUser.username);
-        
-        // Check if user already has a team assignment for this contest
-        const contestName = 'Champions League Draw';
-        const storageKey = `supersteaks_assignment_${currentUser.username}_${contestName}`;
-        const existingAssignment = localStorage.getItem(storageKey);
-        
-        if (existingAssignment) {
-          console.log('User has existing team assignment');
-          const assignmentData = JSON.parse(existingAssignment);
-          const teamName = assignmentData.team;
-          
-          // Find the team data to get styling information
-          const teamData = teams.find(t => t.name === teamName);
-          
-          if (teamData) {
-            // Display the assigned team with proper styling
-            displayUserTeam(teamData);
+        // Check for existing team assignment using global system
+        setTimeout(async () => {
+          if (window.superSteaksGlobal && window.superSteaksGlobal.isAuthenticated()) {
+            const contestName = 'Champions League Draw';
+            const existingAssignment = await window.superSteaksGlobal.getUserAssignment(contestName);
             
-            enterButton.disabled = true;
-            enterButton.textContent = 'Already Entered!';
-            enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
-            enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-            messageArea.innerHTML = `You are cheering for ${teamName}! Good luck!<br><a href="teams.html" class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition duration-200">🏆 View All Teams</a>`;
-            messageArea.classList.remove('text-indigo-600');
-            messageArea.classList.add('text-green-600');
+            if (existingAssignment) {
+              console.log('User has existing team assignment:', existingAssignment);
+              const teamName = existingAssignment.team;
+              
+              // Find the team data to get styling information
+              const teamData = teams.find(t => t.name === teamName);
+              
+              if (teamData) {
+                // Display the assigned team with proper styling
+                displayUserTeam(teamData);
+                
+                enterButton.disabled = true;
+                enterButton.textContent = 'Already Entered!';
+                enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                messageArea.innerHTML = `You are cheering for ${teamName}! Good luck!<br><a href="teams.html" class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition duration-200">🏆 View All Teams</a>`;
+                messageArea.classList.remove('text-indigo-600');
+                messageArea.classList.add('text-green-600');
+              }
+            }
           }
-        }
+        }, 1000);
       };
 
       // Fallback function that works without login (for testing)
@@ -528,9 +529,16 @@
         return window.SuperSteaksAuth.getCurrentUser();
       }
       
-      function logoutUser() {
-        window.SuperSteaksAuth.logout();
-        updateUIForLoggedOutState();
+      async function logoutUser() {
+        if (window.superSteaksGlobal) {
+          const result = await window.superSteaksGlobal.signOut();
+          if (result.success) {
+            console.log('User logged out successfully');
+            // UI will update automatically via auth state listener
+          } else {
+            console.error('Logout failed:', result.error);
+          }
+        }
       }
       
       function assignTeamToUser(username, team) {
@@ -686,85 +694,82 @@
         }
       }
       
-      // Updated Enter Draw Function
-      function enterDraw() {
+      // Updated Enter Draw Function using Firebase
+      async function enterDraw() {
         console.log('enterDraw called');
         
-        // Hardcoded authentication check
-        const currentUser = { username: 'Lobster37' };
-        console.log('Current user:', currentUser.username);
-        
-        // Check if user already has a team for this contest
-        const contestName = 'Champions League Draw';
-        const storageKey = `supersteaks_assignment_${currentUser.username}_${contestName}`;
-        const existingAssignment = localStorage.getItem(storageKey);
-        
-        if (existingAssignment) {
-          const teamData = JSON.parse(existingAssignment);
-          messageArea.textContent = `You already have ${teamData.team} assigned for this contest!`;
-          messageArea.classList.remove('text-green-600', 'text-indigo-600');
-          messageArea.classList.add('text-red-600');
+        // Check if global system is ready and user is authenticated
+        if (!window.superSteaksGlobal || !window.superSteaksGlobal.isAuthenticated()) {
+          console.log('User not authenticated, showing modal');
+          showAuthModal(false);
           return;
         }
         
-        // Get all existing assignments to find available teams
-        const allAssignments = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith(`supersteaks_assignment_`) && key.includes(contestName)) {
-            const assignment = JSON.parse(localStorage.getItem(key));
-            allAssignments.push(assignment.team);
-          }
-        }
+        const contestName = 'Champions League Draw';
         
-        // Filter out already assigned teams
-        const availableTeams = teams.filter(team => !allAssignments.includes(team.name));
-        console.log('Available teams:', availableTeams.length, 'out of', teams.length);
-        
-        // Check if any teams are still available
-        if (availableTeams.length === 0) {
-          messageArea.textContent = 'Sorry! All teams have been assigned. Contest is full!';
+        // Check if user already has assignment
+        const existingAssignment = await window.superSteaksGlobal.getUserAssignment(contestName);
+        if (existingAssignment) {
+          messageArea.textContent = `You already have ${existingAssignment.team} assigned for this contest!`;
           messageArea.classList.remove('text-green-600', 'text-indigo-600');
           messageArea.classList.add('text-red-600');
-          enterButton.disabled = true;
-          enterButton.textContent = 'Contest Full';
-          enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
-          enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
           return;
         }
         
         // Start the draw animation
         enterButton.disabled = true;
         enterButton.textContent = 'Drawing...';
-        messageArea.textContent = `Spinning the wheel of destiny... (${availableTeams.length} teams available)`;
+        messageArea.textContent = 'Connecting to global draw system...';
         messageArea.classList.remove('text-red-600', 'text-green-600');
         messageArea.classList.add('text-indigo-600');
         
-        setTimeout(() => {
-          // Select random team from available teams only
-          const selectedTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
-          console.log('Selected team:', selectedTeam.name, 'from', availableTeams.length, 'available teams');
-          
-          // Save team assignment to localStorage
-          const assignmentData = {
-            contest: contestName,
-            team: selectedTeam.name,
-            username: currentUser.username,
-            timestamp: new Date().toISOString()
-          };
-          localStorage.setItem(storageKey, JSON.stringify(assignmentData));
-          
-          // Update UI
-          displayUserTeam(selectedTeam);
-          
-          enterButton.textContent = 'Team Assigned!';
-          enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
-          enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-          
-          const remainingTeams = availableTeams.length - 1;
-          messageArea.innerHTML = `Congratulations! You've been assigned: ${selectedTeam.name}<br><small class="text-sm">${remainingTeams} teams remaining</small><br><a href="teams.html" class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition duration-200">🏆 View All Teams</a>`;
-          messageArea.classList.remove('text-indigo-600');
-          messageArea.classList.add('text-green-600');
+        setTimeout(async () => {
+          try {
+            // Enter the draw using global system
+            const result = await window.superSteaksGlobal.enterDraw(contestName);
+            
+            if (result.success) {
+              const selectedTeam = result.team;
+              
+              // Update UI
+              displayUserTeam(selectedTeam);
+              
+              enterButton.textContent = 'Team Assigned!';
+              enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+              enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+              
+              messageArea.innerHTML = `Congratulations! You've been assigned: ${selectedTeam.name}<br><small class="text-sm">${result.remainingTeams} teams remaining globally</small><br><a href="teams.html" class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition duration-200">🏆 View All Teams</a>`;
+              messageArea.classList.remove('text-indigo-600');
+              messageArea.classList.add('text-green-600');
+              
+            } else {
+              // Show error message
+              messageArea.textContent = result.error;
+              messageArea.classList.remove('text-green-600', 'text-indigo-600');
+              messageArea.classList.add('text-red-600');
+              
+              // Reset button if contest is full
+              if (result.error.includes('Contest is full')) {
+                enterButton.textContent = 'Contest Full';
+                enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+              } else {
+                // Re-enable button for other errors
+                enterButton.disabled = false;
+                enterButton.textContent = 'Enter Draw Now!';
+              }
+            }
+            
+          } catch (error) {
+            console.error('Error in draw:', error);
+            messageArea.textContent = 'Connection error. Please try again.';
+            messageArea.classList.remove('text-green-600', 'text-indigo-600');
+            messageArea.classList.add('text-red-600');
+            
+            // Re-enable button
+            enterButton.disabled = false;
+            enterButton.textContent = 'Enter Draw Now!';
+          }
         }, 2000);
       }
       
@@ -812,24 +817,33 @@
         document.getElementById('login-form').classList.remove('hidden');
       });
       
-      // Form Submissions
+      // Form Submissions using Firebase Auth
       document.getElementById('login-form-element').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = document.getElementById('login-username').value;
+        const email = document.getElementById('login-identifier').value; // Using email for login
         const password = document.getElementById('login-password').value;
         
+        if (!window.superSteaksGlobal) {
+          alert('System not ready. Please try again in a moment.');
+          return;
+        }
+        
         try {
-          console.log('Login attempt - Username:', username, 'Password length:', password.length);
-          const user = await loginUser(username, password);
-          console.log('Login successful, user:', user);
-          updateUIForLoggedInState(user);
-          hideAuthModal();
-          messageArea.textContent = `Welcome back, ${user.username}!`;
-          messageArea.classList.remove('text-red-600', 'text-indigo-600');
-          messageArea.classList.add('text-green-600');
+          console.log('Login attempt - Email:', email);
+          const result = await window.superSteaksGlobal.signIn(email, password);
+          
+          if (result.success) {
+            console.log('Login successful');
+            hideAuthModal();
+            messageArea.textContent = `Welcome back, ${result.user.displayName || email}!`;
+            messageArea.classList.remove('text-red-600', 'text-indigo-600');
+            messageArea.classList.add('text-green-600');
+          } else {
+            alert(result.error);
+          }
         } catch (error) {
           console.error('Login error:', error);
-          alert(error.message);
+          alert('Login failed. Please try again.');
         }
       });
       
@@ -839,16 +853,26 @@
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
         
+        if (!window.superSteaksGlobal) {
+          alert('System not ready. Please try again in a moment.');
+          return;
+        }
+        
         try {
-          await createAccount(username, email, password);
-          const user = await loginUser(username, password); // Auto-login after registration
-          updateUIForLoggedInState(user);
-          hideAuthModal();
-          messageArea.textContent = `Account created! Welcome, ${user.username}!`;
-          messageArea.classList.remove('text-red-600', 'text-indigo-600');
-          messageArea.classList.add('text-green-600');
+          const result = await window.superSteaksGlobal.signUp(email, password, username);
+          
+          if (result.success) {
+            console.log('Registration successful');
+            hideAuthModal();
+            messageArea.textContent = `Account created! Welcome, ${username}!`;
+            messageArea.classList.remove('text-red-600', 'text-indigo-600');
+            messageArea.classList.add('text-green-600');
+          } else {
+            alert(result.error);
+          }
         } catch (error) {
-          alert(error.message);
+          console.error('Registration error:', error);
+          alert('Registration failed. Please try again.');
         }
       });
       
