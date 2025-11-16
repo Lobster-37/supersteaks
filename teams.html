@@ -544,17 +544,41 @@
         
         // Authentication check for teams page
         function checkTeamsAuthentication() {
-            const currentUser = getCurrentUser();
+            console.log('Checking teams authentication...');
+            
+            // Check multiple sources for current user
+            let currentUser = null;
+            
+            // Method 1: Check localStorage directly
+            const currentUsername = localStorage.getItem('currentUser');
+            if (currentUsername) {
+                const users = JSON.parse(localStorage.getItem('champLeagueUsers') || '{}');
+                currentUser = users[currentUsername] || null;
+            }
+            
+            // Method 2: Check SuperSteaksAuth if available
+            if (!currentUser && window.SuperSteaksAuth && window.SuperSteaksAuth.isLoggedIn) {
+                try {
+                    currentUser = window.SuperSteaksAuth.isLoggedIn() ? { username: currentUsername } : null;
+                } catch (e) {
+                    console.log('SuperSteaksAuth check failed:', e);
+                }
+            }
+            
+            console.log('Current user found:', !!currentUser, currentUser);
+            
             const authRequired = document.getElementById('auth-required');
             const teamsContent = document.getElementById('teams-content');
             const loginFromTeams = document.getElementById('login-from-teams');
             
             if (currentUser) {
-                authRequired.classList.add('hidden');
-                teamsContent.classList.remove('hidden');
+                console.log('User is logged in, showing teams content');
+                if (authRequired) authRequired.classList.add('hidden');
+                if (teamsContent) teamsContent.classList.remove('hidden');
             } else {
-                authRequired.classList.remove('hidden');
-                teamsContent.classList.add('hidden');
+                console.log('User is not logged in, showing auth required');
+                if (authRequired) authRequired.classList.remove('hidden');
+                if (teamsContent) teamsContent.classList.add('hidden');
             }
             
             if (loginFromTeams) {
@@ -564,8 +588,13 @@
             }
         }
         
-        // Run authentication check on page load
+        // Run authentication check multiple times to ensure it works
         document.addEventListener('DOMContentLoaded', checkTeamsAuthentication);
+        window.addEventListener('load', checkTeamsAuthentication);
+        
+        // Also check when user account system loads
+        setTimeout(checkTeamsAuthentication, 500);
+        setTimeout(checkTeamsAuthentication, 1000);
     </script>
         </section>
     </main>
