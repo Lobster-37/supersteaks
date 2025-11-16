@@ -50,7 +50,7 @@ class SuperSteaksGlobal {
                 uid: user.uid,
                 email: user.email,
                 displayName: displayName,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: new Date(),
                 teamAssignments: []
             });
             
@@ -106,63 +106,51 @@ class SuperSteaksGlobal {
         }
         
         try {
-            // Use Firestore transaction to prevent race conditions
-            return await this.firestore.runTransaction(async (transaction) => {
-                // Check if user already has assignment for this contest
-                const userAssignmentRef = this.firestore
-                    .collection('teamAssignments')
-                    .where('userId', '==', this.currentUser.uid)
-                    .where('contest', '==', contestName);
-                    
-                const existingAssignment = await transaction.get(userAssignmentRef);
-                
-                if (!existingAssignment.empty) {
-                    const assignmentData = existingAssignment.docs[0].data();
-                    return { 
-                        success: false, 
-                        error: `You already have ${assignmentData.team} assigned for this contest!` 
-                    };
-                }
-                
-                // Get all existing assignments for this contest
-                const allAssignmentsRef = this.firestore
-                    .collection('teamAssignments')
-                    .where('contest', '==', contestName);
-                    
-                const allAssignments = await transaction.get(allAssignmentsRef);
-                const assignedTeams = allAssignments.docs.map(doc => doc.data().team);
-                
-                // Get available teams (this should be passed in or stored in Firestore)
-                const availableTeams = this.getAvailableTeams(assignedTeams);
-                
-                if (availableTeams.length === 0) {
-                    return { 
-                        success: false, 
-                        error: 'Sorry! All teams have been assigned. Contest is full!' 
-                    };
-                }
-                
-                // Select random team
-                const selectedTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
-                
-                // Create assignment document
-                const assignmentRef = this.firestore.collection('teamAssignments').doc();
-                transaction.set(assignmentRef, {
-                    userId: this.currentUser.uid,
-                    username: this.currentUser.displayName,
-                    email: this.currentUser.email,
-                    contest: contestName,
-                    team: selectedTeam.name,
-                    teamData: selectedTeam,
-                    assignedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
+            // Check if user already has assignment (outside transaction first)
+            const existingAssignment = await this.getUserAssignment(contestName);
+            if (existingAssignment) {
                 return { 
-                    success: true, 
-                    team: selectedTeam,
-                    remainingTeams: availableTeams.length - 1
+                    success: false, 
+                    error: `You already have ${existingAssignment.team} assigned for this contest!` 
                 };
-            });
+            }
+            
+            // Get all existing assignments to find available teams
+            const allAssignments = await this.getAllTeamAssignments();
+            const contestAssignments = allAssignments.filter(a => a.contest === contestName);
+            const assignedTeams = contestAssignments.map(a => a.team);
+            
+            // Get available teams
+            const availableTeams = this.getAvailableTeams(assignedTeams);
+            
+            if (availableTeams.length === 0) {
+                return { 
+                    success: false, 
+                    error: 'Sorry! All teams have been assigned. Contest is full!' 
+                };
+            }
+            
+            // Select random team
+            const selectedTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+            
+            // Create assignment document
+            const assignmentData = {
+                userId: this.currentUser.uid,
+                username: this.currentUser.displayName || this.currentUser.email.split('@')[0],
+                email: this.currentUser.email,
+                contest: contestName,
+                team: selectedTeam.name,
+                teamData: selectedTeam,
+                assignedAt: new Date()
+            };
+            
+            await this.firestore.collection('teamAssignments').add(assignmentData);
+            
+            return { 
+                success: true, 
+                team: selectedTeam,
+                remainingTeams: availableTeams.length - 1
+            };
             
         } catch (error) {
             console.error('Error entering draw:', error);

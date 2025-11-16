@@ -353,7 +353,19 @@
                 `;
                 
                 contestTeams.forEach(assignment => {
-                    const date = assignment.assignedAt ? new Date(assignment.assignedAt.toDate()).toLocaleDateString() : 'Recent';
+                    let date = 'Recent';
+                    if (assignment.assignedAt) {
+                        if (assignment.assignedAt.toDate) {
+                            // Firestore timestamp
+                            date = assignment.assignedAt.toDate().toLocaleDateString();
+                        } else if (assignment.assignedAt instanceof Date) {
+                            // Regular Date object
+                            date = assignment.assignedAt.toLocaleDateString();
+                        } else if (typeof assignment.assignedAt === 'string') {
+                            // String date
+                            date = new Date(assignment.assignedAt).toLocaleDateString();
+                        }
+                    }
                     const currentUser = window.superSteaksGlobal ? window.superSteaksGlobal.getCurrentUser() : null;
                     const isCurrentUser = currentUser && (currentUser.uid === assignment.userId || currentUser.displayName === assignment.username);
                     
