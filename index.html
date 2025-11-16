@@ -63,7 +63,7 @@
                     <!-- User Account Section -->
                     <div id="user-account-section">
                         <!-- Login/Register buttons (shown when not logged in) -->
-                        <div id="auth-buttons" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3" style="display: none;">
+                        <div id="auth-buttons" class="hidden flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                             <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition text-sm">
                                 Login
                             </button>
@@ -72,7 +72,7 @@
                             </button>
                         </div>
                         <!-- User info (shown when logged in) -->
-                        <div id="user-info" class="text-right" style="display: block;">
+                        <div id="user-info" class="text-right">
                             <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display"></span>!</p>
                             <div class="flex items-center justify-center sm:justify-end space-x-2">
                                 <div class="relative">
@@ -91,8 +91,8 @@
                             </div>
                         </div>
                         <script>
-                        // Hardcoded fix for lobster37
-                        document.getElementById('username-display').textContent = 'Lobster37';
+                        // Authentication handled by SuperSteaks Global system
+                        // Username will be set automatically when user logs in
                         </script>
                     </div>
                 </div>

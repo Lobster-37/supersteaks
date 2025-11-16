@@ -262,9 +262,17 @@ class SuperSteaksGlobal {
         const userInfo = document.getElementById('user-info');
         const usernameDisplay = document.getElementById('username-display');
         
-        if (authButtons) authButtons.classList.add('hidden');
-        if (userInfo) userInfo.classList.remove('hidden');
-        if (usernameDisplay) usernameDisplay.textContent = user.displayName || user.email.split('@')[0];
+        if (authButtons) {
+            authButtons.classList.add('hidden');
+            authButtons.style.display = 'none';
+        }
+        if (userInfo) {
+            userInfo.classList.remove('hidden');
+            userInfo.style.display = '';
+        }
+        if (usernameDisplay) {
+            usernameDisplay.textContent = user.displayName || user.email.split('@')[0];
+        }
     }
     
     showUnauthenticatedUI() {
@@ -272,8 +280,14 @@ class SuperSteaksGlobal {
         const authButtons = document.getElementById('auth-buttons');
         const userInfo = document.getElementById('user-info');
         
-        if (authButtons) authButtons.classList.remove('hidden');
-        if (userInfo) userInfo.classList.add('hidden');
+        if (authButtons) {
+            authButtons.classList.remove('hidden');
+            authButtons.style.display = '';
+        }
+        if (userInfo) {
+            userInfo.classList.add('hidden');
+            userInfo.style.display = 'none';
+        }
     }
     
     // Utility Methods
