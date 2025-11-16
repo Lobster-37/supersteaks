@@ -434,12 +434,20 @@
             document.getElementById('user-info').classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
             
+            // Make sure user account section is visible
+            const userAccountSection = document.getElementById('user-account-section');
+            if (userAccountSection) userAccountSection.style.visibility = 'visible';
+            
             console.log('UI updated for logged in user:', user.username);
         }
         
         function updateUIForLoggedOutState() {
             document.getElementById('auth-buttons').classList.remove('hidden');
             document.getElementById('user-info').classList.add('hidden');
+            
+            // Make sure user account section is visible
+            const userAccountSection = document.getElementById('user-account-section');
+            if (userAccountSection) userAccountSection.style.visibility = 'visible';
         }
         
         function showAuthModal(showRegister = false) {
