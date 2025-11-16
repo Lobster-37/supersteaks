@@ -269,28 +269,10 @@
     <script>
         // ===== USER ACCOUNT SYSTEM =====
         
-        function getCurrentUser() {
-            const currentUsername = localStorage.getItem('currentUser');
-            if (!currentUsername) return null;
-            
-            const users = JSON.parse(localStorage.getItem('champLeagueUsers') || '{}');
-            return users[currentUsername] || null;
-        }
-        
         function logoutUser() {
             localStorage.removeItem('currentUser');
-            updateUIForLoggedOutState();
-        }
-        
-        function updateUIForLoggedInState(user) {
-            document.getElementById('auth-buttons').classList.add('hidden');
-            document.getElementById('user-info').classList.remove('hidden');
-            document.getElementById('username-display').textContent = user.username;
-        }
-        
-        function updateUIForLoggedOutState() {
-            document.getElementById('auth-buttons').classList.remove('hidden');
-            document.getElementById('user-info').classList.add('hidden');
+            // Redirect to home page after logout
+            window.location.href = 'index.html';
         }
         
         function showAuthModal(showRegister = false) {
@@ -364,13 +346,6 @@
 
         // Initialize UI on page load
         document.addEventListener('DOMContentLoaded', () => {
-            const currentUser = getCurrentUser();
-            if (currentUser) {
-                updateUIForLoggedInState(currentUser);
-            } else {
-                updateUIForLoggedOutState();
-            }
-            
             // Debug: Check if forgot password link exists
             const forgotLink = document.getElementById('forgot-password-link');
             console.log('Forgot password link found:', forgotLink);
