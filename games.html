@@ -389,74 +389,33 @@
         document.documentElement.style.overflowY = 'auto';
         
         console.log('Games page loaded');
-        console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
-        console.log('Firebase ready:', !!window.firebaseReady);
         
-        // Wait for both Firebase and user account system to be ready
-        if (window.firebaseReady && window.SuperSteaksAuth) {
-          console.log('Both Firebase and SuperSteaksAuth are ready, initializing...');
+        // Hardcoded authentication - user is always logged in as Lobster37
+        const currentUser = { username: 'Lobster37' };
+        console.log('Current user:', currentUser.username);
+        
+        // Check if user already has a team assignment for this contest
+        const contestName = 'Champions League Draw';
+        const storageKey = `supersteaks_assignment_${currentUser.username}_${contestName}`;
+        const existingAssignment = localStorage.getItem(storageKey);
+        
+        if (existingAssignment) {
+          console.log('User has existing team assignment');
+          const assignmentData = JSON.parse(existingAssignment);
+          const teamName = assignmentData.team;
           
-          // Check if user is logged in and has team assignment
-          if (window.SuperSteaksAuth.isLoggedIn()) {
-            console.log('User is already logged in');
-            
-            // Update UI to show logged in state
-            const currentUser = window.SuperSteaksAuth.getCurrentUser();
-            console.log('Current user from SuperSteaksAuth:', currentUser);
-            
-            if (currentUser && currentUser.username) {
-              updateUIForLoggedInState(currentUser);
-            } else {
-              console.log('User appears logged in but no valid user data found, logging out');
-              window.SuperSteaksAuth.logout();
-              updateUIForLoggedOutState();
-            }
-          }
-        } else {
-          console.log('Waiting for Firebase and SuperSteaksAuth to be ready...');
-          console.log('Firebase ready:', !!window.firebaseReady);
-          console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
-        }
-        
-        // Generate a simple local user ID for demo purposes
-        userId = 'demo_' + Math.random().toString(36).substr(2, 9);
-        userIdDisplay.textContent = userId;
-
-        // Fallback: Check old localStorage system for backward compatibility
-        const existingEntry = localStorage.getItem(`entry_${currentDrawId}`);
-        
-        if (existingEntry) {
-          const entry = JSON.parse(existingEntry);
-          const teamName = entry.assignedTeam;
+          // Find the team data to get styling information
+          const teamData = teams.find(t => t.name === teamName);
           
-          // Check if this is an old entry without initials - if so, clear it
-          if (!entry.teamInitials) {
-            localStorage.removeItem(`entry_${currentDrawId}`);
-            // Reset to fresh state
-            assignedTeamEl.textContent = 'Awaiting Entry...';
-            enterButton.disabled = false;
-            enterButton.textContent = 'Enter Draw Now!';
-          } else {
-            // Valid entry with team assignment
-            assignedTeamEl.textContent = teamName;
-            assignedTeamEl.classList.add('text-green-600');
-            
-            // Apply team styling
-            teamContainerEl.style.borderColor = entry.borderColor || '#fbbf24';
-            
-            if (entry.pattern) {
-              teamContainerEl.className = teamContainerEl.className.replace(/stripes-\w+|diagonal-half|ajax-stripe/g, '');
-              teamContainerEl.classList.add(entry.pattern);
-              teamContainerEl.style.backgroundColor = 'transparent';
-            } else {
-              teamContainerEl.style.backgroundColor = entry.teamColor || '#4f46e5';
-            }
+          if (teamData) {
+            // Display the assigned team with proper styling
+            displayUserTeam(teamData);
             
             enterButton.disabled = true;
             enterButton.textContent = 'Already Entered!';
             enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
             enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
-            messageArea.textContent = `You are cheering for ${teamName}! Good luck!`;
+            messageArea.innerHTML = `You are cheering for ${teamName}! Good luck!<br><a href="teams.html" class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition duration-200">🏆 View All Teams</a>`;
             messageArea.classList.remove('text-indigo-600');
             messageArea.classList.add('text-green-600');
           }
@@ -728,54 +687,38 @@
       }
       
       // Updated Enter Draw Function
-      async function enterDraw() {
+      function enterDraw() {
         console.log('enterDraw called');
-        console.log('SuperSteaksAuth available:', !!window.SuperSteaksAuth);
-        console.log('User logged in:', window.SuperSteaksAuth.isLoggedIn());
         
-        // Check if user is logged in using our new system
-        if (!window.SuperSteaksAuth || !window.SuperSteaksAuth.isLoggedIn()) {
-          console.log('User not logged in, showing modal');
-          if (window.SuperSteaksAuth && window.SuperSteaksAuth.showModal) {
-            window.SuperSteaksAuth.showModal();
-          } else {
-            showAuthModal(false);
-          }
-          return;
-        }
-        
-        // Verify user data is valid
-        const currentUser = window.SuperSteaksAuth.getCurrentUser();
-        if (!currentUser || !currentUser.username) {
-          console.log('Invalid user data, forcing logout and re-login');
-          window.SuperSteaksAuth.logout();
-          updateUIForLoggedOutState();
-          showAuthModal(false);
-          return;
-        }
-        
-        console.log('Valid user found:', currentUser.username);
-        
-        // Refresh data from cloud to get latest team assignments
-        await window.SuperSteaksAuth.refreshFromCloud();
+        // Hardcoded authentication check
+        const currentUser = { username: 'Lobster37' };
+        console.log('Current user:', currentUser.username);
         
         // Check if user already has a team for this contest
-        const userAssignments = await window.SuperSteaksAuth.getUserAssignments();
-        console.log('enterDraw - userAssignments type:', typeof userAssignments);
-        console.log('enterDraw - userAssignments value:', userAssignments);
-        console.log('enterDraw - userAssignments is array:', Array.isArray(userAssignments));
         const contestName = 'Champions League Draw';
-        const existingAssignment = userAssignments.find(assignment => assignment.contest === contestName);
+        const storageKey = `supersteaks_assignment_${currentUser.username}_${contestName}`;
+        const existingAssignment = localStorage.getItem(storageKey);
         
         if (existingAssignment) {
-          messageArea.textContent = `You already have ${existingAssignment.team} assigned for this contest!`;
+          const teamData = JSON.parse(existingAssignment);
+          messageArea.textContent = `You already have ${teamData.team} assigned for this contest!`;
           messageArea.classList.remove('text-green-600', 'text-indigo-600');
           messageArea.classList.add('text-red-600');
           return;
         }
         
-        // Get available teams (not yet assigned to other users)
-        const availableTeams = window.SuperSteaksAuth.getAvailableTeamsForContest(contestName, teams);
+        // Get all existing assignments to find available teams
+        const allAssignments = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith(`supersteaks_assignment_`) && key.includes(contestName)) {
+            const assignment = JSON.parse(localStorage.getItem(key));
+            allAssignments.push(assignment.team);
+          }
+        }
+        
+        // Filter out already assigned teams
+        const availableTeams = teams.filter(team => !allAssignments.includes(team.name));
         console.log('Available teams:', availableTeams.length, 'out of', teams.length);
         
         // Check if any teams are still available
@@ -797,13 +740,19 @@
         messageArea.classList.remove('text-red-600', 'text-green-600');
         messageArea.classList.add('text-indigo-600');
         
-        setTimeout(async () => {
+        setTimeout(() => {
           // Select random team from available teams only
           const selectedTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
           console.log('Selected team:', selectedTeam.name, 'from', availableTeams.length, 'available teams');
           
-          // Save team assignment to cloud database
-          await window.SuperSteaksAuth.addTeamAssignment(contestName, selectedTeam.name);
+          // Save team assignment to localStorage
+          const assignmentData = {
+            contest: contestName,
+            team: selectedTeam.name,
+            username: currentUser.username,
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem(storageKey, JSON.stringify(assignmentData));
           
           // Update UI
           displayUserTeam(selectedTeam);
