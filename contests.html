@@ -293,9 +293,8 @@
             document.getElementById('register-form-element').reset();
         }
         
-        // Event Listeners (login/register buttons removed for hardcoded auth)
+        // Event Listeners (login/register/logout buttons removed for hardcoded auth)
         document.getElementById('close-modal').addEventListener('click', hideAuthModal);
-        document.getElementById('logout-btn').addEventListener('click', logoutUser);
         
         document.getElementById('switch-to-register').addEventListener('click', () => {
             document.getElementById('login-form').classList.add('hidden');

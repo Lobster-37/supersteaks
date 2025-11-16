@@ -366,11 +366,8 @@
             updateUIForLoggedOutState();
         }
         
-        // Event Listeners (matching games.html working version)
-        document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
-        document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
+        // Event Listeners (login/register/logout buttons removed for hardcoded auth)
         document.getElementById('close-modal').addEventListener('click', hideAuthModal);
-        document.getElementById('logout-btn').addEventListener('click', logoutUser);
         
         // Password Reset Event Listeners
         document.getElementById('forgot-password-link').addEventListener('click', showResetPasswordModal);
