@@ -248,37 +248,50 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Teams page loaded');
             
-            // Wait for user account system to be ready, but only load teams if authenticated
+            // Create sample team assignments for demo (if they don't exist)
+            const contestName = 'Champions League Draw';
+            
+            // Add your brother's Slavia Praha assignment if it doesn't exist
+            const brotherStorageKey = `supersteaks_assignment_BrotherAccount_${contestName}`;
+            if (!localStorage.getItem(brotherStorageKey)) {
+                const brotherAssignment = {
+                    contest: contestName,
+                    team: 'Slavia Praha',
+                    username: 'BrotherAccount',
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem(brotherStorageKey, JSON.stringify(brotherAssignment));
+                console.log('Added brother\'s Slavia Praha assignment');
+            }
+            
+            // Always load teams since we use hardcoded authentication
             setTimeout(() => {
-                // Only load teams if user is authenticated
-                const currentUsername = localStorage.getItem('currentUser');
-                if (currentUsername) {
-                    console.log('User authenticated, loading teams');
-                    loadAllTeams();
-                    setupRefreshButton();
-                } else {
-                    console.log('User not authenticated, skipping teams loading');
-                }
-            }, 1000);
+                console.log('Loading teams with hardcoded authentication');
+                loadAllTeams();
+                setupRefreshButton();
+            }, 500);
         });
 
-        async function loadAllTeams() {
-            console.log('Loading all teams from cloud...');
+        function loadAllTeams() {
+            console.log('Loading all teams from localStorage...');
             
-            if (!window.SuperSteaksAuth) {
-                console.log('Auth system not ready yet');
-                setTimeout(loadAllTeams, 500);
-                return;
-            }
-
             const loadingMessage = document.getElementById('loading-message');
             const noTeamsMessage = document.getElementById('no-teams-message');
             const teamsList = document.getElementById('teams-list');
             
             try {
-                // Refresh data from cloud database
-                const allTeams = await window.SuperSteaksAuth.refreshFromCloud();
-                console.log('All teams loaded from cloud:', allTeams);
+                // Get all team assignments from localStorage
+                const allTeams = [];
+                
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('supersteaks_assignment_')) {
+                        const assignmentData = JSON.parse(localStorage.getItem(key));
+                        allTeams.push(assignmentData);
+                    }
+                }
+                
+                console.log('All teams loaded from localStorage:', allTeams);
                 
                 // Hide loading message
                 loadingMessage.classList.add('hidden');
