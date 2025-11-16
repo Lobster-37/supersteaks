@@ -261,68 +261,37 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Teams page loaded');
             
-            // Look for real user accounts and team assignments
+            // Setup refresh button and check authentication
+            setupRefreshButton();
             
-            // Always load teams since we use hardcoded authentication
-            setTimeout(() => {
-                console.log('Loading teams with hardcoded authentication');
-                loadAllTeams();
-                setupRefreshButton();
-            }, 500);
+            // Check authentication periodically until ready
+            const checkAuth = () => {
+                if (window.superSteaksGlobal) {
+                    checkTeamsAuthentication();
+                } else {
+                    setTimeout(checkAuth, 500);
+                }
+            };
+            checkAuth();
         });
 
-        function loadAllTeams() {
-            console.log('Loading all teams from localStorage...');
+        async function loadAllTeams() {
+            console.log('Loading all teams from Firestore...');
             
             const loadingMessage = document.getElementById('loading-message');
             const noTeamsMessage = document.getElementById('no-teams-message');
             const teamsList = document.getElementById('teams-list');
             
             try {
-                const allTeams = [];
-                
-                // Look for new format team assignments
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('supersteaks_assignment_')) {
-                        try {
-                            const assignmentData = JSON.parse(localStorage.getItem(key));
-                            allTeams.push(assignmentData);
-                        } catch (e) {
-                            console.log('Skipping invalid assignment data for key:', key);
-                        }
-                    }
+                if (!window.superSteaksGlobal) {
+                    console.log('SuperSteaks Global not ready yet, retrying...');
+                    setTimeout(loadAllTeams, 1000);
+                    return;
                 }
                 
-                // Look for old system user accounts with team assignments
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('supersteaks_users.')) {
-                        try {
-                            const userData = JSON.parse(localStorage.getItem(key));
-                            console.log('Found user data for key:', key, userData);
-                            
-                            // Extract username from key (supersteaks_users.username)
-                            const username = key.replace('supersteaks_users.', '');
-                            
-                            // Check if this user has team assignments
-                            if (userData.assignments && userData.assignments.length > 0) {
-                                userData.assignments.forEach(assignment => {
-                                    allTeams.push({
-                                        username: username,
-                                        team: assignment.team,
-                                        contest: assignment.contest,
-                                        timestamp: assignment.timestamp || assignment.date || new Date().toISOString()
-                                    });
-                                });
-                            }
-                        } catch (e) {
-                            console.log('Skipping invalid user data for key:', key);
-                        }
-                    }
-                }
-                
-                console.log('All teams loaded from localStorage:', allTeams);
+                // Get all team assignments from Firestore
+                const allTeams = await window.superSteaksGlobal.getAllTeamAssignments();
+                console.log('All teams loaded from Firestore:', allTeams);
                 
                 // Hide loading message
                 loadingMessage.classList.add('hidden');
@@ -338,7 +307,7 @@
                 }
             } catch (error) {
                 console.error('Error loading teams:', error);
-                loadingMessage.innerHTML = '<div class="text-red-500">Error loading teams. Please try again.</div>';
+                loadingMessage.innerHTML = '<div class="text-red-500">Error loading teams from global database. Please try again.</div>';
             }
         }
 
@@ -384,9 +353,9 @@
                 `;
                 
                 contestTeams.forEach(assignment => {
-                    const date = new Date(assignment.timestamp).toLocaleDateString();
-                    const currentUser = { username: 'Lobster37' };
-                    const isCurrentUser = currentUser.username === assignment.username;
+                    const date = assignment.assignedAt ? new Date(assignment.assignedAt.toDate()).toLocaleDateString() : 'Recent';
+                    const currentUser = window.superSteaksGlobal ? window.superSteaksGlobal.getCurrentUser() : null;
+                    const isCurrentUser = currentUser && (currentUser.uid === assignment.userId || currentUser.displayName === assignment.username);
                     
                     html += `
                         <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border-2 ${isCurrentUser ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'}">
@@ -623,21 +592,20 @@
         function checkTeamsAuthentication() {
             console.log('Checking teams authentication...');
             
-            // Hardcoded authentication for lobster37
-            const currentUser = { username: 'Lobster37' };
-            
-            console.log('Hardcoded user:', currentUser);
-            
             const authRequired = document.getElementById('auth-required');
             const teamsContent = document.getElementById('teams-content');
             const loginFromTeams = document.getElementById('login-from-teams');
             
-            if (currentUser) {
-                console.log('User is logged in, showing teams content');
+            // Check if global system is ready and user is authenticated
+            if (window.superSteaksGlobal && window.superSteaksGlobal.isAuthenticated()) {
+                console.log('User is authenticated, showing teams content');
                 if (authRequired) authRequired.classList.add('hidden');
                 if (teamsContent) teamsContent.classList.remove('hidden');
+                
+                // Load teams data
+                setTimeout(loadAllTeams, 500);
             } else {
-                console.log('User is not logged in, showing auth required');
+                console.log('User is not authenticated, showing auth required');
                 if (authRequired) authRequired.classList.remove('hidden');
                 if (teamsContent) teamsContent.classList.add('hidden');
             }
