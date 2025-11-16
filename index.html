@@ -247,48 +247,7 @@
     <script>
         // ===== FIREBASE AUTHENTICATION SYSTEM =====
         
-        // Initialize authentication immediately when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Index DOM ready, checking auth...');
-            
-            // Immediate synchronous check for existing session
-            const session = localStorage.getItem('supersteaks_session');
-            if (session) {
-                try {
-                    const sessionData = JSON.parse(session);
-                    // Session expires after 7 days
-                    if (Date.now() - sessionData.loginTime < 7 * 24 * 60 * 60 * 1000) {
-                        // User is logged in - show user info immediately
-                        const userInfo = document.getElementById('user-info');
-                        const usernameDisplay = document.getElementById('username-display');
-                        if (userInfo && usernameDisplay) {
-                            usernameDisplay.textContent = sessionData.username;
-                            userInfo.classList.remove('hidden');
-                        }
-                        console.log('Session found, user logged in:', sessionData.username);
-                    } else {
-                        // Session expired - show auth buttons
-                        const authButtons = document.getElementById('auth-buttons');
-                        if (authButtons) authButtons.classList.remove('hidden');
-                        localStorage.removeItem('supersteaks_session');
-                    }
-                } catch (e) {
-                    // Invalid session - show auth buttons
-                    const authButtons = document.getElementById('auth-buttons');
-                    if (authButtons) authButtons.classList.remove('hidden');
-                }
-            } else {
-                // No session - show auth buttons
-                const authButtons = document.getElementById('auth-buttons');
-                if (authButtons) authButtons.classList.remove('hidden');
-            }
-            
-            // Also initialize SuperSteaksAuth when available
-            if (window.SuperSteaksAuth) {
-                window.SuperSteaksAuth.checkExistingSession();
-                console.log('SuperSteaksAuth initialized');
-            }
-        });
+        // Authentication disabled - using hardcoded display for Lobster37
         
         // UI Management Functions
         function updateUIForLoggedInState(user) {
