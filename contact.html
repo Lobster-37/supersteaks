@@ -66,8 +66,34 @@
                                 Register
                             </button>
                         </div>
+                        <script>
+                        // Immediate authentication check to prevent FOUC
+                        (function() {
+                            const session = localStorage.getItem('supersteaks_session');
+                            if (session) {
+                                try {
+                                    const sessionData = JSON.parse(session);
+                                    if (Date.now() - sessionData.loginTime < 7 * 24 * 60 * 60 * 1000) {
+                                        setTimeout(() => {
+                                            const userInfo = document.getElementById('user-info');
+                                            const usernameDisplay = document.getElementById('username-display');
+                                            if (userInfo && usernameDisplay) {
+                                                usernameDisplay.textContent = sessionData.username;
+                                                userInfo.classList.remove('hidden');
+                                            }
+                                        }, 0);
+                                        return;
+                                    } else {
+                                        localStorage.removeItem('supersteaks_session');
+                                    }
+                                } catch (e) {}
+                            }
+                            const authButtons = document.getElementById('auth-buttons');
+                            if (authButtons) authButtons.classList.remove('hidden');
+                        })();
+                        </script>
                         <!-- User info (shown when logged in) -->
-                        <div id="user-info" class="hidden text-center sm:text-right relative">
+                        <div id="user-info" class="hidden text-center sm:text-right">
                             <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display"></span>!</p>
                             <div class="flex items-center justify-center sm:justify-end space-x-2">
                                 <div class="relative">
