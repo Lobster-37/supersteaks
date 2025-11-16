@@ -426,15 +426,21 @@
             });
         }
         
-        // Add click-outside closing for reset password modal
-        const resetModal = document.getElementById('reset-password-modal');
-        if (resetModal) {
-            resetModal.addEventListener('click', function(e) {
-                if (e.target.id === 'reset-password-modal') {
-                    hideResetPasswordModal();
-                }
-            });
+        // Add click-outside closing for reset password modal (with DOM ready check)
+        function setupResetModalClickOutside() {
+            const resetModal = document.getElementById('reset-password-modal');
+            if (resetModal) {
+                resetModal.addEventListener('click', function(e) {
+                    if (e.target.id === 'reset-password-modal') {
+                        hideResetPasswordModal();
+                    }
+                });
+            }
         }
+        
+        // Set up reset modal click handler immediately and on DOM ready
+        setupResetModalClickOutside();
+        document.addEventListener('DOMContentLoaded', setupResetModalClickOutside);
     </script>
 </body>
 </html>
