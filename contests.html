@@ -293,31 +293,11 @@
             document.getElementById('register-form-element').reset();
         }
         
-        // Event Listeners (login/register/logout buttons removed for hardcoded auth)
-        document.getElementById('close-modal').addEventListener('click', hideAuthModal);
-        
-        document.getElementById('switch-to-register').addEventListener('click', () => {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-        });
-        
-        document.getElementById('switch-to-login').addEventListener('click', () => {
-            document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-        });
-        
-        // Form submissions - redirect to games.html for actual account creation/login
-        document.getElementById('login-form-element').addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Please go to the "Enter Now" page to login or create an account!');
-            window.location.href = 'games.html';
-        });
-        
-        document.getElementById('register-form-element').addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Please go to the "Enter Now" page to create your account!');
-            window.location.href = 'games.html';
-        });
+        // Event Listeners (hardcoded auth - only keeping essential ones)
+        const closeModal = document.getElementById('close-modal');
+        if (closeModal) {
+            closeModal.addEventListener('click', hideAuthModal);
+        }
         
         // Close modal when clicking outside
         document.getElementById('auth-modal').addEventListener('click', (e) => {
