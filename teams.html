@@ -612,11 +612,16 @@
             return window.SuperSteaksAuth.login(username, password);
         }
         
-        function logoutUser() {
-            if (window.SuperSteaksAuth) {
-                window.SuperSteaksAuth.logout();
+        async function logoutUser() {
+            if (window.superSteaksGlobal) {
+                const result = await window.superSteaksGlobal.signOut();
+                if (result.success) {
+                    console.log('User logged out successfully');
+                    // UI will update automatically via auth state listener
+                } else {
+                    console.error('Logout failed:', result.error);
+                }
             }
-            updateUIForLoggedOutState();
         }
         
         // Initialize authentication when page loads

@@ -273,10 +273,16 @@
     <script>
         // ===== USER ACCOUNT SYSTEM =====
         
-        function logoutUser() {
-            localStorage.removeItem('currentUser');
-            // Redirect to home page after logout
-            window.location.href = 'index.html';
+        async function logoutUser() {
+            if (window.superSteaksGlobal) {
+                const result = await window.superSteaksGlobal.signOut();
+                if (result.success) {
+                    console.log('User logged out successfully');
+                    // UI will update automatically via auth state listener
+                } else {
+                    console.error('Logout failed:', result.error);
+                }
+            }
         }
         
         function showAuthModal(showRegister = false) {

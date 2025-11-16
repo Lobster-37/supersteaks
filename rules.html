@@ -285,9 +285,16 @@
             return users[currentUsername] || null;
         }
         
-        function logoutUser() {
-            localStorage.removeItem('currentUser');
-            updateUIForLoggedOutState();
+        async function logoutUser() {
+            if (window.superSteaksGlobal) {
+                const result = await window.superSteaksGlobal.signOut();
+                if (result.success) {
+                    console.log('User logged out successfully');
+                    // UI will update automatically via auth state listener
+                } else {
+                    console.error('Logout failed:', result.error);
+                }
+            }
         }
         
         function updateUIForLoggedInState(user) {
