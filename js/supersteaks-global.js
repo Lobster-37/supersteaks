@@ -86,6 +86,25 @@ class SuperSteaksGlobal {
             return { success: false, error: error.message };
         }
     }
+
+    // Alias methods for compatibility with HTML
+    async login(email, password) {
+        return this.signIn(email, password);
+    }
+
+    async register(email, password, displayName) {
+        return this.signUp(email, password, displayName);
+    }
+
+    async logout() {
+        return this.signOut();
+    }
+
+    checkAuthState(callback) {
+        if (this.auth) {
+            this.auth.onAuthStateChanged(callback);
+        }
+    }
     
     async resetPassword(email) {
         try {

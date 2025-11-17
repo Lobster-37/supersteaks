@@ -52,6 +52,9 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2);
         }
+        /* Prevent auth UI shifting and flashing */
+        #auth-buttons { display: none !important; }
+        #user-info { display: block !important; }
     </style>
 
 </head>
@@ -401,6 +404,13 @@
             });
         });
         
+        // Fixed logout functionality
+        function logoutUserHardcoded() {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userTeamAssignments');
+            window.location.href = 'index.html';
+        }
+        
         // Profile dropdown functionality - moved outside
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Contests dropdown script loaded');
@@ -419,12 +429,14 @@
                 }
                 
                 if (logoutBtnDropdown && e.target === logoutBtnDropdown) {
-                    logoutUser();
+                    logoutUserHardcoded();
                     if (dropdown) dropdown.classList.add('hidden');
                 }
             });
         });
     </script>
+    
+
     
     <!-- Load user accounts system AFTER DOM is available -->
 

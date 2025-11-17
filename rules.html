@@ -54,10 +54,15 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2);
         }
+        /* Prevent auth UI shifting and flashing */
+        #auth-buttons { display: none !important; }
+        #user-info { display: block !important; }
+        .auth-loading #auth-buttons { display: none !important; }
+        .auth-loading #user-info { display: block !important; }
     </style>
 
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col auth-loading">
 
     <!-- Header & Navigation -->
     <header class="bg-indigo-800 text-white shadow-xl">
@@ -73,18 +78,9 @@
                 <div class="flex flex-col items-end space-y-3">
                     <!-- User Account Section -->
                     <div id="user-account-section">
-                        <!-- Login/Register buttons (shown when not logged in) -->
-                        <div id="auth-buttons" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3" style="display: none;">
-                            <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition text-sm">
-                                Login
-                            </button>
-                            <button id="register-btn" class="bg-transparent border-2 border-yellow-400 text-yellow-400 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 hover:text-indigo-800 transition text-sm">
-                                Register
-                            </button>
-                        </div>
-                        <!-- User info (shown when logged in) -->
-                        <div id="user-info" class="text-right" style="display: block;">
-                            <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display"></span>!</p>
+                        <!-- User info (hardcoded for clean display) -->
+                        <div id="user-info" class="text-right">
+                            <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">Lobster37</span>!</p>
                             <div class="flex items-center justify-center sm:justify-end space-x-2">
                                 <div class="relative">
                                     <button id="profile-dropdown-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
@@ -144,10 +140,6 @@
                                 Forgot Password?
                             </button>
                         </div>
-                        <script>
-                        // Hardcoded fix for lobster37
-                        document.getElementById('username-display').textContent = 'Lobster37';
-                        </script>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
                         <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
@@ -506,7 +498,7 @@
                 }
                 
                 if (logoutBtnDropdown && e.target === logoutBtnDropdown) {
-                    logoutUser();
+                    logoutUserHardcoded();
                     dropdown.classList.add('hidden');
                 }
             });
@@ -528,7 +520,16 @@
                 updateUIForLoggedOutState();
             }
         });
+        
+        // Fixed logout functionality
+        function logoutUserHardcoded() {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userTeamAssignments');
+            window.location.href = 'index.html';
+        }
     </script>
+    
+
     
     <!-- Load user accounts system AFTER DOM is available -->
 

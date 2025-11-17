@@ -43,12 +43,23 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
         .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+        
+        /* Authentication state management */
+        .logged-out #auth-buttons { display: block !important; }
+        .logged-out #user-info { display: none !important; }
+        
+        .logged-in #auth-buttons { display: none !important; }
+        .logged-in #user-info { display: block !important; }
+        
+        /* Default to logged out state */
+        #auth-buttons { display: block; }
+        #user-info { display: none; }
     </style>
     
     <!-- User Account System -->
 
 </head>
-<body class="min-h-screen flex flex-col auth-loading">
+<body class="min-h-screen flex flex-col logged-out">
 
     <!-- Header & Navigation -->
     <header class="bg-indigo-800 text-white shadow-xl">
@@ -62,27 +73,34 @@
                 <div class="flex flex-col items-end space-y-3">
                     <!-- User Account Section -->
                     <div id="user-account-section">
-                        <!-- Login/Register buttons (shown when not logged in) -->
-                        <div id="auth-buttons" class="hidden flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                            <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition text-sm">
-                                Login
-                            </button>
-                            <button id="register-btn" class="bg-transparent border-2 border-yellow-400 text-yellow-400 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 hover:text-indigo-800 transition text-sm">
-                                Register
-                            </button>
+                        <!-- Login/Register buttons (when logged out) -->
+                        <div id="auth-buttons" class="text-right">
+                            <p class="text-yellow-400 font-semibold text-sm mb-1">Join SuperSteaks Today!</p>
+                            <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
+                                    Login
+                                </button>
+                                <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">
+                                    Sign Up
+                                </button>
+                            </div>
                         </div>
-                        <!-- User info (shown when logged in) -->
+                        
+                        <!-- User info (when logged in) -->
                         <div id="user-info" class="text-right">
-                            <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display"></span>!</p>
+                            <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">Lobster37</span>!</p>
                             <div class="flex items-center justify-center sm:justify-end space-x-2">
                                 <div class="relative">
                                     <button id="profile-dropdown-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
                                         My Profile ▼
                                     </button>
-                                    <div id="profile-dropdown" class="hidden absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                    <div id="profile-dropdown" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                                         <a href="teams.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">
                                             📊 Team Directory
                                         </a>
+                                        <button id="view-profile-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            👤 View My Profile
+                                        </button>
                                         <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">
                                             🚪 Logout
                                         </button>
@@ -90,10 +108,7 @@
                                 </div>
                             </div>
                         </div>
-                        <script>
-                        // Authentication handled by SuperSteaks Global system
-                        // Username will be set automatically when user logs in
-                        </script>
+
                     </div>
                 </div>
             </div>
@@ -126,8 +141,8 @@
                 <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
                 <form id="login-form-element">
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
-                        <input type="text" id="login-username" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="login-username" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
                     </div>
                     <div class="mb-6">
                         <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
@@ -240,6 +255,8 @@
         </section>
     </main>
 
+
+
     <!-- Footer -->
         <footer class="bg-indigo-900 text-white py-6 mt-12">
         <div class="container mx-auto px-4 text-center text-sm">
@@ -248,252 +265,289 @@
     </footer>
 
     <script>
-        // ===== FIREBASE AUTHENTICATION SYSTEM =====
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAuthentication();
+        });
         
-        // Authentication disabled - using hardcoded display for Lobster37
+        function initializeAuthentication() {
+            console.log('Starting Firebase authentication...');
+            
+            // Initialize SuperSteaks if available
+            if (typeof SuperSteaks !== 'undefined') {
+                window.supersteaks = new SuperSteaks();
+                
+                // Check current auth state
+                window.supersteaks.checkAuthState()
+                    .then(user => {
+                        if (user) {
+                            console.log('User logged in:', user.email);
+                            showLoggedInState(user);
+                        } else {
+                            console.log('User not logged in');
+                            showLoggedOutState();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Auth check failed:', error);
+                        showLoggedOutState();
+                    });
+            } else {
+                console.log('SuperSteaks not available, showing login buttons');
+                showLoggedOutState();
+            }
+            
+            setupEventListeners();
+        }
         
-        // UI Management Functions
-        function updateUIForLoggedInState(user) {
-            if (!user || !user.username) {
-                console.error('Invalid user object passed to updateUIForLoggedInState:', user);
-                updateUIForLoggedOutState();
+        function showLoggedInState(user) {
+            document.body.className = document.body.className.replace(/logged-\w+/g, '') + ' logged-in';
+            
+            const usernameDisplay = document.getElementById('username-display');
+            if (usernameDisplay && user) {
+                // Extract username from email or use display name
+                const username = user.displayName || user.email.split('@')[0];
+                usernameDisplay.textContent = username;
+            }
+        }
+        
+        function showLoggedOutState() {
+            document.body.className = document.body.className.replace(/logged-\w+/g, '') + ' logged-out';
+        }
+        
+        function setupEventListeners() {
+            // Login button
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    document.getElementById('auth-modal').classList.remove('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                    document.getElementById('register-form').classList.add('hidden');
+                });
+            }
+            
+            // Register button
+            const registerBtn = document.getElementById('register-btn');
+            if (registerBtn) {
+                registerBtn.addEventListener('click', () => {
+                    document.getElementById('auth-modal').classList.remove('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                    document.getElementById('login-form').classList.add('hidden');
+                });
+            }
+            
+            // Profile dropdown
+            const profileBtn = document.getElementById('profile-dropdown-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
+            const logoutBtn = document.getElementById('logout-btn-dropdown');
+            const viewProfileBtn = document.getElementById('view-profile-btn');
+
+            if (profileBtn && profileDropdown) {
+                profileBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', function() {
+                    profileDropdown.classList.add('hidden');
+                });
+            }
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    if (window.supersteaks) {
+                        window.supersteaks.logout()
+                            .then(() => {
+                                console.log('Logout successful');
+                                showLoggedOutState();
+                            })
+                            .catch(error => {
+                                console.error('Logout failed:', error);
+                            });
+                    } else {
+                        showLoggedOutState();
+                    }
+                    profileDropdown.classList.add('hidden');
+                });
+            }
+            
+            if (viewProfileBtn) {
+                viewProfileBtn.addEventListener('click', function() {
+                    // Open profile modal or redirect
+                    alert('Profile viewing feature - would show user profile and stats');
+                    profileDropdown.classList.add('hidden');
+                });
+            }
+            
+            // Modal controls
+            setupModalControls();
+        }
+        
+        function setupModalControls() {
+            // Close modal buttons
+            const closeModalBtns = document.querySelectorAll('#close-modal, #close-reset-modal');
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('auth-modal').classList.add('hidden');
+                    document.getElementById('reset-password-modal').classList.add('hidden');
+                });
+            });
+            
+            // Click outside modal to close
+            const authModal = document.getElementById('auth-modal');
+            const resetModal = document.getElementById('reset-password-modal');
+            
+            [authModal, resetModal].forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            modal.classList.add('hidden');
+                        }
+                    });
+                }
+            });
+            
+            // Switch between forms
+            const switchToRegister = document.getElementById('switch-to-register');
+            const switchToLogin = document.getElementById('switch-to-login');
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const cancelReset = document.getElementById('cancel-reset');
+            
+            if (switchToRegister) {
+                switchToRegister.addEventListener('click', () => {
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                });
+            }
+            
+            if (switchToLogin) {
+                switchToLogin.addEventListener('click', () => {
+                    document.getElementById('register-form').classList.add('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                });
+            }
+            
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', () => {
+                    document.getElementById('auth-modal').classList.add('hidden');
+                    document.getElementById('reset-password-modal').classList.remove('hidden');
+                });
+            }
+            
+            if (cancelReset) {
+                cancelReset.addEventListener('click', () => {
+                    document.getElementById('reset-password-modal').classList.add('hidden');
+                    document.getElementById('auth-modal').classList.remove('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                    document.getElementById('register-form').classList.add('hidden');
+                });
+            }
+            
+            // Form submissions
+            const loginForm = document.getElementById('login-form-element');
+            const registerForm = document.getElementById('register-form-element');
+            const resetForm = document.getElementById('reset-password-form-element');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+            
+            if (registerForm) {
+                registerForm.addEventListener('submit', handleRegister);
+            }
+            
+            if (resetForm) {
+                resetForm.addEventListener('submit', handlePasswordReset);
+            }
+        }
+        
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
                 return;
             }
             
-            document.getElementById('auth-buttons').classList.add('hidden');
-            document.getElementById('user-info').classList.remove('hidden');
-            document.getElementById('username-display').textContent = user.username;
-            
-            console.log('UI updated for logged in user:', user.username);
-        }
-        
-        function updateUIForLoggedOutState() {
-            document.getElementById('auth-buttons').classList.remove('hidden');
-            document.getElementById('user-info').classList.add('hidden');
-        }
-        
-        // Modal Functions
-        function showAuthModal(showRegister = false) {
-            document.getElementById('auth-modal').classList.remove('hidden');
-            if (showRegister) {
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('register-form').classList.remove('hidden');
-            } else {
-                document.getElementById('login-form').classList.remove('hidden');
-                document.getElementById('register-form').classList.add('hidden');
-            }
-        }
-        
-        function hideAuthModal() {
-            document.getElementById('auth-modal').classList.add('hidden');
-            document.getElementById('login-form-element').reset();
-            document.getElementById('register-form-element').reset();
-        }
-        
-        // Password Reset Modal Functions
-        function showResetPasswordModal() {
-            document.getElementById('auth-modal').classList.add('hidden');
-            document.getElementById('reset-password-modal').classList.remove('hidden');
-        }
-        
-        function hideResetPasswordModal() {
-            document.getElementById('reset-password-modal').classList.add('hidden');
-            document.getElementById('reset-password-form-element').reset();
-        }
-        
-        async function resetPassword(email) {
-            console.log('Reset password function called with email:', email);
-            const messageDiv = document.getElementById('reset-message');
-            
-            try {
-                console.log('Attempting to send Firebase reset email...');
-                await firebase.auth().sendPasswordResetEmail(email);
-                console.log('Firebase reset email sent successfully');
-                
-                // Close modal instantly and clear form
-                hideResetPasswordModal();
-                document.getElementById('reset-email').value = '';
-                
-                // Show success message on main screen
-                const mainContent = document.querySelector('main');
-                if (mainContent) {
-                    const successMsg = document.createElement('div');
-                    successMsg.className = 'fixed top-4 right-4 z-50 bg-green-100 text-green-700 px-6 py-3 rounded-lg shadow-lg font-medium';
-                    successMsg.textContent = '✅ Password reset email sent! Check your inbox.';
-                    document.body.appendChild(successMsg);
+            window.supersteaks.login(email, password)
+                .then(user => {
+                    console.log('Login successful:', user);
+                    showLoggedInState(user);
+                    document.getElementById('auth-modal').classList.add('hidden');
                     
-                    // Remove message after 3 seconds
-                    setTimeout(() => {
-                        if (successMsg.parentNode) {
-                            successMsg.parentNode.removeChild(successMsg);
-                        }
-                    }, 3000);
-                }
-            } catch (error) {
-                console.error('Firebase reset email error:', error);
-                
-                // Show error message on main screen
-                const errorMsg = document.createElement('div');
-                errorMsg.className = 'fixed top-4 right-4 z-50 bg-red-100 text-red-700 px-6 py-3 rounded-lg shadow-lg font-medium';
-                errorMsg.textContent = '❌ Error: ' + (error?.message || 'Password reset failed. Please try again.');
-                document.body.appendChild(errorMsg);
-                
-                // Remove error message after 5 seconds
-                setTimeout(() => {
-                    if (errorMsg.parentNode) {
-                        errorMsg.parentNode.removeChild(errorMsg);
-                    }
-                }, 5000);
-            }
+                    // Clear form
+                    document.getElementById('login-form-element').reset();
+                })
+                .catch(error => {
+                    console.error('Login failed:', error);
+                    alert('Login failed: ' + error.message);
+                });
         }
         
-        // Account Management Functions
-        function createAccount(username, email, password) {
-            if (!window.SuperSteaksAuth) {
-                throw new Error('Authentication system not loaded');
-            }
-            return window.SuperSteaksAuth.register(username, email, password);
-        }
-        
-        function loginUser(username, password) {
-            if (!window.SuperSteaksAuth) {
-                throw new Error('Authentication system not loaded');
-            }
-            return window.SuperSteaksAuth.login(username, password);
-        }
-        
-        async function logoutUser() {
-            if (window.superSteaksGlobal) {
-                const result = await window.superSteaksGlobal.signOut();
-                if (result.success) {
-                    console.log('User logged out successfully');
-                    // UI will update automatically via auth state listener
-                } else {
-                    console.error('Logout failed:', result.error);
-                }
-            }
-        }
-        
-        // Event Listeners (login/register/logout buttons removed for hardcoded auth)
-        document.getElementById('close-modal').addEventListener('click', hideAuthModal);
-        
-        // Password Reset Event Listeners
-        document.getElementById('forgot-password-link').addEventListener('click', showResetPasswordModal);
-        document.getElementById('close-reset-modal').addEventListener('click', hideResetPasswordModal);
-        document.getElementById('cancel-reset').addEventListener('click', hideResetPasswordModal);
-        document.getElementById('switch-to-register').addEventListener('click', () => {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-        });
-        
-        document.getElementById('switch-to-login').addEventListener('click', () => {
-            document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-        });
-        
-        // Form Submissions
-        document.getElementById('login-form-element').addEventListener('submit', async (e) => {
+        function handleRegister(e) {
             e.preventDefault();
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
             
-            try {
-                const user = await loginUser(username, password);
-                updateUIForLoggedInState(user);
-                hideAuthModal();
-                
-                // Show success message
-                setTimeout(() => {
-                    alert(`Welcome back, ${user.username}! You are now logged in.`);
-                }, 100);
-            } catch (error) {
-                console.error('Login error:', error);
-                alert(error.message);
-            }
-        });
-        
-        document.getElementById('register-form-element').addEventListener('submit', async (e) => {
-            e.preventDefault();
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             
-            try {
-                await createAccount(username, email, password);
-                const user = await loginUser(username, password);
-                updateUIForLoggedInState(user);
-                hideAuthModal();
-                
-                // Show success message
-                setTimeout(() => {
-                    alert(`Account created! Welcome, ${user.username}!`);
-                }, 100);
-            } catch (error) {
-                console.error('Registration error:', error);
-                alert(error.message);
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
             }
-        });
-        
-        document.getElementById('reset-password-form-element').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('reset-email').value;
             
-            try {
-                await resetPassword(email);
-            } catch (error) {
-                console.error('Password reset error:', error);
-            }
-        });
-        
-        // Close modal when clicking outside
-        const authModal = document.getElementById('auth-modal');
-        if (authModal) {
-            authModal.addEventListener('click', function(e) {
-                if (e.target.id === 'auth-modal') {
-                    hideAuthModal();
-                }
-            });
-        }
-        
-        // Add click-outside closing for reset password modal (with DOM ready check)
-        function setupResetModalClickOutside() {
-            const resetModal = document.getElementById('reset-password-modal');
-            if (resetModal) {
-                resetModal.addEventListener('click', function(e) {
-                    if (e.target.id === 'reset-password-modal') {
-                        hideResetPasswordModal();
-                    }
+            window.supersteaks.register(email, password, username)
+                .then(user => {
+                    console.log('Registration successful:', user);
+                    showLoggedInState(user);
+                    document.getElementById('auth-modal').classList.add('hidden');
+                    
+                    // Clear form
+                    document.getElementById('register-form-element').reset();
+                })
+                .catch(error => {
+                    console.error('Registration failed:', error);
+                    alert('Registration failed: ' + error.message);
                 });
-            }
         }
         
-        // Set up reset modal click handler immediately and on DOM ready
-        setupResetModalClickOutside();
-        document.addEventListener('DOMContentLoaded', setupResetModalClickOutside);
-        
-        // Profile dropdown functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Index dropdown script loaded');
-            document.addEventListener('click', function(e) {
-                const dropdownBtn = document.getElementById('profile-dropdown-btn');
-                const dropdown = document.getElementById('profile-dropdown');
-                const logoutBtnDropdown = document.getElementById('logout-btn-dropdown');
-                
-                if (dropdownBtn && e.target === dropdownBtn) {
-                    console.log('Index dropdown button clicked');
-                    if (dropdown) {
-                        dropdown.classList.toggle('hidden');
-                    }
-                } else if (dropdown && !dropdown.contains(e.target)) {
-                    dropdown.classList.add('hidden');
-                }
-                
-                if (logoutBtnDropdown && e.target === logoutBtnDropdown) {
-                    logoutUser();
-                    if (dropdown) dropdown.classList.add('hidden');
-                }
-            });
-        });
+        function handlePasswordReset(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('reset-email').value;
+            const messageDiv = document.getElementById('reset-message');
+            
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
+            }
+            
+            // Use Firebase auth directly for password reset
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => {
+                    messageDiv.textContent = 'Password reset email sent! Check your inbox.';
+                    messageDiv.className = 'mt-4 p-3 rounded-lg bg-green-100 text-green-800';
+                    messageDiv.classList.remove('hidden');
+                    
+                    // Clear form
+                    document.getElementById('reset-password-form-element').reset();
+                    
+                    // Auto close after 3 seconds
+                    setTimeout(() => {
+                        document.getElementById('reset-password-modal').classList.add('hidden');
+                        messageDiv.classList.add('hidden');
+                    }, 3000);
+                })
+                .catch(error => {
+                    console.error('Password reset failed:', error);
+                    messageDiv.textContent = 'Failed to send reset email: ' + error.message;
+                    messageDiv.className = 'mt-4 p-3 rounded-lg bg-red-100 text-red-800';
+                    messageDiv.classList.remove('hidden');
+                });
+        }
+
     </script>
 </body>
 </html>
