@@ -265,6 +265,16 @@
     </footer>
 
     <script>
+        // Global error handler for catching destructuring errors
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('Cannot destructure property')) {
+                console.warn('Caught destructuring error:', e.message, 'at', e.filename, ':', e.lineno);
+                // Don't let it crash the page
+                e.preventDefault();
+                return true;
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             initializeAuthentication();
         });
@@ -324,16 +334,24 @@
                 showLoggedOutState();
             }
             
-            // Also set up auth state listener
-            firebase.auth().onAuthStateChanged((user) => {
-                if (user) {
-                    console.log('Auth state changed - User logged in:', user.email);
-                    showLoggedInState(user);
-                } else {
-                    console.log('Auth state changed - User logged out');
-                    showLoggedOutState();
-                }
-            });
+            // Also set up auth state listener with error protection
+            try {
+                firebase.auth().onAuthStateChanged((user) => {
+                    try {
+                        if (user) {
+                            console.log('Auth state changed - User logged in:', user.email);
+                            showLoggedInState(user);
+                        } else {
+                            console.log('Auth state changed - User logged out');
+                            showLoggedOutState();
+                        }
+                    } catch (error) {
+                        console.error('Error in auth state change handler:', error);
+                    }
+                });
+            } catch (error) {
+                console.error('Error setting up auth state listener:', error);
+            }
         }
         
         function showLoggedInState(user) {
@@ -389,12 +407,16 @@
 
             if (profileBtn && profileDropdown) {
                 profileBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
+                    if (e && e.stopPropagation) {
+                        e.stopPropagation();
+                    }
                     profileDropdown.classList.toggle('hidden');
                 });
 
-                document.addEventListener('click', function() {
-                    profileDropdown.classList.add('hidden');
+                document.addEventListener('click', function(e) {
+                    if (profileDropdown && !profileDropdown.contains(e?.target)) {
+                        profileDropdown.classList.add('hidden');
+                    }
                 });
             }
 
@@ -455,7 +477,7 @@
             [authModal, resetModal].forEach(modal => {
                 if (modal) {
                     modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
+                        if (e && e.target === modal) {
                             modal.classList.add('hidden');
                         }
                     });
