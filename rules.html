@@ -14,7 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     
     <!-- SuperSteaks Global System -->
-    <script src="js/supersteaks-global.js?v=2.0.4"></script>
+    <script src="js/supersteaks-global.js?v=2.0.5"></script>
     
     <!-- Firebase Configuration -->
     <script>
@@ -68,6 +68,13 @@
         body:not(.auth-ready) #user-info { display: none !important; }
         body:not(.auth-ready) #auth-skeleton { display: block !important; }
         
+        /* Reserve exact space to prevent layout shift */
+        #user-account-section {
+            min-height: 52px; /* Reserve space for 2 lines + spacing */
+            width: 176px; /* Fixed width to match content */
+            flex-shrink: 0;
+        }
+        
         /* Skeleton loading animation */
         .skeleton { 
             background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
@@ -101,10 +108,10 @@
                     <div id="user-account-section">
                         <!-- Skeleton loading (prevents flash) -->
                         <div id="auth-skeleton" class="text-right">
-                            <div class="skeleton h-4 w-44 mb-1 rounded ml-auto"></div>
+                            <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
                             <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                <div class="skeleton h-6 w-12 rounded text-xs px-3 py-1"></div>
-                                <div class="skeleton h-6 w-16 rounded text-xs px-2 py-1"></div>
+                                <div class="skeleton h-6 rounded" style="width: 48px; padding: 4px 12px;"></div>
+                                <div class="skeleton h-6 rounded" style="width: 64px; padding: 4px 8px;"></div>
                             </div>
                         </div>
                         
