@@ -14,7 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     
     <!-- SuperSteaks Global System -->
-    <script src="js/supersteaks-global.js"></script>
+    <script src="js/supersteaks-global.js?v=2.0.0"></script>
     
     <!-- Firebase Configuration -->
     <script>
@@ -44,16 +44,31 @@
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
         .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
         
-        /* Authentication state management */
+        /* Authentication state management with skeleton loading */
         .logged-out #auth-buttons { display: block !important; }
         .logged-out #user-info { display: none !important; }
+        .logged-out #auth-skeleton { display: none !important; }
         
         .logged-in #auth-buttons { display: none !important; }
         .logged-in #user-info { display: block !important; }
+        .logged-in #auth-skeleton { display: none !important; }
         
-        /* Default to logged out state */
-        #auth-buttons { display: block; }
+        /* Default to skeleton loading state to prevent flash */
+        #auth-buttons { display: none; }
         #user-info { display: none; }
+        #auth-skeleton { display: block; }
+        
+        /* Skeleton loading animation */
+        .skeleton { 
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
     
     <!-- User Account System -->
@@ -73,6 +88,15 @@
                 <div class="flex flex-col items-end space-y-3">
                     <!-- User Account Section -->
                     <div id="user-account-section">
+                        <!-- Skeleton loading (prevents flash) -->
+                        <div id="auth-skeleton" class="text-right">
+                            <div class="skeleton h-4 w-32 mb-1 rounded ml-auto"></div>
+                            <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                <div class="skeleton h-6 w-12 rounded"></div>
+                                <div class="skeleton h-6 w-16 rounded"></div>
+                            </div>
+                        </div>
+                        
                         <!-- Login/Register buttons (when logged out) -->
                         <div id="auth-buttons" class="text-right">
                             <p class="text-yellow-400 font-semibold text-sm mb-1">Join SuperSteaks Today!</p>
