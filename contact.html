@@ -714,19 +714,29 @@
 
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function() {
+                    console.log('Attempting logout...');
                     if (window.supersteaks) {
                         window.supersteaks.logout()
-                            .then(() => {
-                                console.log('Logout successful');
-                                showLoggedOutState();
+                            .then(result => {
+                                if (result.success) {
+                                    console.log('Logout successful');
+                                    // Don't manually update UI - let the auth state listener handle it
+                                } else {
+                                    console.error('Logout failed:', result.error);
+                                }
                             })
                             .catch(error => {
                                 console.error('Logout failed:', error);
                             });
                     } else {
-                        showLoggedOutState();
+                        // Fallback if supersteaks not available
+                        firebase.auth().signOut().then(() => {
+                            console.log('Direct Firebase logout successful');
+                        }).catch(error => {
+                            console.error('Firebase logout failed:', error);
+                        });
                     }
-                    profileDropdown.classList.add('hidden');
+                    if (profileDropdown) profileDropdown.classList.add('hidden');
                 });
             }
             

@@ -592,34 +592,15 @@
         }
       }
       
-      // UI Management Functions
+      // UI Management Functions - use the new authentication system
       function updateUIForLoggedInState(user) {
-        // Defensive: allow callers to pass either a user object or a Promise that resolves to one.
-        if (user && typeof user.then === 'function') {
-          // If a Promise-like object was passed, wait for it and re-call this function with the resolved value.
-          user.then(resolved => updateUIForLoggedInState(resolved)).catch(err => {
-            console.error('Error resolving user Promise for UI update:', err);
-            updateUIForLoggedOutState();
-          });
-          return;
-        }
-
         console.log('Updating UI for logged in user:', user);
-
-        // Validate user object
-        if (!user || !user.username) {
-          console.error('Invalid user object passed to updateUIForLoggedInState:', user);
-          updateUIForLoggedOutState();
-          return;
+        
+        // This function is now replaced by showLoggedInState() from the new auth system
+        // Redirect to new function for consistency
+        if (user) {
+          showLoggedInState(user);
         }
-
-        document.getElementById('auth-buttons').classList.add('hidden');
-        document.getElementById('user-info').classList.remove('hidden');
-        document.getElementById('username-display').textContent = user.username;
-
-        // Team assignment checking is now handled by restoreUserTeamAssignments
-        // which is called automatically when the user logs in
-        console.log('UI updated for logged in user:', user.username);
       }
       
       function updateUIForLoggedOutState() {
