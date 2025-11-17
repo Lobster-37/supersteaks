@@ -528,6 +528,16 @@
             }
         }
         
+        // Global error handler for catching destructuring errors
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('Cannot destructure property')) {
+                console.warn('Caught destructuring error:', e.message, 'at', e.filename, ':', e.lineno);
+                // Don't let it crash the page
+                e.preventDefault();
+                return true;
+            }
+        });
+
         // Initialize authentication system like index.html
         document.addEventListener('DOMContentLoaded', function() {
             initializeAuthentication();
@@ -607,12 +617,16 @@
 
             if (profileBtn && profileDropdown) {
                 profileBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
+                    if (e && e.stopPropagation) {
+                        e.stopPropagation();
+                    }
                     profileDropdown.classList.toggle('hidden');
                 });
 
-                document.addEventListener('click', function() {
-                    profileDropdown.classList.add('hidden');
+                document.addEventListener('click', function(e) {
+                    if (profileDropdown && !profileDropdown.contains(e?.target)) {
+                        profileDropdown.classList.add('hidden');
+                    }
                 });
             }
 
