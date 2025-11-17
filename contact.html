@@ -14,7 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     
     <!-- SuperSteaks Global System -->
-    <script src="js/supersteaks-global.js?v=2.0.0"></script>
+    <script src="js/supersteaks-global.js?v=2.0.1"></script>
     
     <!-- Firebase Configuration -->
     <script>
@@ -656,6 +656,18 @@
         }
         
         function showLoggedInState(user) {
+            console.log('Setting logged-in state for user:', user.email);
+            
+            // Hide skeleton loader immediately
+            const skeleton = document.getElementById('auth-skeleton');
+            const authButtons = document.getElementById('auth-buttons');
+            const userInfo = document.getElementById('user-info');
+            
+            if (skeleton) skeleton.style.display = 'none';
+            if (authButtons) authButtons.style.display = 'none';
+            if (userInfo) userInfo.style.display = 'block';
+            
+            // Update body classes
             document.body.className = document.body.className.replace(/logged-\\w+/g, '') + ' logged-in';
             
             const usernameDisplay = document.getElementById('username-display');
@@ -663,10 +675,23 @@
                 // Extract username from email or use display name
                 const username = user.displayName || user.email.split('@')[0];
                 usernameDisplay.textContent = username;
+                console.log('Username display updated to:', username);
             }
         }
         
         function showLoggedOutState() {
+            console.log('Setting logged-out state');
+            
+            // Hide skeleton loader immediately and show auth buttons
+            const skeleton = document.getElementById('auth-skeleton');
+            const authButtons = document.getElementById('auth-buttons');
+            const userInfo = document.getElementById('user-info');
+            
+            if (skeleton) skeleton.style.display = 'none';
+            if (authButtons) authButtons.style.display = 'block';
+            if (userInfo) userInfo.style.display = 'none';
+            
+            // Update body classes
             document.body.className = document.body.className.replace(/logged-\\w+/g, '') + ' logged-out';
         }
         
