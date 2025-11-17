@@ -947,7 +947,6 @@
           }
       });
 
-      // Initialize authentication system like index.html
       document.addEventListener('DOMContentLoaded', function() {
           initializeAuthentication();
       });
@@ -955,25 +954,75 @@
       function initializeAuthentication() {
           console.log('Starting Firebase authentication...');
           
-          // Initialize SuperSteaks if available
-          if (typeof SuperSteaks !== 'undefined') {
+          // Try multiple approaches to get the authentication system
+          if (window.superSteaksGlobal) {
+              // Use existing global instance
+              window.supersteaks = window.superSteaksGlobal;
+              console.log('Using existing superSteaksGlobal instance');
+              checkCurrentAuthState();
+          } else if (typeof SuperSteaks !== 'undefined') {
+              // Create new instance from class
               window.supersteaks = new SuperSteaks();
+              console.log('Created new SuperSteaks instance');
+              checkCurrentAuthState();
+          } else {
+              // Wait for system to initialize
+              console.log('Waiting for SuperSteaks system to initialize...');
+              const checkSystem = setInterval(() => {
+                  if (window.superSteaksGlobal) {
+                      window.supersteaks = window.superSteaksGlobal;
+                      console.log('SuperSteaks global system now available');
+                      checkCurrentAuthState();
+                      clearInterval(checkSystem);
+                  } else if (typeof SuperSteaks !== 'undefined') {
+                      window.supersteaks = new SuperSteaks();
+                      console.log('SuperSteaks class now available');
+                      checkCurrentAuthState();
+                      clearInterval(checkSystem);
+                  }
+              }, 100);
               
-              // Check current auth state
-              window.supersteaks.checkAuthState()
-                  .then(user => {
+              // Fallback after 5 seconds
+              setTimeout(() => {
+                  if (!window.supersteaks) {
+                      console.log('SuperSteaks not available after timeout, showing login buttons');
+                      showLoggedOutState();
+                      clearInterval(checkSystem);
+                  }
+              }, 5000);
+          }
+          
+          setupEventListeners();
+      }
+      
+      function checkCurrentAuthState() {
+          // Use Firebase auth directly to check current state
+          if (firebase.auth().currentUser) {
+              const user = firebase.auth().currentUser;
+              console.log('User logged in:', user.email);
+              showLoggedInState(user);
+          } else {
+              console.log('User not logged in');
+              showLoggedOutState();
+          }
+          
+          // Also set up auth state listener with error protection
+          try {
+              firebase.auth().onAuthStateChanged((user) => {
+                  try {
                       if (user) {
-                          console.log('User logged in:', user.email);
+                          console.log('Auth state changed - User logged in:', user.email);
                           showLoggedInState(user);
                       } else {
-                          console.log('User not logged in');
+                          console.log('Auth state changed - User logged out');
                           showLoggedOutState();
                       }
-                  })
-                  .catch(error => {
-                      console.error('Auth check failed:', error);
-                      showLoggedOutState();
-                  });
+                  } catch (error) {
+                      console.error('Error in auth state change handler:', error);
+                  }
+              });
+          } catch (error) {
+              console.error('Error setting up auth state listener:', error);
           } else {
               console.log('SuperSteaks not available, showing login buttons');
               showLoggedOutState();
