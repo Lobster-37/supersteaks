@@ -3,6 +3,26 @@
  * Firebase Authentication and Firestore integration for worldwide gameplay
  */
 
+// Global error handler for catching Firebase auth.ts errors
+if (typeof window !== 'undefined') {
+    window.addEventListener('error', function(e) {
+        if (e.message && (e.message.includes('Cannot destructure property') || (e.filename && e.filename.includes('auth.ts')))) {
+            console.warn('Caught Firebase/destructuring error in SuperSteaks Global:', e.message, 'at', e.filename, ':', e.lineno);
+            // Don't let Firebase auth errors crash the page
+            e.preventDefault();
+            return true;
+        }
+    });
+    
+    // Additional unhandled promise rejection handler for Firebase
+    window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason && event.reason.toString().includes('auth')) {
+            console.warn('Caught unhandled Firebase auth promise rejection in SuperSteaks Global:', event.reason);
+            event.preventDefault();
+        }
+    });
+}
+
 class SuperSteaksGlobal {
     constructor() {
         this.auth = null;
@@ -22,11 +42,20 @@ class SuperSteaksGlobal {
             this.auth = firebase.auth();
             this.firestore = firebase.firestore();
             
-            // Set up auth state listener
-            this.auth.onAuthStateChanged((user) => {
-                this.currentUser = user;
-                this.updateUIForAuthState(user);
-            });
+            // Set up auth state listener with error protection
+            try {
+                this.auth.onAuthStateChanged((user) => {
+                    try {
+                        this.currentUser = user;
+                        this.updateUIForAuthState(user);
+                    } catch (error) {
+                        console.warn('Error in auth state change handler:', error);
+                        // Continue execution even if UI update fails
+                    }
+                });
+            } catch (error) {
+                console.warn('Error setting up auth state listener:', error);
+            }
             
             this.initialized = true;
             console.log('SuperSteaks Global system initialized successfully');
@@ -102,7 +131,19 @@ class SuperSteaksGlobal {
 
     checkAuthState(callback) {
         if (this.auth) {
-            this.auth.onAuthStateChanged(callback);
+            try {
+                this.auth.onAuthStateChanged((user) => {
+                    try {
+                        if (callback && typeof callback === 'function') {
+                            callback(user);
+                        }
+                    } catch (error) {
+                        console.warn('Error in checkAuthState callback:', error);
+                    }
+                });
+            } catch (error) {
+                console.warn('Error in checkAuthState listener setup:', error);
+            }
         }
     }
     
