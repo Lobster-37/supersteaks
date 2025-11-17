@@ -14,7 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     
     <!-- SuperSteaks Global System -->
-    <script src="js/supersteaks-global.js?v=2.0.2"></script>
+    <script src="js/supersteaks-global.js?v=2.0.3"></script>
     
     <!-- Firebase Configuration -->
     <script>
@@ -63,10 +63,10 @@
         .logged-in #user-info { display: block !important; }
         .logged-in #auth-skeleton { display: none !important; }
         
-        /* Default to skeleton loading state to prevent flash */
-        #auth-buttons { display: none; }
-        #user-info { display: none; }
-        #auth-skeleton { display: block; }
+        /* Force skeleton loading state initially - override everything */
+        body:not(.auth-ready) #auth-buttons { display: none !important; }
+        body:not(.auth-ready) #user-info { display: none !important; }
+        body:not(.auth-ready) #auth-skeleton { display: block !important; }
         
         /* Skeleton loading animation */
         .skeleton { 
@@ -83,7 +83,7 @@
     </style>
 
 </head>
-<body class="min-h-screen flex flex-col logged-out">
+<body class="min-h-screen flex flex-col">
 
     <!-- Header & Navigation -->
     <header class="bg-indigo-800 text-white shadow-xl">
@@ -658,43 +658,31 @@
         function showLoggedInState(user) {
             console.log('Setting logged-in state for user:', user.email);
             
-            // Hide skeleton loader immediately
-            const skeleton = document.getElementById('auth-skeleton');
-            const authButtons = document.getElementById('auth-buttons');
-            const userInfo = document.getElementById('user-info');
-            
-            if (skeleton) skeleton.style.display = 'none';
-            if (authButtons) authButtons.style.display = 'none';
-            if (userInfo) userInfo.style.display = 'block';
-            
-            // Update body classes
-            document.body.classList.remove('logged-out');
-            document.body.classList.add('logged-in');
-            
-            const usernameDisplay = document.getElementById('username-display');
-            if (usernameDisplay && user) {
-                // Extract username from email or use display name
-                const username = user.displayName || user.email.split('@')[0];
-                usernameDisplay.textContent = username;
-                console.log('Username display updated to:', username);
-            }
+            // Add small delay to ensure smooth transition
+            setTimeout(() => {
+                // Mark auth as ready and update classes
+                document.body.classList.add('auth-ready', 'logged-in');
+                document.body.classList.remove('logged-out');
+                
+                const usernameDisplay = document.getElementById('username-display');
+                if (usernameDisplay && user) {
+                    // Extract username from email or use display name
+                    const username = user.displayName || user.email.split('@')[0];
+                    usernameDisplay.textContent = username;
+                    console.log('Username display updated to:', username);
+                }
+            }, 100);
         }
         
         function showLoggedOutState() {
             console.log('Setting logged-out state');
             
-            // Hide skeleton loader immediately and show auth buttons
-            const skeleton = document.getElementById('auth-skeleton');
-            const authButtons = document.getElementById('auth-buttons');
-            const userInfo = document.getElementById('user-info');
-            
-            if (skeleton) skeleton.style.display = 'none';
-            if (authButtons) authButtons.style.display = 'block';
-            if (userInfo) userInfo.style.display = 'none';
-            
-            // Update body classes
-            document.body.classList.remove('logged-in');
-            document.body.classList.add('logged-out');
+            // Add small delay to ensure smooth transition
+            setTimeout(() => {
+                // Mark auth as ready and update classes
+                document.body.classList.add('auth-ready', 'logged-out');
+                document.body.classList.remove('logged-in');
+            }, 100);
         }
         
         function setupEventListeners() {
