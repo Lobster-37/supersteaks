@@ -664,7 +664,8 @@
             // Add small delay to ensure smooth transition
             setTimeout(() => {
                 // Mark auth as ready and update classes
-                document.body.className = document.body.className.replace(/logged-\w+/g, '').replace(/auth-ready/g, '') + ' auth-ready logged-in';
+                document.body.classList.add('auth-ready', 'logged-in');
+                document.body.classList.remove('logged-out');
                 
                 const usernameDisplay = document.getElementById('username-display');
                 if (usernameDisplay && user) {
@@ -682,7 +683,8 @@
             // Add small delay to ensure smooth transition
             setTimeout(() => {
                 // Mark auth as ready and update classes
-                document.body.className = document.body.className.replace(/logged-\w+/g, '').replace(/auth-ready/g, '') + ' auth-ready logged-out';
+                document.body.classList.add('auth-ready', 'logged-out');
+                document.body.classList.remove('logged-in');
             }, 100);
         }
         
