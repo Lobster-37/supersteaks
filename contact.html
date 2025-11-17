@@ -14,7 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     
     <!-- SuperSteaks Global System -->
-    <script src="js/supersteaks-global.js?v=2.0.1"></script>
+    <script src="js/supersteaks-global.js?v=2.0.2"></script>
     
     <!-- Firebase Configuration -->
     <script>
@@ -620,39 +620,35 @@
         }
         
         function checkCurrentAuthState() {
-            // Use Firebase auth directly to check current state
-            if (firebase.auth().currentUser) {
-                const user = firebase.auth().currentUser;
-                console.log('User logged in:', user.email);
-                showLoggedInState(user);
-            } else {
-                console.log('User not logged in');
-                showLoggedOutState();
-            }
+            // Don't check current user immediately - wait for onAuthStateChanged
+            // This prevents premature showing of logged-out state
             
-            // Also set up auth state listener with error protection
+            // Set up auth state listener with error protection
             try {
                 firebase.auth().onAuthStateChanged((user) => {
                     try {
                         if (user) {
-                            console.log('Auth state changed - User logged in:', user.email);
+                            console.log('Auth state determined - User logged in:', user.email);
                             showLoggedInState(user);
                         } else {
-                            console.log('Auth state changed - User logged out');
+                            console.log('Auth state determined - User logged out');
                             showLoggedOutState();
                         }
                     } catch (error) {
                         console.error('Error in auth state change handler:', error);
+                        // Fallback to logged-out state on error
+                        showLoggedOutState();
                     }
+                }, (error) => {
+                    console.error('Firebase auth state listener error:', error);
+                    // Fallback to logged-out state on auth error
+                    showLoggedOutState();
                 });
             } catch (error) {
                 console.error('Error setting up auth state listener:', error);
-            } else {
-                console.log('SuperSteaks not available, showing login buttons');
+                // Fallback to logged-out state if listener setup fails
                 showLoggedOutState();
             }
-            
-            setupEventListeners();
         }
         
         function showLoggedInState(user) {
