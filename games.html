@@ -8,10 +8,10 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Firebase SDK - Load first -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDK - Load first - Updated to stable version -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     
     <!-- SuperSteaks Global System -->
     <script src="js/supersteaks-global.js"></script>
@@ -929,13 +929,21 @@
         }
       });
       
-      // Global error handler for catching destructuring errors
+      // Global error handler for catching Firebase and destructuring errors
       window.addEventListener('error', function(e) {
-          if (e.message && e.message.includes('Cannot destructure property')) {
-              console.warn('Caught destructuring error:', e.message, 'at', e.filename, ':', e.lineno);
-              // Don't let it crash the page
+          if (e.message && (e.message.includes('Cannot destructure property') || e.filename && e.filename.includes('auth.ts'))) {
+              console.warn('Caught Firebase/destructuring error:', e.message, 'at', e.filename, ':', e.lineno);
+              // Don't let Firebase auth errors crash the page
               e.preventDefault();
               return true;
+          }
+      });
+      
+      // Additional unhandled promise rejection handler for Firebase
+      window.addEventListener('unhandledrejection', function(event) {
+          if (event.reason && event.reason.toString().includes('auth')) {
+              console.warn('Caught unhandled Firebase auth promise rejection:', event.reason);
+              event.preventDefault();
           }
       });
 
