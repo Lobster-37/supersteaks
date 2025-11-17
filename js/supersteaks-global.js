@@ -326,17 +326,22 @@ class SuperSteaksGlobal {
 // Initialize global SuperSteaks system
 let superSteaksGlobal = null;
 
+// Export the class for compatibility
+window.SuperSteaks = SuperSteaksGlobal;
+
 // Initialize when Firebase is ready
 document.addEventListener('DOMContentLoaded', () => {
     if (window.firebaseReady) {
         superSteaksGlobal = new SuperSteaksGlobal();
         window.superSteaksGlobal = superSteaksGlobal;
+        window.SuperSteaks = SuperSteaksGlobal; // Alias for compatibility
     } else {
         // Wait for Firebase to be ready
         const checkFirebase = setInterval(() => {
             if (window.firebaseReady) {
                 superSteaksGlobal = new SuperSteaksGlobal();
                 window.superSteaksGlobal = superSteaksGlobal;
+                window.SuperSteaks = SuperSteaksGlobal; // Alias for compatibility
                 clearInterval(checkFirebase);
             }
         }, 100);

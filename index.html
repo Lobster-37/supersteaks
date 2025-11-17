@@ -272,46 +272,92 @@
         function initializeAuthentication() {
             console.log('Starting Firebase authentication...');
             
-            // Initialize SuperSteaks if available
-            if (typeof SuperSteaks !== 'undefined') {
+            // Try multiple approaches to get the authentication system
+            if (window.superSteaksGlobal) {
+                // Use existing global instance
+                window.supersteaks = window.superSteaksGlobal;
+                console.log('Using existing superSteaksGlobal instance');
+                checkCurrentAuthState();
+            } else if (typeof SuperSteaks !== 'undefined') {
+                // Create new instance from class
                 window.supersteaks = new SuperSteaks();
-                
-                // Check current auth state
-                window.supersteaks.checkAuthState()
-                    .then(user => {
-                        if (user) {
-                            console.log('User logged in:', user.email);
-                            showLoggedInState(user);
-                        } else {
-                            console.log('User not logged in');
-                            showLoggedOutState();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Auth check failed:', error);
-                        showLoggedOutState();
-                    });
+                console.log('Created new SuperSteaks instance');
+                checkCurrentAuthState();
             } else {
-                console.log('SuperSteaks not available, showing login buttons');
-                showLoggedOutState();
+                // Wait for system to initialize
+                console.log('Waiting for SuperSteaks system to initialize...');
+                const checkSystem = setInterval(() => {
+                    if (window.superSteaksGlobal) {
+                        window.supersteaks = window.superSteaksGlobal;
+                        console.log('SuperSteaks global system now available');
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
+                    } else if (typeof SuperSteaks !== 'undefined') {
+                        window.supersteaks = new SuperSteaks();
+                        console.log('SuperSteaks class now available');
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
+                    }
+                }, 100);
+                
+                // Fallback after 5 seconds
+                setTimeout(() => {
+                    if (!window.supersteaks) {
+                        console.log('SuperSteaks not available after timeout, showing login buttons');
+                        showLoggedOutState();
+                        clearInterval(checkSystem);
+                    }
+                }, 5000);
             }
             
             setupEventListeners();
         }
         
+        function checkCurrentAuthState() {
+            // Use Firebase auth directly to check current state
+            if (firebase.auth().currentUser) {
+                const user = firebase.auth().currentUser;
+                console.log('User logged in:', user.email);
+                showLoggedInState(user);
+            } else {
+                console.log('User not logged in');
+                showLoggedOutState();
+            }
+            
+            // Also set up auth state listener
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    console.log('Auth state changed - User logged in:', user.email);
+                    showLoggedInState(user);
+                } else {
+                    console.log('Auth state changed - User logged out');
+                    showLoggedOutState();
+                }
+            });
+        }
+        
         function showLoggedInState(user) {
-            document.body.className = document.body.className.replace(/logged-\w+/g, '') + ' logged-in';
+            console.log('Setting logged-in state for user:', user.email);
+            
+            // Remove any existing auth state classes and add logged-in
+            document.body.classList.remove('logged-out');
+            document.body.classList.add('logged-in');
             
             const usernameDisplay = document.getElementById('username-display');
             if (usernameDisplay && user) {
                 // Extract username from email or use display name
                 const username = user.displayName || user.email.split('@')[0];
                 usernameDisplay.textContent = username;
+                console.log('Username display updated to:', username);
             }
         }
         
         function showLoggedOutState() {
-            document.body.className = document.body.className.replace(/logged-\w+/g, '') + ' logged-out';
+            console.log('Setting logged-out state');
+            
+            // Remove any existing auth state classes and add logged-out
+            document.body.classList.remove('logged-in');
+            document.body.classList.add('logged-out');
         }
         
         function setupEventListeners() {
@@ -354,19 +400,29 @@
 
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function() {
+                    console.log('Attempting logout...');
                     if (window.supersteaks) {
                         window.supersteaks.logout()
-                            .then(() => {
-                                console.log('Logout successful');
-                                showLoggedOutState();
+                            .then(result => {
+                                if (result.success) {
+                                    console.log('Logout successful');
+                                    // Don't manually update UI - let the auth state listener handle it
+                                } else {
+                                    console.error('Logout failed:', result.error);
+                                }
                             })
                             .catch(error => {
                                 console.error('Logout failed:', error);
                             });
                     } else {
-                        showLoggedOutState();
+                        // Fallback if supersteaks not available
+                        firebase.auth().signOut().then(() => {
+                            console.log('Direct Firebase logout successful');
+                        }).catch(error => {
+                            console.error('Firebase logout failed:', error);
+                        });
                     }
-                    profileDropdown.classList.add('hidden');
+                    if (profileDropdown) profileDropdown.classList.add('hidden');
                 });
             }
             
@@ -466,19 +522,26 @@
             const email = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
             
+            console.log('Attempting login for:', email);
+            
             if (!window.supersteaks) {
                 alert('Authentication system not available. Please try again later.');
                 return;
             }
             
             window.supersteaks.login(email, password)
-                .then(user => {
-                    console.log('Login successful:', user);
-                    showLoggedInState(user);
-                    document.getElementById('auth-modal').classList.add('hidden');
-                    
-                    // Clear form
-                    document.getElementById('login-form-element').reset();
+                .then(result => {
+                    if (result.success) {
+                        console.log('Login successful:', result.user);
+                        // Don't manually update UI - let the auth state listener handle it
+                        document.getElementById('auth-modal').classList.add('hidden');
+                        
+                        // Clear form
+                        document.getElementById('login-form-element').reset();
+                    } else {
+                        console.error('Login failed:', result.error);
+                        alert('Login failed: ' + result.error);
+                    }
                 })
                 .catch(error => {
                     console.error('Login failed:', error);
@@ -493,19 +556,26 @@
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             
+            console.log('Attempting registration for:', email, 'with username:', username);
+            
             if (!window.supersteaks) {
                 alert('Authentication system not available. Please try again later.');
                 return;
             }
             
             window.supersteaks.register(email, password, username)
-                .then(user => {
-                    console.log('Registration successful:', user);
-                    showLoggedInState(user);
-                    document.getElementById('auth-modal').classList.add('hidden');
-                    
-                    // Clear form
-                    document.getElementById('register-form-element').reset();
+                .then(result => {
+                    if (result.success) {
+                        console.log('Registration successful:', result.user);
+                        // Don't manually update UI - let the auth state listener handle it
+                        document.getElementById('auth-modal').classList.add('hidden');
+                        
+                        // Clear form
+                        document.getElementById('register-form-element').reset();
+                    } else {
+                        console.error('Registration failed:', result.error);
+                        alert('Registration failed: ' + result.error);
+                    }
                 })
                 .catch(error => {
                     console.error('Registration failed:', error);
