@@ -61,6 +61,25 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
         .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+        
+        /* Prevent authentication flash */
+        #auth-required, #teams-content {
+            display: none !important;
+        }
+        
+        /* Show appropriate section after auth check */
+        body.auth-checked.logged-in #teams-content {
+            display: block !important;
+        }
+        
+        body.auth-checked.logged-out #auth-required {
+            display: block !important;
+        }
+        
+        /* Hide loading when auth check complete */
+        body.auth-checked #page-loading {
+            display: none !important;
+        }
     </style>
     
     <!-- User Account System -->
@@ -128,8 +147,15 @@
 
     <!-- Main Content Area -->
     <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
+        <!-- Loading State -->
+        <div id="page-loading" class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-gray-400">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <h2 class="text-2xl font-bold text-gray-600">Loading...</h2>
+            <p class="text-gray-500">Checking authentication status</p>
+        </div>
+        
         <!-- Authentication Required Message (shown when not logged in) -->
-        <div id="auth-required" class="hidden text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-red-400">
+        <div id="auth-required" class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-red-400">
             <h2 class="text-3xl sm:text-4xl font-black text-red-600 mb-4">Authentication Required</h2>
             <p class="text-lg text-gray-700 mb-8">You must be logged in to view the team directory.</p>
             <button id="login-from-teams" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-semibold transition">
@@ -138,7 +164,7 @@
         </div>
         
         <!-- Teams Content (shown when logged in) -->
-        <section id="teams-content" class="hidden text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+        <section id="teams-content" class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
             <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-indigo-900 mb-4 sm:mb-6 leading-tight">
                 Team <span class="text-yellow-500">Directory</span>
             </h2>
@@ -683,26 +709,28 @@
             }
         });
         
-        // Authentication check for teams page - hardcoded for lobster37
+        // Authentication check for teams page
         function checkTeamsAuthentication() {
             console.log('Checking teams authentication...');
             
-            const authRequired = document.getElementById('auth-required');
-            const teamsContent = document.getElementById('teams-content');
             const loginFromTeams = document.getElementById('login-from-teams');
             
             // Check if global system is ready and user is authenticated
             if (window.superSteaksGlobal && window.superSteaksGlobal.isAuthenticated()) {
                 console.log('User is authenticated, showing teams content');
-                if (authRequired) authRequired.classList.add('hidden');
-                if (teamsContent) teamsContent.classList.remove('hidden');
+                
+                // Mark auth check as complete and show teams content
+                document.body.classList.add('auth-checked', 'logged-in');
+                document.body.classList.remove('logged-out');
                 
                 // Load teams data
-                setTimeout(loadAllTeams, 500);
+                setTimeout(loadAllTeams, 200);
             } else {
                 console.log('User is not authenticated, showing auth required');
-                if (authRequired) authRequired.classList.remove('hidden');
-                if (teamsContent) teamsContent.classList.add('hidden');
+                
+                // Mark auth check as complete and show auth required
+                document.body.classList.add('auth-checked', 'logged-out');
+                document.body.classList.remove('logged-in');
             }
             
             if (loginFromTeams) {

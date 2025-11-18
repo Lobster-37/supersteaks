@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teams Page Test</title>
+    <style>
+        /* Simulate our authentication CSS */
+        #auth-required, #teams-content {
+            display: none !important;
+        }
+        
+        body.auth-checked.logged-in #teams-content {
+            display: block !important;
+        }
+        
+        body.auth-checked.logged-out #auth-required {
+            display: block !important;
+        }
+        
+        .test-section {
+            padding: 20px;
+            margin: 10px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        #auth-required {
+            background-color: #fee;
+            border-color: #f99;
+        }
+        
+        #teams-content {
+            background-color: #efe;
+            border-color: #9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teams Page Authentication Test</h1>
+    
+    <div id="auth-required" class="test-section">
+        <h2>🚫 Authentication Required</h2>
+        <p>Please log in to view teams.</p>
+    </div>
+    
+    <div id="teams-content" class="test-section">
+        <h2>✅ Teams Content</h2>
+        <p>Welcome! Here are your teams...</p>
+    </div>
+    
+    <div style="margin: 20px; padding: 10px; background: #f0f0f0;">
+        <h3>Test Controls:</h3>
+        <button onclick="simulateLogin()">Simulate Login</button>
+        <button onclick="simulateLogout()">Simulate Logout</button>
+        <button onclick="resetAuth()">Reset Auth</button>
+    </div>
+    
+    <script>
+        function simulateLogin() {
+            console.log('Simulating login...');
+            document.body.classList.add('auth-checked', 'logged-in');
+            document.body.classList.remove('logged-out');
+        }
+        
+        function simulateLogout() {
+            console.log('Simulating logout...');
+            document.body.classList.add('auth-checked', 'logged-out');
+            document.body.classList.remove('logged-in');
+        }
+        
+        function resetAuth() {
+            console.log('Resetting auth state...');
+            document.body.classList.remove('auth-checked', 'logged-in', 'logged-out');
+        }
+        
+        // Show current state
+        function showCurrentState() {
+            const classes = Array.from(document.body.classList);
+            console.log('Body classes:', classes.join(', ') || 'none');
+            
+            const authRequired = document.getElementById('auth-required');
+            const teamsContent = document.getElementById('teams-content');
+            console.log('Auth required visible:', getComputedStyle(authRequired).display !== 'none');
+            console.log('Teams content visible:', getComputedStyle(teamsContent).display !== 'none');
+        }
+        
+        // Monitor for changes
+        setInterval(showCurrentState, 2000);
+        
+        console.log('Test page loaded. Both sections should be hidden initially.');
+        console.log('Use the buttons to test the authentication states.');
+    </script>
+</body>
+</html>
