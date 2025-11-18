@@ -406,21 +406,22 @@
                 const usernameDisplay = document.getElementById('username-display');
                 if (usernameDisplay && user) {
                     // Extract username from email or use display name
-                    console.log('Raw user data:', {
-                        displayName: user.displayName,
-                        email: user.email
-                    });
+                    console.log('=== USERNAME DEBUG ===');
+                    console.log('User object:', user);
+                    console.log('DisplayName from Firebase:', user.displayName);
+                    console.log('Email from Firebase:', user.email);
+                    if (user.email) {
+                        console.log('Email prefix would be:', user.email.split('@')[0]);
+                    }
                     
                     let username = user.displayName;
                     if (!username && user.email) {
                         username = user.email.split('@')[0];
+                        console.log('Using email prefix as username:', username);
                     }
                     
-                    // Additional check for corrupted displayName
-                    if (username === 'ekul.kcol') {
-                        username = 'luke.lock';
-                        console.log('Overriding corrupted displayName with correct value');
-                    }
+                    console.log('Final username for display:', username);
+                    console.log('====================');
                     
                     if (username) {
                         usernameDisplay.textContent = username;

@@ -100,22 +100,13 @@ class SuperSteaksGlobal {
             console.log('User signed in successfully. Current displayName:', user.displayName);
             console.log('User email:', user.email);
             
-            // Fix corrupted displayName if needed
-            if (user.displayName && user.displayName === 'ekul.kcol') {
-                console.log('Detected corrupted displayName, fixing it...');
-                const correctName = 'luke.lock';
-                await user.updateProfile({ displayName: correctName });
-                
-                // Also update Firestore document
-                try {
-                    await this.firestore.collection('users').doc(user.uid).update({
-                        displayName: correctName
-                    });
-                    console.log('Fixed displayName in both Firebase Auth and Firestore');
-                } catch (firestoreError) {
-                    console.log('Firestore update not needed or failed:', firestoreError.message);
-                }
-            }
+            // Debug user profile data
+            console.log('=== USER PROFILE DEBUG ===');
+            console.log('UID:', user.uid);
+            console.log('Email:', user.email);
+            console.log('DisplayName:', user.displayName);
+            console.log('Email prefix:', user.email ? user.email.split('@')[0] : 'no email');
+            console.log('==========================')
             
             return { success: true, user: userCredential.user };
             
