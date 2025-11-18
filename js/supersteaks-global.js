@@ -331,7 +331,13 @@ class SuperSteaksGlobal {
             userInfo.style.display = '';
         }
         if (usernameDisplay) {
-            usernameDisplay.textContent = user.displayName || user.email.split('@')[0];
+            let username = user.displayName;
+            if (!username && user.email) {
+                username = user.email.split('@')[0];
+            }
+            if (username) {
+                usernameDisplay.textContent = username;
+            }
         }
     }
     
@@ -360,7 +366,13 @@ class SuperSteaksGlobal {
     }
     
     getUserDisplayName() {
-        return this.currentUser ? (this.currentUser.displayName || this.currentUser.email.split('@')[0]) : null;
+        if (!this.currentUser) return null;
+        
+        let username = this.currentUser.displayName;
+        if (!username && this.currentUser.email) {
+            username = this.currentUser.email.split('@')[0];
+        }
+        return username;
     }
 }
 

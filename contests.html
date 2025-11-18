@@ -563,9 +563,14 @@
                 const usernameDisplay = document.getElementById('username-display');
                 if (usernameDisplay && user) {
                     // Extract username from email or use display name
-                    const username = user.displayName || user.email.split('@')[0];
-                    usernameDisplay.textContent = username;
-                    console.log('Username display updated to:', username);
+                    let username = user.displayName;
+                    if (!username && user.email) {
+                        username = user.email.split('@')[0];
+                    }
+                    if (username) {
+                        usernameDisplay.textContent = username;
+                        console.log('Username display updated to:', username);
+                    }
                 }
             }, 100);
         }
