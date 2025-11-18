@@ -5,8 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperSteaks - Contact Us</title>
     <meta name="description" content="Get in touch with SuperSteaks for support, questions, or feedback about our free random team assignment platform.">
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA==">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        console.log('TailwindCSS loading...');
+        setTimeout(() => {
+            if (window.tailwind) {
+                console.log('✅ TailwindCSS loaded successfully');
+            } else {
+                console.error('❌ TailwindCSS failed to load');
+            }
+        }, 1000);
+    </script>
     
     <!-- Firebase CDN Scripts - Updated to stable version -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>

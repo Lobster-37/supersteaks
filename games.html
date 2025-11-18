@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperSteaks - Enter Random Team Draw</title>
     <meta name="description" content="Enter the latest SuperSteaks sports sweepstakes draw for free. Get your random team assignment and join the fun!">
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA==">
     
     <!-- Cache Control -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -12,6 +13,16 @@
     <meta http-equiv="Expires" content="0">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        console.log('TailwindCSS loading...');
+        setTimeout(() => {
+            if (window.tailwind) {
+                console.log('✅ TailwindCSS loaded successfully');
+            } else {
+                console.error('❌ TailwindCSS failed to load');
+            }
+        }, 1000);
+    </script>
     
     <!-- Firebase SDK - Load first - Updated to stable version -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
