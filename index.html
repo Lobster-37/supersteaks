@@ -11,7 +11,18 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <script src="https://cdn.tailwindcss.com?v=20241118001"></script>
+    <script src="https://unpkg.com/tailwindcss@3.3.0/lib/index.js"></script>
+    <script>
+        // Fallback if TailwindCSS doesn't load
+        setTimeout(() => {
+            if (!window.tailwind) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css';
+                document.head.appendChild(link);
+            }
+        }, 2000);
+    </script>
     
     <!-- Firebase CDN Scripts - Updated to stable version -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>

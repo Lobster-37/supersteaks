@@ -6,7 +6,17 @@
     <title>SuperSteaks - Contact Us</title>
     <meta name="description" content="Get in touch with SuperSteaks for support, questions, or feedback about our free random team assignment platform.">
     
-    <script src="https://cdn.tailwindcss.com?v=2.0.8"></script>
+    <script src="https://unpkg.com/tailwindcss@3.3.0/lib/index.js"></script>
+    <script>
+        setTimeout(() => {
+            if (!window.tailwind) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css';
+                document.head.appendChild(link);
+            }
+        }, 2000);
+    </script>
     
     <!-- Firebase CDN Scripts - Updated to stable version -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
