@@ -62,23 +62,19 @@
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
         .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
         
-        /* Prevent authentication flash */
-        #auth-required, #teams-content {
-            display: none !important;
+        /* Hide teams content until authentication is verified */
+        #teams-content {
+            display: none;
         }
         
-        /* Show appropriate section after auth check */
-        body.auth-checked.logged-in #teams-content {
-            display: block !important;
-        }
-        
-        body.auth-checked.logged-out #auth-required {
-            display: block !important;
+        /* Show teams content when authenticated */
+        body.authenticated #teams-content {
+            display: block;
         }
         
         /* Hide loading when auth check complete */
-        body.auth-checked #page-loading {
-            display: none !important;
+        body.authenticated #page-loading {
+            display: none;
         }
     </style>
     
@@ -150,18 +146,11 @@
         <!-- Loading State -->
         <div id="page-loading" class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-gray-400">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <h2 class="text-2xl font-bold text-gray-600">Loading...</h2>
-            <p class="text-gray-500">Checking authentication status</p>
+            <h2 class="text-2xl font-bold text-gray-600">Loading Teams...</h2>
+            <p class="text-gray-500">Preparing your team directory</p>
         </div>
         
-        <!-- Authentication Required Message (shown when not logged in) -->
-        <div id="auth-required" class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-red-400">
-            <h2 class="text-3xl sm:text-4xl font-black text-red-600 mb-4">Authentication Required</h2>
-            <p class="text-lg text-gray-700 mb-8">You must be logged in to view the team directory.</p>
-            <button id="login-from-teams" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-semibold transition">
-                Login to Continue
-            </button>
-        </div>
+
         
         <!-- Teams Content (shown when logged in) -->
         <section id="teams-content" class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
@@ -713,30 +702,20 @@
         function checkTeamsAuthentication() {
             console.log('Checking teams authentication...');
             
-            const loginFromTeams = document.getElementById('login-from-teams');
-            
             // Check if global system is ready and user is authenticated
             if (window.superSteaksGlobal && window.superSteaksGlobal.isAuthenticated()) {
                 console.log('User is authenticated, showing teams content');
                 
-                // Mark auth check as complete and show teams content
-                document.body.classList.add('auth-checked', 'logged-in');
-                document.body.classList.remove('logged-out');
+                // Mark as authenticated and show teams content
+                document.body.classList.add('authenticated');
                 
                 // Load teams data
                 setTimeout(loadAllTeams, 200);
             } else {
-                console.log('User is not authenticated, showing auth required');
+                console.log('User is not authenticated, redirecting to games page');
                 
-                // Mark auth check as complete and show auth required
-                document.body.classList.add('auth-checked', 'logged-out');
-                document.body.classList.remove('logged-in');
-            }
-            
-            if (loginFromTeams) {
-                loginFromTeams.addEventListener('click', () => {
-                    window.location.href = 'games.html';
-                });
+                // Redirect to games page where they can login
+                window.location.href = 'games.html';
             }
         }
         
