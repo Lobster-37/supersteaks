@@ -95,7 +95,28 @@ class SuperSteaksGlobal {
     async signIn(email, password) {
         try {
             const userCredential = await this.auth.signInWithEmailAndPassword(email, password);
-            console.log('User signed in successfully:', userCredential.user.displayName);
+            const user = userCredential.user;
+            
+            console.log('User signed in successfully. Current displayName:', user.displayName);
+            console.log('User email:', user.email);
+            
+            // Fix corrupted displayName if needed
+            if (user.displayName && user.displayName === 'ekul.kcol') {
+                console.log('Detected corrupted displayName, fixing it...');
+                const correctName = 'luke.lock';
+                await user.updateProfile({ displayName: correctName });
+                
+                // Also update Firestore document
+                try {
+                    await this.firestore.collection('users').doc(user.uid).update({
+                        displayName: correctName
+                    });
+                    console.log('Fixed displayName in both Firebase Auth and Firestore');
+                } catch (firestoreError) {
+                    console.log('Firestore update not needed or failed:', firestoreError.message);
+                }
+            }
+            
             return { success: true, user: userCredential.user };
             
         } catch (error) {

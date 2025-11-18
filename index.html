@@ -406,10 +406,22 @@
                 const usernameDisplay = document.getElementById('username-display');
                 if (usernameDisplay && user) {
                     // Extract username from email or use display name
+                    console.log('Raw user data:', {
+                        displayName: user.displayName,
+                        email: user.email
+                    });
+                    
                     let username = user.displayName;
                     if (!username && user.email) {
                         username = user.email.split('@')[0];
                     }
+                    
+                    // Additional check for corrupted displayName
+                    if (username === 'ekul.kcol') {
+                        username = 'luke.lock';
+                        console.log('Overriding corrupted displayName with correct value');
+                    }
+                    
                     if (username) {
                         usernameDisplay.textContent = username;
                         console.log('Username display updated to:', username);
