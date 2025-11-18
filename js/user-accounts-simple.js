@@ -229,9 +229,59 @@ class UserAccountSystem {
     }
 
     handleRegister() {
-        const username = document.getElementById('register-username')?.value;
-        const email = document.getElementById('register-email')?.value;
+        const username = document.getElementById('register-username')?.value?.trim();
+        const email = document.getElementById('register-email')?.value?.trim();
         const password = document.getElementById('register-password')?.value;
+
+        // Comprehensive validation
+        if (!username) {
+            this.showErrorMessage('Username is required. Please enter a username.');
+            document.getElementById('register-username')?.focus();
+            return;
+        }
+        
+        if (username.length < 3) {
+            this.showErrorMessage('Username must be at least 3 characters long.');
+            document.getElementById('register-username')?.focus();
+            return;
+        }
+        
+        if (username.length > 20) {
+            this.showErrorMessage('Username must be 20 characters or less.');
+            document.getElementById('register-username')?.focus();
+            return;
+        }
+        
+        if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
+            this.showErrorMessage('Username can only contain letters, numbers, dots, underscores, and hyphens.');
+            document.getElementById('register-username')?.focus();
+            return;
+        }
+        
+        if (!email) {
+            this.showErrorMessage('Email is required.');
+            document.getElementById('register-email')?.focus();
+            return;
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            this.showErrorMessage('Please enter a valid email address.');
+            document.getElementById('register-email')?.focus();
+            return;
+        }
+        
+        if (!password) {
+            this.showErrorMessage('Password is required.');
+            document.getElementById('register-password')?.focus();
+            return;
+        }
+        
+        if (password.length < 6) {
+            this.showErrorMessage('Password must be at least 6 characters long.');
+            document.getElementById('register-password')?.focus();
+            return;
+        }
 
         try {
             this.register(username, email, password);

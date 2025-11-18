@@ -68,22 +68,50 @@ class SuperSteaksGlobal {
     // Authentication Methods
     async signUp(email, password, displayName) {
         try {
-            const userCredential = await this.auth.createUserWithEmailAndPassword(email, password);
+            // Server-side validation
+            if (!displayName || displayName.trim().length === 0) {
+                throw new Error('Username is required and cannot be empty.');
+            }
+            
+            if (displayName.trim().length < 3) {
+                throw new Error('Username must be at least 3 characters long.');
+            }
+            
+            if (displayName.trim().length > 20) {
+                throw new Error('Username must be 20 characters or less.');
+            }
+            
+            if (!/^[a-zA-Z0-9._-]+$/.test(displayName.trim())) {
+                throw new Error('Username can only contain letters, numbers, dots, underscores, and hyphens.');
+            }
+            
+            if (!email || email.trim().length === 0) {
+                throw new Error('Email is required.');
+            }
+            
+            if (!password || password.length < 6) {
+                throw new Error('Password must be at least 6 characters long.');
+            }
+            
+            const cleanDisplayName = displayName.trim();
+            const cleanEmail = email.trim();
+            
+            const userCredential = await this.auth.createUserWithEmailAndPassword(cleanEmail, password);
             const user = userCredential.user;
             
             // Update profile with display name
-            await user.updateProfile({ displayName });
+            await user.updateProfile({ displayName: cleanDisplayName });
             
             // Create user document in Firestore
             await this.firestore.collection('users').doc(user.uid).set({
                 uid: user.uid,
-                email: user.email,
-                displayName: displayName,
+                email: cleanEmail,
+                displayName: cleanDisplayName,
                 createdAt: new Date(),
                 teamAssignments: []
             });
             
-            console.log('User signed up successfully:', displayName);
+            console.log('User signed up successfully:', cleanDisplayName);
             return { success: true, user };
             
         } catch (error) {
