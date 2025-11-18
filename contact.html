@@ -7,15 +7,20 @@
     <meta name="description" content="Get in touch with SuperSteaks for support, questions, or feedback about our free random team assignment platform.">
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA==">
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script>
-        console.log('TailwindCSS loading...');
+        console.log('TailwindCSS CSS loading...');
         setTimeout(() => {
-            if (window.tailwind) {
-                console.log('✅ TailwindCSS loaded successfully');
+            const testEl = document.createElement('div');
+            testEl.className = 'bg-red-500';
+            document.body.appendChild(testEl);
+            const styles = getComputedStyle(testEl);
+            if (styles.backgroundColor === 'rgb(239, 68, 68)' || styles.backgroundColor.includes('239')) {
+                console.log('✅ TailwindCSS CSS loaded successfully');
             } else {
-                console.error('❌ TailwindCSS failed to load');
+                console.error('❌ TailwindCSS CSS failed to load');
             }
+            document.body.removeChild(testEl);
         }, 1000);
     </script>
     
