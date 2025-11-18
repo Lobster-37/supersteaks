@@ -713,42 +713,16 @@
             }
         });
         
-        // Authentication check for teams page
+        // Authentication check for teams page - ALWAYS SHOW TEAMS (no redirect)
         function checkTeamsAuthentication() {
-            console.log('Checking teams authentication...');
-            console.log('SuperSteaks Global available:', !!window.superSteaksGlobal);
+            console.log('Loading teams page - authentication check disabled');
             
-            // Check if global system is ready
-            if (window.superSteaksGlobal) {
-                const isAuth = window.superSteaksGlobal.isAuthenticated();
-                console.log('Authentication status:', isAuth);
-                
-                if (isAuth) {
-                    console.log('User is authenticated, showing teams content');
-                    
-                    // Mark as authenticated and show teams content
-                    document.body.classList.add('authenticated');
-                    
-                    // Load teams data
-                    setTimeout(loadAllTeams, 200);
-                    return;
-                }
-            }
+            // Always show teams content (remove redirect entirely)
+            console.log('Showing teams content for all users');
+            document.body.classList.add('authenticated');
             
-            // Check for hardcoded user (temporary fallback)
-            const currentUser = localStorage.getItem('currentUser');
-            if (currentUser && currentUser.includes('lobster37')) {
-                console.log('Hardcoded user detected, showing teams content');
-                document.body.classList.add('authenticated');
-                setTimeout(loadAllTeams, 200);
-                return;
-            }
-            
-            console.log('User is not authenticated, redirecting to games page');
-            // Add a small delay to avoid immediate redirect
-            setTimeout(() => {
-                window.location.href = 'games.html';
-            }, 1000);
+            // Load teams data
+            setTimeout(loadAllTeams, 200);
         }
         
         // Run authentication check immediately and multiple times
