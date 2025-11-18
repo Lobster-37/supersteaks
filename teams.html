@@ -176,28 +176,7 @@
                 See who's supporting which teams in our random draws! Check out the current team assignments and join the community.
             </p>
 
-            <!-- Refresh Button -->
-            <div class="mb-8">
-                <button id="refresh-teams" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition duration-200 font-semibold">
-                    🔄 Refresh Teams
-                </button>
-            </div>
 
-            <!-- Debug Info -->
-            <div class="mb-8 space-x-2">
-                <button id="debug-storage" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition duration-200 font-semibold text-sm">
-                    🔍 Debug Storage
-                </button>
-                <button id="create-demo-account" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition duration-200 font-semibold text-sm">
-                    👤 Create Demo Account
-                </button>
-                <button id="logout-for-testing" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition duration-200 font-semibold text-sm">
-                    🚪 Logout (Switch Account)
-                </button>
-                <div id="debug-output" class="hidden mt-4 bg-gray-100 p-4 rounded-lg text-sm text-gray-800 max-h-64 overflow-y-auto">
-                    <!-- Debug info will be shown here -->
-                </div>
-            </div>
 
             <!-- Teams Display Area -->
             <div id="teams-container" class="text-left">
@@ -313,9 +292,6 @@
         // Teams page functionality
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Teams page loaded');
-            
-            // Setup refresh button and check authentication
-            setupRefreshButton();
             
             // Check authentication periodically until ready
             const checkAuth = () => {
@@ -456,101 +432,7 @@
             teamsList.innerHTML = html;
         }
 
-        function setupRefreshButton() {
-            const refreshBtn = document.getElementById('refresh-teams');
-            refreshBtn.addEventListener('click', () => {
-                console.log('Refreshing teams...');
-                
-                // Show loading message
-                const loadingMessage = document.getElementById('loading-message');
-                const noTeamsMessage = document.getElementById('no-teams-message');
-                const teamsList = document.getElementById('teams-list');
-                
-                loadingMessage.classList.remove('hidden');
-                noTeamsMessage.classList.add('hidden');
-                teamsList.innerHTML = '';
-                
-                // Reload teams after a short delay
-                setTimeout(loadAllTeams, 500);
-            });
-            
-            // Setup debug button
-            const debugBtn = document.getElementById('debug-storage');
-            debugBtn.addEventListener('click', () => {
-                console.log('Showing debug storage info...');
-                const debugOutput = document.getElementById('debug-output');
-                
-                let debugHtml = '<h4 class="font-bold mb-2">LocalStorage Contents:</h4>';
-                
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    const value = localStorage.getItem(key);
-                    
-                    debugHtml += `<div class="mb-2 p-2 bg-white rounded border">`;
-                    debugHtml += `<strong>${key}:</strong><br>`;
-                    debugHtml += `<pre class="text-xs mt-1 whitespace-pre-wrap">${value}</pre>`;
-                    debugHtml += `</div>`;
-                }
-                
-                debugOutput.innerHTML = debugHtml;
-                debugOutput.classList.toggle('hidden');
-            });
-            
-            // Setup demo account button
-            const demoBtn = document.getElementById('create-demo-account');
-            demoBtn.addEventListener('click', async () => {
-                if (!window.superSteaksGlobal) {
-                    alert('System not ready. Please wait a moment.');
-                    return;
-                }
-                
-                const randomNum = Math.floor(Math.random() * 1000);
-                const email = `demo${randomNum}@supersteaks.com`;
-                const password = 'demo123456';
-                const username = `DemoUser${randomNum}`;
-                
-                console.log('Creating demo account:', email);
-                
-                try {
-                    const result = await window.superSteaksGlobal.signUp(email, password, username);
-                    
-                    if (result.success) {
-                        alert(`Demo account created successfully!\nEmail: ${email}\nPassword: ${password}\nUsername: ${username}\n\nYou are now logged in as this demo user.`);
-                        // Refresh the teams page to show the new account
-                        setTimeout(() => window.location.reload(), 2000);
-                    } else {
-                        alert('Error creating demo account: ' + result.error);
-                    }
-                } catch (error) {
-                    console.error('Demo account creation error:', error);
-                    alert('Failed to create demo account. Please try again.');
-                }
-            });
-            
-            // Setup logout button for testing
-            const logoutTestBtn = document.getElementById('logout-for-testing');
-            logoutTestBtn.addEventListener('click', async () => {
-                if (!window.superSteaksGlobal) {
-                    alert('System not ready. Please wait a moment.');
-                    return;
-                }
-                
-                if (confirm('Are you sure you want to logout? You can then test with a different account.')) {
-                    try {
-                        const result = await window.superSteaksGlobal.signOut();
-                        if (result.success) {
-                            alert('Logged out successfully! You can now create a new account or login with different credentials.');
-                            window.location.href = 'games.html';
-                        } else {
-                            alert('Logout failed: ' + result.error);
-                        }
-                    } catch (error) {
-                        console.error('Logout error:', error);
-                        alert('Logout failed. Please try again.');
-                    }
-                }
-            });
-        }
+
 
         // ===== AUTHENTICATION UI FUNCTIONS =====
         
