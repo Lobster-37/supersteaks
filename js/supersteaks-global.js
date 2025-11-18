@@ -120,8 +120,28 @@ class SuperSteaksGlobal {
         }
     }
     
-    async signIn(email, password) {
+    async signIn(emailOrUsername, password) {
         try {
+            let email = emailOrUsername;
+            
+            // If input doesn't contain @, treat it as username and find the email
+            if (!emailOrUsername.includes('@')) {
+                console.log('Input appears to be username, looking up email:', emailOrUsername);
+                
+                // Query Firestore to find user by username
+                const usersRef = this.firestore.collection('users');
+                const snapshot = await usersRef.where('username', '==', emailOrUsername).get();
+                
+                if (snapshot.empty) {
+                    return { success: false, error: 'Username not found' };
+                }
+                
+                // Get the email from the user document
+                const userDoc = snapshot.docs[0];
+                email = userDoc.data().email;
+                console.log('Found email for username:', email);
+            }
+            
             const userCredential = await this.auth.signInWithEmailAndPassword(email, password);
             const user = userCredential.user;
             
