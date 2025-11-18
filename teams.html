@@ -4,7 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Directory - SuperSteaks</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA==">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script>
+        console.log('TailwindCSS CSS loading...');
+        setTimeout(() => {
+            const testEl = document.createElement('div');
+            testEl.className = 'bg-red-500';
+            document.body.appendChild(testEl);
+            const styles = getComputedStyle(testEl);
+            if (styles.backgroundColor === 'rgb(239, 68, 68)' || styles.backgroundColor.includes('239')) {
+                console.log('✅ TailwindCSS CSS loaded successfully');
+            } else {
+                console.error('❌ TailwindCSS CSS failed to load');
+            }
+            document.body.removeChild(testEl);
+        }, 1000);
+    </script>
     
     <!-- Firebase CDN Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
