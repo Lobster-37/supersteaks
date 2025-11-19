@@ -18,7 +18,7 @@
 <body class="min-h-screen flex flex-col">
     <!-- Logo -->
     <a href="index.html">
-        <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-50 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;">
+        <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-50 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
     </a>
     <style>
         .logo-cursor:hover {
@@ -127,29 +127,7 @@
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.2.4/cdn.min.js" defer></script>
     <script>
-        // Draggable logo functionality
-        const logo = document.getElementById('draggable-logo');
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        logo.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            offsetX = e.clientX - logo.getBoundingClientRect().left;
-            offsetY = e.clientY - logo.getBoundingClientRect().top;
-            logo.classList.add('opacity-80');
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                logo.style.left = `${e.clientX - offsetX}px`;
-                logo.style.top = `${e.clientY - offsetY}px`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            logo.classList.remove('opacity-80');
-        });
+        // No drag functionality for logo
     </script>
 </body>
 </html>
