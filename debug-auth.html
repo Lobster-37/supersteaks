@@ -9,6 +9,49 @@
     </style>
 </head>
 <body>
+    <!-- Draggable Logo -->
+    <a href="index.html">
+        <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" id="draggable-logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-50" style="left: 0px; top: 0px; filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); cursor: pointer; user-select: none;">
+    </a>
+    <script>
+        // Logo drag functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const logo = document.getElementById('draggable-logo');
+            if (!logo) return;
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+            logo.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialLeft = parseInt(logo.style.left || '0', 10);
+                initialTop = parseInt(logo.style.top || '0', 10);
+                e.preventDefault();
+                e.stopPropagation();
+                logo.style.zIndex = '9999';
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                const newLeft = initialLeft + deltaX;
+                const newTop = initialTop + deltaY;
+                logo.style.left = newLeft + 'px';
+                logo.style.top = newTop + 'px';
+            });
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    logo.style.zIndex = '50';
+                }
+            });
+            // Prevent dragging on mobile
+            logo.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+            });
+        });
+    </script>
     <h1>Authentication Debug Tool</h1>
     
     <div class="section">
