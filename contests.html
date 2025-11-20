@@ -57,7 +57,6 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f4f8;
         }
@@ -96,6 +95,21 @@
         @keyframes skeleton-loading {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
+        }
+        @media (max-width: 639px) {
+            header .container {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            header .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 0 !important;
+            }
+            nav[aria-label="Main navigation"] {
+                margin-top: -12px !important;
+            }
+            .flex.flex-row.items-center.justify-center.sm\:block {
+                margin-bottom: -8px !important;
+            }
         }
     </style>
 
