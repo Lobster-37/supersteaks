@@ -130,6 +130,11 @@
         .logged-out #auth-buttons { display: block !important; }
         .logged-out #user-info { display: none !important; }
         .logged-out #auth-skeleton { display: none !important; }
+        @media (max-width: 639px) {
+            #auth-skeleton {
+                display: none !important;
+            }
+        }
         
         .logged-in #auth-buttons { display: none !important; }
         .logged-in #user-info { display: block !important; }
