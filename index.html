@@ -14,15 +14,25 @@
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script>
-                // Remove login/signup and skeleton loading on mobile only
-                document.addEventListener('DOMContentLoaded', function() {
-                    if (window.innerWidth < 640) {
-                        var authButtons = document.getElementById('auth-buttons');
-                        if (authButtons) authButtons.remove();
-                        var authSkeleton = document.getElementById('auth-skeleton');
-                        if (authSkeleton) authSkeleton.remove();
-                    }
+        // Remove login/signup and skeleton loading on mobile only
+        function removeMobileAuthElements() {
+            if (window.innerWidth < 640) {
+                var authButtons = document.getElementById('auth-buttons');
+                if (authButtons) authButtons.remove();
+                var authSkeleton = document.getElementById('auth-skeleton');
+                if (authSkeleton) authSkeleton.remove();
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            removeMobileAuthElements();
+            // MutationObserver to catch dynamic inserts
+            if (window.innerWidth < 640) {
+                var observer = new MutationObserver(function(mutations) {
+                    removeMobileAuthElements();
                 });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+        });
         // Verify CSS loaded
         console.log('TailwindCSS CSS loading...');
         setTimeout(() => {
