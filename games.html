@@ -63,6 +63,21 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
+            @media (max-width: 639px) {
+              header .container {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+              }
+              header .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 0 !important;
+              }
+              nav[aria-label="Main navigation"] {
+                margin-top: -12px !important;
+              }
+              .flex.flex-row.items-center.justify-center.sm\:block {
+                margin-bottom: -8px !important;
+              }
+            }
         html { 
             overflow-y: scroll;
             height: 100%;
