@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+        <style>
+            /* Hide auth skeleton and buttons immediately on mobile to prevent flash */
+            @media (max-width: 639px) {
+                #auth-buttons, #auth-skeleton {
+                    display: none !important;
+                }
+            }
+        </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperSteaks - Free Random Team Assignment Draws</title>
