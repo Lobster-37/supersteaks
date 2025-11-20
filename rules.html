@@ -122,37 +122,47 @@
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
                 <div class="text-center sm:text-left">
-                    <a href="index.html" class="hover:opacity-80 transition-opacity">
-                        <div class="flex items-center justify-center">
-                            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
+                        <div class="flex flex-row items-center justify-center sm:block">
+                            <a href="index.html" class="hover:opacity-80 transition-opacity relative">
+                                <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="h-12 w-auto mr-2 sm:hidden" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
+                            </a>
+                            <a href="index.html" class="hover:opacity-80 transition-opacity relative">
+                                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
+                            </a>
                         </div>
-                    </a>
                 </div>
                 <div class="flex flex-col items-end space-y-3">
                     <!-- User Account Section -->
                     <div id="user-account-section">
-                        <!-- Skeleton loading (prevents flash) -->
-                        <div id="auth-skeleton" class="text-right">
-                            <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
-                            <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                <div class="skeleton h-6 rounded" style="width: 48px; padding: 4px 12px;"></div>
-                                <div class="skeleton h-6 rounded" style="width: 64px; padding: 4px 8px;"></div>
+                            <!-- Desktop-only skeleton and auth buttons -->
+                            <div class="hidden sm:block">
+                                <div id="auth-skeleton" class="text-right">
+                                    <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
+                                    <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                        <div class="skeleton h-6 rounded" style="width: 48px; padding: 4px 12px;"></div>
+                                        <div class="skeleton h-6 rounded" style="width: 64px; padding: 4px 8px;"></div>
+                                    </div>
+                                </div>
+                                <div id="auth-buttons">
+                                    <p class="text-yellow-400 font-semibold text-sm mb-1">Join SuperSteaks Today!</p>
+                                    <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                        <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
+                                            Login
+                                        </button>
+                                        <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">
+                                            Sign Up
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <!-- Login/Register buttons (when logged out) -->
-                        <div id="auth-buttons" class="text-right">
-                            <p class="text-yellow-400 font-semibold text-sm mb-1">Join SuperSteaks Today!</p>
-                            <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
-                                    Login
-                                </button>
-                                <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">
-                                    Sign Up
-                                </button>
+                            <!-- Mobile profile icon -->
+                            <div class="absolute top-4 right-4 sm:hidden">
+                                <a href="#" aria-label="Profile">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.001 9.001 0 0112 15c2.21 0 4.21.805 5.879 2.146M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </a>
                             </div>
-                        </div>
-                        
                         <!-- User info (when logged in) -->
                         <div id="user-info" class="text-right">
                             <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">Lobster37</span>!</p>
@@ -178,25 +188,25 @@
                     </div>
                 </div>
             </div>
-            <nav aria-label="Main navigation" class="mt-4">
-                        <ul class="flex flex-wrap justify-center space-x-3 sm:space-x-6">
-                            <li>
-                                <a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
-                            </li>
-                            <li>
-                                <a href="contests.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Our Draws</a>
-                            </li>
-                            <li>
-                                <a href="games.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base">Enter Now</a>
-                            </li>
-                            <li>
-                                <a href="rules.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600 text-sm sm:text-base">How It Works</a>
-                            </li>
-                            <li>
-                                <a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a>
-                            </li>
-                        </ul>
-                    </nav>
+                <nav aria-label="Main navigation" class="mt-4">
+                            <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
+                                <li>
+                                    <a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
+                                </li>
+                                <li>
+                                    <a href="contests.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Our Draws</a>
+                                </li>
+                                <li>
+                                    <a href="games.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base">Enter Now</a>
+                                </li>
+                                <li>
+                                    <a href="rules.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600 text-sm sm:text-base">How It Works</a>
+                                </li>
+                                <li>
+                                    <a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a>
+                                </li>
+                            </ul>
+                        </nav>
         </div>
     </header>
 
