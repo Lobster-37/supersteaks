@@ -20,6 +20,15 @@
         }
     </style>
     <style>
+        /* When modal is open, block nav and Enter Now from interaction */
+        body.modal-open nav[aria-label="Main navigation"],
+        body.modal-open a[href="games.html"] {
+            pointer-events: none !important;
+            user-select: none !important;
+            opacity: 0.7;
+        }
+    </style>
+    <style>
         /* Force Enter Now button and its parent to lowest stacking context */
         a[href="games.html"],
         a[href="games.html"].nav-link,
@@ -80,6 +89,45 @@
             }
             document.body.removeChild(testEl);
         }, 1000);
+    </script>
+    <script>
+    // MutationObserver to enforce modal overlay and stacking context
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('auth-modal');
+        const nav = document.querySelector('nav[aria-label="Main navigation"]');
+        const enterNow = document.querySelector('a[href="games.html"]');
+        function enforceModalOverlay() {
+            if (modal) {
+                modal.classList.add('modal-overlay');
+                modal.style.zIndex = '2147483647';
+                modal.style.position = 'fixed';
+            }
+            if (nav) {
+                nav.style.zIndex = '0';
+                nav.style.position = 'relative';
+            }
+            if (enterNow) {
+                enterNow.style.zIndex = '0';
+                enterNow.style.position = 'relative';
+            }
+        }
+        enforceModalOverlay();
+        const observer = new MutationObserver(enforceModalOverlay);
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+
+        // Add/remove modal-open class to body when modal is shown/hidden
+        function updateModalOpenClass() {
+            if (modal && !modal.classList.contains('hidden')) {
+                document.body.classList.add('modal-open');
+            } else {
+                document.body.classList.remove('modal-open');
+            }
+        }
+        // Listen for modal open/close
+        const modalObserver = new MutationObserver(updateModalOpenClass);
+        modalObserver.observe(modal, { attributes: true, attributeFilter: ['class'] });
+        updateModalOpenClass();
+    });
     </script>
     
     <!-- Firebase CDN Scripts - Updated to stable version -->
