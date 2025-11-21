@@ -1,11 +1,44 @@
-        <style>
-        /* Last resort: hide nav and Enter Now button when modal is open */
-        body.modal-open nav[aria-label="Main navigation"],
-        body.modal-open a[href="games.html"] {
-            display: none !important;
-        }
+<style>
+            body { font-family: sans-serif; background: #f0f0f0; }
+            nav { background: #4f46e5; color: #fff; padding: 16px; position: relative; z-index: 1; }
+            .nav-link { background: #fff; color: #4f46e5; padding: 8px 16px; border-radius: 6px; margin: 0 8px; display: inline-block; }
+            #enter-now.nav-link, a[href="games.html"] { background: #ffe066; color: #222; font-weight: bold; border: 2px solid #ffb300; padding: 10px 24px; border-radius: 999px; margin-left: 16px; position: relative; z-index: 1; text-decoration: none; cursor: pointer; }
+            #auth-modal {
+                display: none !important;
+                position: fixed !important;
+                top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+                width: 100vw !important; height: 100vh !important;
+                background: rgba(0,0,0,0.7) !important;
+                z-index: 2147483647 !important;
+                justify-content: center !important;
+                align-items: center !important;
+                pointer-events: auto !important;
+            }
+            #auth-modal:not(.active) { display: none !important; }
+            #auth-modal.active { display: flex !important; }
+            @media (max-width: 640px) {
+                #auth-modal {
+                    z-index: 2147483647 !important;
+                }
+                #enter-now {
+                    z-index: 1 !important;
+                }
+            }
+            #auth-modal .modal-content {
+                background: #fff;
+                padding: 32px;
+                border-radius: 16px;
+                max-width: 90vw;
+                max-height: 90vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            #modal-banner { position: fixed; top: 0; left: 0; width: 100vw; background: #ffeb3b; color: #222; font-weight: bold; font-size: 20px; text-align: center; padding: 16px 0 12px 0; z-index: 10000; display: none; }
+            #auth-modal.active ~ #modal-banner { display: block; }
         </style>
-    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperSteaks - Free Random Team Assignment Draws</title>
@@ -57,7 +90,7 @@
         const t0 = performance.now();
         const modal = document.getElementById('auth-modal');
         const nav = document.querySelector('nav[aria-label="Main navigation"]');
-        const enterNow = document.querySelector('a[href="games.html"]');
+        const enterNow = document.getElementById('enter-now');
         let overlayInterval = null;
         let fullOverlay = null;
         function enforceModalOverlay(forceMove) {
@@ -238,104 +271,24 @@
         <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-50 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
     </a>
 
-    <!-- Header & Navigation -->
-    <header class="bg-indigo-800 text-white shadow-xl" style="z-index: 10; position: relative;">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-                <div class="text-center sm:text-left">
-                    <div class="flex flex-row items-center justify-center sm:block">
-                        <a href="index.html" class="hover:opacity-80 transition-opacity relative">
-                            <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="h-12 w-auto mr-2 sm:hidden" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
-                        </a>
-                        <a href="index.html" class="hover:opacity-80 transition-opacity relative">
-                            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
-                        </a>
-                    </div>
-                </div>
-                <div class="flex flex-col items-end space-y-3">
-                    <!-- User Account Section -->
-                    <div id="user-account-section">
-                        <!-- Skeleton loading and login/register buttons: only render for desktop -->
-                        <div class="hidden sm:block">
-                            <!-- Skeleton loading -->
-                            <div id="auth-skeleton" class="text-right">
-                                <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
-                                <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                    <div class="skeleton h-6 rounded" style="width: 48px; padding: 4px 12px;"></div>
-                                    <div class="skeleton h-6 rounded" style="width: 64px; padding: 4px 8px;"></div>
-                                </div>
-                            </div>
-                            <!-- Login/Register buttons -->
-                            <div id="auth-buttons">
-                                <p class="text-yellow-400 font-semibold text-sm mb-1">Join SuperSteaks Today!</p>
-                                <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                    <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
-                                        Login
-                                    </button>
-                                    <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">
-                                        Sign Up
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Mobile profile icon -->
-                        <div class="absolute top-4 right-4 sm:hidden">
-                            <button id="mobile-profile-btn" aria-label="Profile" class="focus:outline-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.001 9.001 0 0112 15c2.21 0 4.21.805 5.879 2.146M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </button>
-                            <div id="mobile-profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-2xl z-[9999]">
-                                <a href="#" id="mobile-login-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">Log In</a>
-                                <a href="#" id="mobile-register-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg">Register</a>
-                            </div>
-                        </div>
-                        <!-- User info (when logged in) -->
-                        <div id="user-info" class="text-right">
-                            <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">Lobster37</span>!</p>
-                            <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                <div class="relative">
-                                    <button id="profile-dropdown-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
-                                        My Profile ▼
-                                    </button>
-                                    <div id="profile-dropdown" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                                        <a href="teams.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">
-                                            📊 Team Directory
-                                        </a>
-                                        <button id="view-profile-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            👤 View My Profile
-                                        </button>
-                                        <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">
-                                            🚪 Logout
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <nav aria-label="Main navigation" class="mt-4">
-                <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
-                    <li>
-                        <a href="index.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600 text-sm sm:text-base">Home</a>
-                    </li>
-                    <li>
-                        <a href="contests.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Our Draws</a>
-                    </li>
-                    <li>
-                        <a href="games.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base">Enter Now</a>
-                    </li>
-                    <li>
-                        <a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a>
-                    </li>
-                    <li>
-                        <a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+    <nav>
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="contests.html" class="nav-link">Our Draws</a>
+      <button id="enter-now" type="button" class="nav-link">Enter Now</button>
+      <a href="rules.html" class="nav-link">How It Works</a>
+      <a href="contact.html" class="nav-link">Contact</a>
+    </nav>
+    <main style="padding: 40px;">
+      <button id="open-modal" style="padding: 12px 24px; font-size: 18px;">Open Modal</button>
+    </main>
+    <div id="auth-modal">
+      <div class="modal-content">
+        <h2>Login Modal</h2>
+        <p>This modal should cover everything, including the nav and Enter Now button.</p>
+        <button id="close-modal">Close</button>
+      </div>
+    </div>
+    <div id="modal-banner">MODAL OVERLAY ACTIVE</div>
 
     <!-- Main Content Area -->
     <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
@@ -449,155 +402,7 @@
             
             setupEventListeners();
         }
-        
-        function checkCurrentAuthState() {
-            // Don't check current user immediately - wait for onAuthStateChanged
-            // This prevents premature showing of logged-out state
-            
-            // Set up auth state listener with error protection
-            try {
-                firebase.auth().onAuthStateChanged((user) => {
-                    try {
-                        if (user) {
-                            console.log('Auth state determined - User logged in:', user.email);
-                            showLoggedInState(user);
-                        } else {
-                            console.log('Auth state determined - User logged out');
-                            showLoggedOutState();
-                        }
-                    } catch (error) {
-                        console.error('Error in auth state change handler:', error);
-                        // Fallback to logged-out state on error
-                        showLoggedOutState();
-                    }
-                }, (error) => {
-                    console.error('Firebase auth state listener error:', error);
-                    // Fallback to logged-out state on auth error
-                    showLoggedOutState();
-                });
-            } catch (error) {
-                console.error('Error setting up auth state listener:', error);
-                // Fallback to logged-out state if listener setup fails
-                showLoggedOutState();
-            }
-        }
-        
-        function showLoggedInState(user) {
-            console.log('Setting logged-in state for user:', user.email);
-            
-            // Add small delay to ensure smooth transition
-            setTimeout(() => {
-                // Mark auth as ready and update classes
-                document.body.classList.add('auth-ready', 'logged-in');
-                document.body.classList.remove('logged-out');
-                
-                const usernameDisplay = document.getElementById('username-display');
-                if (usernameDisplay && user) {
-                    // Extract username from email or use display name
-                    let username = user.displayName;
-                    if (!username && user.email) {
-                        username = user.email.split('@')[0];
-                    }
-                    if (username) {
-                        usernameDisplay.textContent = username;
-                        console.log('Username display updated to:', username);
-                    }
-                }
-            }, 100);
-        }
-        
-        function showLoggedOutState() {
-            console.log('Setting logged-out state');
-            
-            // Add small delay to ensure smooth transition
-            setTimeout(() => {
-                // Mark auth as ready and update classes
-                document.body.classList.add('auth-ready', 'logged-out');
-                document.body.classList.remove('logged-in');
-            }, 100);
-        }
-        
-        function setupEventListeners() {
-            // Login button
-            const loginBtn = document.getElementById('login-btn');
-            if (loginBtn) {
-                loginBtn.addEventListener('click', () => {
-                    document.getElementById('auth-modal').classList.remove('hidden');
-                    document.getElementById('login-form').classList.remove('hidden');
-                    document.getElementById('register-form').classList.add('hidden');
-                });
-            }
-            
-            // Register button
-            const registerBtn = document.getElementById('register-btn');
-            if (registerBtn) {
-                registerBtn.addEventListener('click', () => {
-                    document.getElementById('auth-modal').classList.remove('hidden');
-                    document.getElementById('register-form').classList.remove('hidden');
-                    document.getElementById('login-form').classList.add('hidden');
-                });
-            }
-            
-            // Profile dropdown
-            const profileBtn = document.getElementById('profile-dropdown-btn');
-            const profileDropdown = document.getElementById('profile-dropdown');
-            const logoutBtn = document.getElementById('logout-btn-dropdown');
-            const viewProfileBtn = document.getElementById('view-profile-btn');
-
-            if (profileBtn && profileDropdown) {
-                profileBtn.addEventListener('click', function(e) {
-                    if (e && e.stopPropagation) {
-                        e.stopPropagation();
-                    }
-                    profileDropdown.classList.toggle('hidden');
-                });
-
-                document.addEventListener('click', function(e) {
-                    if (profileDropdown && !profileDropdown.contains(e?.target)) {
-                        profileDropdown.classList.add('hidden');
-                    }
-                });
-            }
-
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    console.log('Attempting logout...');
-                    if (window.supersteaks) {
-                        window.supersteaks.logout()
-                            .then(result => {
-                                if (result.success) {
-                                    console.log('Logout successful');
-                                    // Don't manually update UI - let the auth state listener handle it
-                                } else {
-                                    console.error('Logout failed:', result.error);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Logout failed:', error);
-                            });
-                    } else {
-                        // Fallback if supersteaks not available
-                        firebase.auth().signOut().then(() => {
-                            console.log('Direct Firebase logout successful');
-                        }).catch(error => {
-                            console.error('Firebase logout failed:', error);
-                        });
-                    }
-                    if (profileDropdown) profileDropdown.classList.add('hidden');
-                });
-            }
-            
-            if (viewProfileBtn) {
-                viewProfileBtn.addEventListener('click', function() {
-                    // Open profile modal or redirect
-                    alert('Profile viewing feature - would show user profile and stats');
-                    profileDropdown.classList.add('hidden');
-                });
-            }
-            
-            // Modal controls
-            setupModalControls();
-        }
+// Removed stray closing braces from previous patch attempts
         
         function setupModalControls() {
             // Close modal buttons
@@ -934,4 +739,35 @@
         </button>
     </div>
 </div>
+<script>
+// Minimal modal overlay logic from modal-overlay-test.html
+document.addEventListener('DOMContentLoaded', function() {
+    const openBtn = document.getElementById('open-modal');
+    const closeBtn = document.getElementById('close-modal');
+    const modal = document.getElementById('auth-modal');
+    const enterNowBtn = document.getElementById('enter-now');
+    openBtn.onclick = () => {
+        modal.classList.add('active');
+        document.body.classList.add('modal-open');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '9999';
+    };
+    closeBtn.onclick = () => {
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        modal.style.display = 'none';
+    };
+    enterNowBtn.onclick = (e) => {
+        if (!modal.classList.contains('active')) {
+            alert('Enter Now button clicked!');
+        } else {
+            e.preventDefault();
+        }
+    };
+    // Always keep modal at end of body for stacking
+    if (modal && document.body.lastElementChild !== modal) {
+        document.body.appendChild(modal);
+    }
+});
+</script>
 </html>
