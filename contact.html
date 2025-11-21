@@ -91,14 +91,14 @@
         }, 100);
     </script>
     <script>
-    // AGGRESSIVE MODAL OVERLAY ENFORCEMENT & DEBUGGING
+    // AGGRESSIVE MODAL OVERLAY ENFORCEMENT WITH FULLSCREEN OVERLAY
     document.addEventListener('DOMContentLoaded', function() {
         const t0 = performance.now();
         const modal = document.getElementById('auth-modal');
         const nav = document.querySelector('nav[aria-label="Main navigation"]');
         const enterNow = document.querySelector('a[href="games.html"]');
         let overlayInterval = null;
-        let debugOverlay = null;
+        let fullOverlay = null;
         function enforceModalOverlay(forceMove) {
             if (!modal || !nav || !enterNow) return;
             // Move modal to end of body if not already last
@@ -113,18 +113,20 @@
             nav.style.position = 'relative';
             enterNow.style.zIndex = '0';
             enterNow.style.position = 'relative';
-            // Visual debug overlay
-            if (!debugOverlay) {
-                debugOverlay = document.createElement('div');
-                debugOverlay.style.position = 'fixed';
-                debugOverlay.style.top = '0';
-                debugOverlay.style.left = '0';
-                debugOverlay.style.width = '100vw';
-                debugOverlay.style.height = '100vh';
-                debugOverlay.style.pointerEvents = 'none';
-                debugOverlay.style.zIndex = '2147483646';
-                debugOverlay.innerHTML = '<div style="position:absolute;top:10px;left:10px;background:rgba(255,255,0,0.8);color:#222;padding:4px 10px;border-radius:6px;font-size:14px;font-weight:bold;z-index:2147483647;">[DEBUG] Modal Overlay Active</div>';
-                document.body.appendChild(debugOverlay);
+            // Fullscreen overlay
+            if (!fullOverlay) {
+                fullOverlay = document.createElement('div');
+                fullOverlay.id = 'modal-fullscreen-overlay';
+                fullOverlay.style.position = 'fixed';
+                fullOverlay.style.top = '0';
+                fullOverlay.style.left = '0';
+                fullOverlay.style.width = '100vw';
+                fullOverlay.style.height = '100vh';
+                fullOverlay.style.background = 'rgba(0,0,0,0.01)';
+                fullOverlay.style.zIndex = '2147483646';
+                fullOverlay.style.pointerEvents = 'auto';
+                fullOverlay.style.display = 'none';
+                document.body.appendChild(fullOverlay);
             }
         }
         // Aggressive interval: every 50ms, enforce overlay and move modal
@@ -133,6 +135,7 @@
             overlayInterval = setInterval(() => {
                 enforceModalOverlay(true);
             }, 50);
+            if (fullOverlay) fullOverlay.style.display = 'block';
             console.log('[Overlay] Aggressive overlay enforcement started');
         }
         function stopAggressiveOverlay() {
@@ -141,10 +144,7 @@
                 overlayInterval = null;
                 console.log('[Overlay] Aggressive overlay enforcement stopped');
             }
-            if (debugOverlay && debugOverlay.parentNode) {
-                debugOverlay.parentNode.removeChild(debugOverlay);
-                debugOverlay = null;
-            }
+            if (fullOverlay) fullOverlay.style.display = 'none';
         }
         // Watch for modal open/close
         function updateModalOpenClass() {
@@ -156,21 +156,12 @@
                 stopAggressiveOverlay();
             }
         }
-        // Log DOM changes that might interfere
-        const domObserver = new MutationObserver((mutations) => {
-            for (const m of mutations) {
-                if (m.type === 'childList' || m.type === 'attributes') {
-                    console.log('[Overlay][DOM Change]', m);
-                }
-            }
-        });
-        domObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
         // Listen for modal open/close
         const modalObserver = new MutationObserver(updateModalOpenClass);
         modalObserver.observe(modal, { attributes: true, attributeFilter: ['class'] });
         updateModalOpenClass();
         const t1 = performance.now();
-        console.log('DOMContentLoaded + aggressive overlay setup took', (t1-t0).toFixed(2), 'ms');
+        console.log('DOMContentLoaded + fullscreen overlay setup took', (t1-t0).toFixed(2), 'ms');
     });
     </script>
     
