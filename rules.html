@@ -186,11 +186,15 @@
                         </div>
                         <!-- Mobile profile icon -->
                         <div class="absolute top-4 right-4 sm:hidden">
-                            <a href="#" aria-label="Profile">
+                            <button id="mobile-profile-btn" aria-label="Profile" class="focus:outline-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.001 9.001 0 0112 15c2.21 0 4.21.805 5.879 2.146M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                            </a>
+                            </button>
+                            <div id="mobile-profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                <a href="#" id="mobile-login-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">Log In</a>
+                                <a href="#" id="mobile-register-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg">Register</a>
+                            </div>
                         </div>
                         <!-- User info (when logged in) -->
                         <div id="user-info" class="text-right">
@@ -1074,6 +1078,23 @@
                     messageDiv.classList.remove('hidden');
                 });
         }
+    // Mobile profile dropdown logic
+    document.addEventListener('DOMContentLoaded', function() {
+        var mobileProfileBtn = document.getElementById('mobile-profile-btn');
+        var mobileProfileDropdown = document.getElementById('mobile-profile-dropdown');
+        if (mobileProfileBtn && mobileProfileDropdown) {
+            mobileProfileBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                mobileProfileDropdown.classList.toggle('hidden');
+            });
+            // Optional: Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!mobileProfileBtn.contains(e.target) && !mobileProfileDropdown.contains(e.target)) {
+                    mobileProfileDropdown.classList.add('hidden');
+                }
+            });
+        }
+    });
     </script>
     
 
