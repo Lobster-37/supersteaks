@@ -842,43 +842,7 @@
         }
     });
     </script>
-            }
-        }
-        if (authModal) {
-            var observer = new MutationObserver(toggleNavVisibility);
-            observer.observe(authModal, { attributes: true, attributeFilter: ['class'] });
-            toggleNavVisibility();
-        }
-        var mobileProfileBtn = document.getElementById('mobile-profile-btn');
-        var mobileProfileDropdown = document.getElementById('mobile-profile-dropdown');
-        if (mobileProfileBtn && mobileProfileDropdown) {
-            mobileProfileBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                mobileProfileDropdown.classList.toggle('hidden');
-            });
-            // Optional: Hide dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!mobileProfileBtn.contains(e.target) && !mobileProfileDropdown.contains(e.target)) {
-                    mobileProfileDropdown.classList.add('hidden');
-                }
-            });
-        }
-    });
-    </script>
-    
-
-    
-    <!-- Load user accounts system AFTER DOM is available -->
-
-</body>
-
-    <!-- Login/Register Modal (moved to end of body) -->
-
-    <!-- Modals moved to end of body for stacking context fix -->
-    <!-- Modals must be last in body for proper overlay -->
-
-</body>
-<!-- Modals must be last in body for proper overlay -->
+    // ...existing code...
 <div id="auth-modal" class="modal-overlay hidden bg-black bg-opacity-70 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full mx-4 relative max-h-screen overflow-y-auto">
         <div id="login-form">
