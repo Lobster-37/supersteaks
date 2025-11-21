@@ -1431,7 +1431,15 @@
         if (mobileProfileBtn && mobileProfileDropdown) {
             mobileProfileBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                mobileProfileDropdown.classList.toggle('hidden');
+                // On mobile, open the login/register modal directly
+                if (window.innerWidth < 640) {
+                    document.getElementById('auth-modal').classList.remove('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                    document.getElementById('register-form').classList.add('hidden');
+                    mobileProfileDropdown.classList.add('hidden');
+                } else {
+                    mobileProfileDropdown.classList.toggle('hidden');
+                }
             });
             // Optional: Hide dropdown when clicking outside
             document.addEventListener('click', function(e) {
