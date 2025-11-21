@@ -8,6 +8,14 @@
                 display: none !important;
             }
         }
+        /* Force nav and all children to low z-index so modal always overlays */
+        nav[aria-label="Main navigation"],
+        nav[aria-label="Main navigation"] *,
+        header,
+        header * {
+            z-index: 1 !important;
+            position: relative !important;
+        }
     </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
