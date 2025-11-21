@@ -9,12 +9,9 @@
             }
         }
         /* Force nav and all children to low z-index so modal always overlays */
-        nav[aria-label="Main navigation"],
-        nav[aria-label="Main navigation"] *,
-        header,
-        header * {
+        nav[aria-label="Main navigation"] {
             z-index: 1 !important;
-            position: relative !important;
+            position: relative;
         }
     </style>
     <meta charset="UTF-8">
