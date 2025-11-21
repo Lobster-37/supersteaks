@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+in th<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modal Overlay Minimal Test</title>
+  <title>SuperSteaks Contact - Minimal Modal Overlay Debug</title>
   <style>
     body { font-family: sans-serif; background: #f0f0f0; }
     nav { background: #4f46e5; color: #fff; padding: 16px; position: relative; z-index: 1; }
@@ -60,6 +60,7 @@
     const openBtn = document.getElementById('open-modal');
     const closeBtn = document.getElementById('close-modal');
     const modal = document.getElementById('auth-modal');
+    const enterNowBtn = document.getElementById('enter-now');
     openBtn.onclick = () => {
       modal.classList.add('active');
       document.body.classList.add('modal-open');
@@ -67,6 +68,11 @@
     closeBtn.onclick = () => {
       modal.classList.remove('active');
       document.body.classList.remove('modal-open');
+    };
+    enterNowBtn.onclick = () => {
+      if (!modal.classList.contains('active')) {
+        alert('Enter Now button clicked!');
+      }
     };
   </script>
 </body>
