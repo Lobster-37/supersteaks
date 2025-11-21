@@ -743,40 +743,7 @@
                 });
         }
         // Mobile profile dropdown logic and modal triggers
-        document.addEventListener('DOMContentLoaded', function() {
-            var mobileProfileBtn = document.getElementById('mobile-profile-btn');
-            var mobileProfileDropdown = document.getElementById('mobile-profile-dropdown');
-            var mobileLoginBtn = document.getElementById('mobile-login-btn');
-            var mobileRegisterBtn = document.getElementById('mobile-register-btn');
-            if (mobileProfileBtn && mobileProfileDropdown) {
-                mobileProfileBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    mobileProfileDropdown.classList.toggle('hidden');
-                });
-                // Optional: Hide dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!mobileProfileBtn.contains(e.target) && !mobileProfileDropdown.contains(e.target)) {
-                        mobileProfileDropdown.classList.add('hidden');
-                    }
-                });
-            }
-            if (mobileLoginBtn) {
-                mobileLoginBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    document.getElementById('auth-modal').classList.remove('hidden');
-                    document.getElementById('login-form').classList.remove('hidden');
-                    document.getElementById('register-form').classList.add('hidden');
-                });
-            }
-            if (mobileRegisterBtn) {
-                mobileRegisterBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    document.getElementById('auth-modal').classList.remove('hidden');
-                    document.getElementById('register-form').classList.remove('hidden');
-                    document.getElementById('login-form').classList.add('hidden');
-                });
-            }
-        });
+        // (Removed duplicate/old handler block. See below for correct logic.)
     </script>
 </body>
 </html>
