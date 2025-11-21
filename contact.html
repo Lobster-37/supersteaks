@@ -119,11 +119,20 @@
         observer.observe(document.body, { childList: true, subtree: true, attributes: false });
 
         // Add/remove modal-open class to body when modal is shown/hidden
+        let overlayInterval = null;
         function updateModalOpenClass() {
             if (modal && !modal.classList.contains('hidden')) {
                 document.body.classList.add('modal-open');
+                // Start interval to enforce overlay every 100ms while modal is open
+                if (!overlayInterval) {
+                    overlayInterval = setInterval(enforceModalOverlay, 100);
+                }
             } else {
                 document.body.classList.remove('modal-open');
+                if (overlayInterval) {
+                    clearInterval(overlayInterval);
+                    overlayInterval = null;
+                }
             }
         }
         // Listen for modal open/close
