@@ -200,7 +200,7 @@
                     </div>
                 </div>
             </div>
-                <nav aria-label="Main navigation" class="mt-4">
+                <nav aria-label="Main navigation" id="main-navigation" class="mt-4">
                             <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
                                 <li>
                                     <a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
@@ -955,6 +955,22 @@
         }
     // Mobile profile dropdown logic
     document.addEventListener('DOMContentLoaded', function() {
+        var authModal = document.getElementById('auth-modal');
+        var mainNav = document.getElementById('main-navigation');
+        function toggleNavVisibility() {
+            if (authModal && mainNav) {
+                if (!authModal.classList.contains('hidden')) {
+                    mainNav.style.display = 'none';
+                } else {
+                    mainNav.style.display = '';
+                }
+            }
+        }
+        if (authModal) {
+            var observer = new MutationObserver(toggleNavVisibility);
+            observer.observe(authModal, { attributes: true, attributeFilter: ['class'] });
+            toggleNavVisibility();
+        }
         var mobileProfileBtn = document.getElementById('mobile-profile-btn');
         var mobileProfileDropdown = document.getElementById('mobile-profile-dropdown');
         if (mobileProfileBtn && mobileProfileDropdown) {
