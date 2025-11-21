@@ -323,16 +323,17 @@
     <div id="modal-banner">MODAL OVERLAY ACTIVE</div>
 
     <!-- Main Content Area -->
+
     <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
-        <section class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-yellow-400 max-w-3xl mx-auto">
-            <h2 class="text-3xl sm:text-5xl font-black text-indigo-900 mb-4 leading-tight">
+        <section class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+            <h2 class="text-3xl sm:text-5xl md:text-6xl font-black text-indigo-900 mb-4 sm:mb-6 leading-tight">
                 Get In <span class="text-yellow-500">Touch</span>
             </h2>
-                        <p class="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
+            <p class="text-lg sm:text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto mb-6 sm:mb-8">
                 Got questions about our free random team assignment draws? Need help with your account? We're here to help!
             </p>
-            <div class="bg-indigo-50 p-4 sm:p-6 md:p-10 rounded-xl shadow-lg text-left">
-                <form id="contact-form">
+            <div class="mt-6 sm:mt-8">
+                <form id="contact-form" class="bg-indigo-50 p-4 sm:p-6 md:p-10 rounded-xl shadow-lg text-left max-w-2xl mx-auto">
                     <div class="mb-4">
                         <label for="name" class="block text-indigo-700 font-bold mb-2 text-sm sm:text-base">Your Name</label>
                         <input type="text" id="name" name="name" required
@@ -355,6 +356,20 @@
                     </button>
                     <p id="form-status" aria-live="polite" class="mt-4 text-sm font-medium text-center text-indigo-700"></p>
                 </form>
+            </div>
+            <div class="mt-8 sm:mt-12 grid sm:grid-cols-3 gap-4 sm:gap-6 text-left">
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🎲 Random Assignment</h3>
+                    <p class="text-sm sm:text-base text-gray-600">We randomly assign you a team from competitions like Champions League, Premier League, and more. No choosing - it's all about luck!</p>
+                </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🏆 Support Your Team</h3>
+                    <p class="text-sm sm:text-base text-gray-600">Once assigned, cheer for your team throughout the competition! If they win, you win prizes too!</p>
+                </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🥇 Free to Join</h3>
+                    <p class="text-sm sm:text-base text-gray-600">All our random team draws are completely free to enter. Just sign up and see which team you get!</p>
+                </div>
             </div>
         </section>
     </main>
