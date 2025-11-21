@@ -19,6 +19,23 @@
             position: relative;
         }
     </style>
+    <style>
+        /* Force Enter Now button and its parent to lowest stacking context */
+        a[href="games.html"],
+        a[href="games.html"].nav-link,
+        a[href="games.html"].nav-link:visited,
+        a[href="games.html"].nav-link:active,
+        a[href="games.html"].nav-link:focus {
+            z-index: 0 !important;
+            position: relative !important;
+        }
+        /* Modal overlay utility class for absolute guarantee */
+        .modal-overlay {
+            z-index: 2147483647 !important;
+            position: fixed !important;
+            inset: 0 !important;
+        }
+    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperSteaks - Free Random Team Assignment Draws</title>
@@ -804,7 +821,7 @@
 
 </body>
 <!-- Modals must be last in body for proper overlay -->
-<div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[99999] p-4" style="z-index:2147483647 !important; position:fixed !important;">
+<div id="auth-modal" class="modal-overlay hidden bg-black bg-opacity-70 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full mx-4 relative max-h-screen overflow-y-auto">
         <div id="login-form">
             <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
@@ -865,7 +882,7 @@
     </div>
 </div>
 
-<div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+<div id="reset-password-modal" class="modal-overlay hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 relative">
         <h2 class="text-2xl font-bold text-indigo-800 mb-6">Reset Password</h2>
         <form id="reset-password-form-element">
