@@ -88,32 +88,35 @@
                 console.error('❌ TailwindCSS CSS failed to load');
             }
             document.body.removeChild(testEl);
-        }, 1000);
+        }, 100);
     </script>
     <script>
     // MutationObserver to enforce modal overlay and stacking context
     document.addEventListener('DOMContentLoaded', function() {
+        const t0 = performance.now();
         const modal = document.getElementById('auth-modal');
         const nav = document.querySelector('nav[aria-label="Main navigation"]');
         const enterNow = document.querySelector('a[href="games.html"]');
+        let lastOverlayState = '';
         function enforceModalOverlay() {
-            if (modal) {
-                modal.classList.add('modal-overlay');
-                modal.style.zIndex = '2147483647';
-                modal.style.position = 'fixed';
-            }
-            if (nav) {
-                nav.style.zIndex = '0';
-                nav.style.position = 'relative';
-            }
-            if (enterNow) {
-                enterNow.style.zIndex = '0';
-                enterNow.style.position = 'relative';
-            }
+            // Only run if modal/nav/enterNow exist
+            if (!modal || !nav || !enterNow) return;
+            // Only update if something changed
+            const state = `${modal.className}|${nav.className}|${enterNow.className}`;
+            if (state === lastOverlayState) return;
+            lastOverlayState = state;
+            modal.classList.add('modal-overlay');
+            modal.style.zIndex = '2147483647';
+            modal.style.position = 'fixed';
+            nav.style.zIndex = '0';
+            nav.style.position = 'relative';
+            enterNow.style.zIndex = '0';
+            enterNow.style.position = 'relative';
         }
         enforceModalOverlay();
+        // Only observe class changes and childList, not all attributes
         const observer = new MutationObserver(enforceModalOverlay);
-        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+        observer.observe(document.body, { childList: true, subtree: true, attributes: false });
 
         // Add/remove modal-open class to body when modal is shown/hidden
         function updateModalOpenClass() {
@@ -127,6 +130,8 @@
         const modalObserver = new MutationObserver(updateModalOpenClass);
         modalObserver.observe(modal, { attributes: true, attributeFilter: ['class'] });
         updateModalOpenClass();
+        const t1 = performance.now();
+        console.log('DOMContentLoaded + overlay setup took', (t1-t0).toFixed(2), 'ms');
     });
     </script>
     
