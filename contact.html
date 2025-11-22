@@ -1,47 +1,26 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <style>
-            /* No longer hide auth skeleton and buttons on mobile */
-        </style>
+    <style>
+        /* No longer hide auth skeleton and buttons on mobile */
+    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperSteaks - Free Random Team Assignment Draws</title>
-    <meta name="description" content="Join SuperSteaks for free random team assignment draws. Get assigned teams from major sports competitions and win prizes if your team wins!">
+    <title>Contact - SuperSteaks</title>
+    <meta name="description" content="Contact SuperSteaks for questions about our free random team assignment draws.">
     <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
-    
     <!-- Cache Control -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <script>
-        // No longer remove login/signup and skeleton loading on mobile
-        // Verify CSS loaded
-        console.log('TailwindCSS CSS loading...');
-        setTimeout(() => {
-            const testEl = document.createElement('div');
-            testEl.className = 'bg-red-500';
-            document.body.appendChild(testEl);
-            const styles = getComputedStyle(testEl);
-            if (styles.backgroundColor === 'rgb(239, 68, 68)' || styles.backgroundColor.includes('239')) {
-                console.log('✅ TailwindCSS CSS loaded successfully');
-            } else {
-                console.error('❌ TailwindCSS CSS failed to load');
-            }
-            document.body.removeChild(testEl);
-        }, 1000);
-    </script>
-    
     <!-- Firebase CDN Scripts - Updated to stable version -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
-    
     <!-- SuperSteaks Global System -->
     <script src="js/supersteaks-global.js?v=20241118001"></script>
-    
     <!-- Firebase Configuration -->
     <script>
         const firebaseConfig = {
@@ -52,137 +31,44 @@
             messagingSenderId: "325643072121",
             appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
         };
-        
-        // Initialize Firebase immediately
         try {
             firebase.initializeApp(firebaseConfig);
-            console.log('Firebase initialized successfully in head');
-            
-            // Set a global flag that Firebase is ready
             window.firebaseReady = true;
         } catch (error) {
             console.error('Firebase initialization failed:', error);
         }
     </script>
-    
-    <script>
-        // Logo drag functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const logo = document.getElementById('draggable-logo');
-            if (!logo) return;
-            
-            let isDragging = false;
-            let startX, startY, initialLeft, initialTop;
-            
-            logo.addEventListener('mousedown', function(e) {
-                isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                initialLeft = parseInt(logo.style.left || '0', 10);
-                initialTop = parseInt(logo.style.top || '0', 10);
-                e.preventDefault();
-                e.stopPropagation();
-                logo.style.zIndex = '9999';
-            });
-            
-            document.addEventListener('mousemove', function(e) {
-                if (!isDragging) return;
-                e.preventDefault();
-                
-                const deltaX = e.clientX - startX;
-                const deltaY = e.clientY - startY;
-                
-                const newLeft = initialLeft + deltaX;
-                const newTop = initialTop + deltaY;
-                
-                logo.style.left = newLeft + 'px';
-                logo.style.top = newTop + 'px';
-            });
-            
-            document.addEventListener('mouseup', function() {
-                if (isDragging) {
-                    isDragging = false;
-                    logo.style.zIndex = '50';
-                }
-            });
-            
-            // Prevent dragging on mobile
-            logo.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-            });
-        });
-    </script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-                /* No longer hide auth-buttons or auth-skeleton on mobile */
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
         @media (max-width: 639px) {
-            header .container {
-                padding-top: 0 !important;
-                padding-bottom: 0 !important;
-            }
-            header .space-y-4 > :not([hidden]) ~ :not([hidden]) {
-                margin-top: 0 !important;
-            }
-            nav[aria-label="Main navigation"] {
-                margin-top: -12px !important;
-            }
-            .flex.flex-row.items-center.justify-center.sm\:block {
-                margin-bottom: -8px !important;
-            }
+            header .container { padding-top: 0 !important; padding-bottom: 0 !important; }
+            header .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
+            nav[aria-label="Main navigation"] { margin-top: -12px !important; }
+            .flex.flex-row.items-center.justify-center.sm\:block { margin-bottom: -8px !important; }
         }
         .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
-        
-        /* Authentication state management with skeleton loading */
         .logged-out #auth-buttons { display: block !important; }
         .logged-out #user-info { display: none !important; }
         .logged-out #auth-skeleton { display: none !important; }
-        @media (max-width: 639px) {
-            #auth-skeleton {
-                display: none !important;
-            }
-        }
-        
+        @media (max-width: 639px) { #auth-skeleton { display: none !important; } }
         .logged-in #auth-buttons { display: none !important; }
         .logged-in #user-info { display: block !important; }
         .logged-in #auth-skeleton { display: none !important; }
-        
-        /* Force skeleton loading state initially - override everything */
         body:not(.auth-ready) #auth-buttons { display: none !important; }
         body:not(.auth-ready) #user-info { display: none !important; }
         body:not(.auth-ready) #auth-skeleton { display: block !important; }
-        
-        /* Reserve exact space to prevent layout shift */
-        #user-account-section {
-            min-height: 52px; /* Reserve space for 2 lines + spacing */
-            width: 176px; /* Fixed width to match content */
-            flex-shrink: 0;
-        }
-        
-        /* Skeleton loading animation */
-        .skeleton { 
-            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
-        }
-        
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
+        #user-account-section { min-height: 52px; width: 176px; flex-shrink: 0; }
+        .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
-    
-    <!-- User Account System -->
-
 </head>
 <body class="min-h-screen flex flex-col">
-        <!-- Draggable Logo (desktop only) -->
-        <a href="index.html" class="hidden sm:block">
-            <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-50 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
-        </a>
-
-    <!-- Header & Navigation -->
+    <!-- Draggable Logo (desktop only) -->
+    <a href="index.html" class="hidden sm:block">
+        <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-50 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
+    </a>
+    <!-- Header & Navigation (copied exactly from index.html) -->
     <header class="bg-indigo-800 text-white shadow-xl">
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
@@ -192,14 +78,12 @@
                             <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="h-12 w-auto mr-2 sm:hidden" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
                         </a>
                         <a href="index.html" class="hover:opacity-80 transition-opacity relative">
-                            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
+                            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0 font-sans" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
                         </a>
                     </div>
                 </div>
                 <div class="flex flex-col items-end space-y-3">
-                    <!-- User Account Section -->
                     <div id="user-account-section">
-                        <!-- Skeleton loading and login/register buttons: only render for desktop -->
                         <div class="hidden sm:block">
                             <!-- Skeleton loading -->
                             <div id="auth-skeleton" class="text-right">
@@ -213,16 +97,11 @@
                             <div id="auth-buttons">
                                 <p class="text-yellow-400 font-semibold text-sm mb-1">Join SuperSteaks Today!</p>
                                 <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                    <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
-                                        Login
-                                    </button>
-                                    <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">
-                                        Sign Up
-                                    </button>
+                                    <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">Login</button>
+                                    <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">Sign Up</button>
                                 </div>
                             </div>
                         </div>
-                        <!-- Mobile profile icon -->
                         <div class="absolute top-4 right-4 sm:hidden">
                             <button id="mobile-profile-btn" aria-label="Profile" class="focus:outline-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -234,24 +113,15 @@
                                 <a href="#" id="mobile-register-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-lg">Register</a>
                             </div>
                         </div>
-                        <!-- User info (when logged in) -->
                         <div id="user-info" class="text-right">
                             <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">Lobster37</span>!</p>
                             <div class="flex items-center justify-center sm:justify-end space-x-2">
                                 <div class="relative">
-                                    <button id="profile-dropdown-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
-                                        My Profile ▼
-                                    </button>
+                                    <button id="profile-dropdown-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">My Profile ▼</button>
                                     <div id="profile-dropdown" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                                        <a href="teams.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">
-                                            📊 Team Directory
-                                        </a>
-                                        <button id="view-profile-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            👤 View My Profile
-                                        </button>
-                                        <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">
-                                            🚪 Logout
-                                        </button>
+                                        <a href="teams.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">📊 Team Directory</a>
+                                        <button id="view-profile-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">👤 View My Profile</button>
+                                        <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">🚪 Logout</button>
                                     </div>
                                 </div>
                             </div>
@@ -262,67 +132,26 @@
             <nav aria-label="Main navigation" class="mt-4">
                 <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
                     <li>
-                        <a href="index.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600 text-sm sm:text-base">Home</a>
+                        <a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
+                    </li>
+                    <li>
+                        <a href="contests.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Our Draws</a>
+                    </li>
                     <li>
                         <a href="games.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base">Enter Now</a>
                     </li>
-    <!-- Removed duplicate header/nav block for parity -->
-
-
-    <!-- Main Content Area -->
-
-    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
-        <section class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
-            <h2 class="text-3xl sm:text-5xl md:text-6xl font-black text-indigo-900 mb-4 sm:mb-6 leading-tight">
-                Get In <span class="text-yellow-500">Touch</span>
-            </h2>
-            <p class="text-lg sm:text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto mb-6 sm:mb-8">
-                Got questions about our free random team assignment draws? Need help with your account? We're here to help!
-            </p>
-            <div class="mt-6 sm:mt-8">
-                <form id="contact-form" class="bg-indigo-50 p-4 sm:p-6 md:p-10 rounded-xl shadow-lg text-left max-w-2xl mx-auto">
-                    <div class="mb-4">
-                        <label for="name" class="block text-indigo-700 font-bold mb-2 text-sm sm:text-base">Your Name</label>
-                        <input type="text" id="name" name="name" required
-                               class="w-full px-3 sm:px-4 py-3 rounded-lg border-2 border-indigo-300 focus:border-yellow-500 focus:ring-yellow-500 transition duration-150 text-base">
-                    </div>
-                    <div class="mb-4">
-                        <label for="email" class="block text-indigo-700 font-bold mb-2 text-sm sm:text-base">Your Email</label>
-                        <input type="email" id="email" name="email" required
-                               class="w-full px-3 sm:px-4 py-3 rounded-lg border-2 border-indigo-300 focus:border-yellow-500 focus:ring-yellow-500 transition duration-150 text-base">
-                    </div>
-                    <div class="mb-6">
-                        <label for="message" class="block text-indigo-700 font-bold mb-2 text-sm sm:text-base">Your Message</label>
-                        <textarea id="message" name="message" rows="5" required
-                                  class="w-full px-3 sm:px-4 py-3 rounded-lg border-2 border-indigo-300 focus:border-yellow-500 focus:ring-yellow-500 transition duration-150 text-base resize-y"></textarea>
-                    </div>
-                    <button type="submit" id="submit-button"
-                            aria-disabled="false"
-                            class="w-full bg-yellow-500 text-indigo-800 font-extrabold py-3 px-6 sm:px-8 rounded-full text-base sm:text-lg shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50 disabled:bg-gray-400 disabled:ring-0">
-                        Send Message
-                    </button>
-                    <p id="form-status" aria-live="polite" class="mt-4 text-sm font-medium text-center text-indigo-700"></p>
-                </form>
-            </div>
-            <div class="mt-8 sm:mt-12 grid sm:grid-cols-3 gap-4 sm:gap-6 text-left">
-                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
-                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🎲 Random Assignment</h3>
-                    <p class="text-sm sm:text-base text-gray-600">We randomly assign you a team from competitions like Champions League, Premier League, and more. No choosing - it's all about luck!</p>
-                </div>
-                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
-                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🏆 Support Your Team</h3>
-                    <p class="text-sm sm:text-base text-gray-600">Once assigned, cheer for your team throughout the competition! If they win, you win prizes too!</p>
-                </div>
-                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
-                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🥇 Free to Join</h3>
-                    <p class="text-sm sm:text-base text-gray-600">All our random team draws are completely free to enter. Just sign up and see which team you get!</p>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Login/Register Modal -->
-    <div id="auth-modal" class="modal-overlay hidden bg-black bg-opacity-70 flex items-center justify-center p-4">
+                    <li>
+                        <a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a>
+                    </li>
+                    <li>
+                        <a href="contact.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 bg-indigo-700 hover:bg-indigo-600 text-sm sm:text-base">Contact</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <!-- Login/Register Modal (copied from index.html for parity) -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[99999] p-4">
         <div class="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full mx-4 relative max-h-screen overflow-y-auto">
             <div id="login-form">
                 <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
@@ -335,22 +164,15 @@
                         <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
                         <input type="password" id="login-password" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
                         <div class="text-right mt-2">
-                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:underline">
-                                Forgot Password?
-                            </button>
+                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:underline">Forgot Password?</button>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-                        <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
-                            Login
-                        </button>
-                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">
-                            Need an account?
-                        </button>
+                        <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">Login</button>
+                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">Need an account?</button>
                     </div>
                 </form>
             </div>
-
             <div id="register-form" class="hidden">
                 <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Create New Account</h2>
                 <form id="register-form-element">
@@ -367,23 +189,16 @@
                         <input type="password" id="register-password" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" required>
                     </div>
                     <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-                        <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
-                            Register
-                        </button>
-                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">
-                            Already have an account?
-                        </button>
+                        <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">Register</button>
+                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">Already have an account?</button>
                     </div>
                 </form>
             </div>
-
-            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
-                
-            </button>
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">×</button>
         </div>
     </div>
-
-    <div id="reset-password-modal" class="modal-overlay hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <!-- Password Reset Modal -->
+    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 relative">
             <h2 class="text-2xl font-bold text-indigo-800 mb-6">Reset Password</h2>
             <form id="reset-password-form-element">
@@ -393,347 +208,43 @@
                     <p class="text-xs text-gray-600 mt-2">We'll send you a link to reset your password</p>
                 </div>
                 <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-                    <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
-                        Send Reset Email
-                    </button>
-                    <button type="button" id="cancel-reset" class="text-indigo-600 hover:underline text-sm">
-                        Cancel
-                    </button>
+                    <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">Send Reset Email</button>
+                    <button type="button" id="cancel-reset" class="text-indigo-600 hover:underline text-sm">Cancel</button>
                 </div>
             </form>
             <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
-            <button id="close-reset-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
-                
-            </button>
+            <button id="close-reset-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">×</button>
         </div>
     </div>
-    
-    <script>
-        // Global error handler for catching Firebase and destructuring errors
-        window.addEventListener('error', function(e) {
-            if (e.message && (e.message.includes('Cannot destructure property') || e.filename && e.filename.includes('auth.ts'))) {
-                console.warn('Caught Firebase/destructuring error:', e.message, 'at', e.filename, ':', e.lineno);
-                // Don't let Firebase auth errors crash the page
-                e.preventDefault();
-                return true;
-            }
-        });
-        
-        // Additional unhandled promise rejection handler for Firebase
-        window.addEventListener('unhandledrejection', function(event) {
-            if (event.reason && event.reason.toString().includes('auth')) {
-                console.warn('Caught unhandled Firebase auth promise rejection:', event.reason);
-                event.preventDefault();
-            }
-        });
+    <!-- Main Content Area: Banner with Contact Form -->
+    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
+        <section class="max-w-2xl mx-auto bg-white p-6 sm:p-10 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+            <h2 class="text-3xl sm:text-4xl font-black text-indigo-900 mb-2 sm:mb-4">Contact Us</h2>
+            <p class="text-lg text-gray-700 mb-6">Have a question, suggestion, or need help? Fill out the form below and we’ll get back to you as soon as possible.</p>
+            <form class="space-y-6" name="contact-form" autocomplete="on">
+                <div>
+                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">Name</label>
+                    <input type="text" id="name" name="name" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="Your Name">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" name="email" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="you@email.com">
+                </div>
+                <div>
+                    <label for="message" class="block text-sm font-semibold text-gray-700 mb-1">Message</label>
+                    <textarea id="message" name="message" rows="5" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="How can we help you?"></textarea>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-yellow-500 text-indigo-800 font-bold px-8 py-3 rounded-full shadow-lg hover:bg-yellow-400 transition duration-300">Send Message</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <!-- Footer -->
+    <footer class="bg-indigo-900 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests. </p>
+        </div>
+    </footer>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeAuthentication();
-        });
-        
-        function initializeAuthentication() {
-            console.log('Starting Firebase authentication...');
-            
-            // Try multiple approaches to get the authentication system
-            if (window.superSteaksGlobal) {
-                // Use existing global instance
-                window.supersteaks = window.superSteaksGlobal;
-                console.log('Using existing superSteaksGlobal instance');
-                checkCurrentAuthState();
-            } else if (typeof SuperSteaks !== 'undefined') {
-                // Create new instance from class
-                window.supersteaks = new SuperSteaks();
-                console.log('Created new SuperSteaks instance');
-                checkCurrentAuthState();
-            } else {
-                // Wait for system to initialize
-                console.log('Waiting for SuperSteaks system to initialize...');
-                const checkSystem = setInterval(() => {
-                    if (window.superSteaksGlobal) {
-                        window.supersteaks = window.superSteaksGlobal;
-                        console.log('SuperSteaks global system now available');
-                        checkCurrentAuthState();
-                        clearInterval(checkSystem);
-                    } else if (typeof SuperSteaks !== 'undefined') {
-                        window.supersteaks = new SuperSteaks();
-                        console.log('SuperSteaks class now available');
-                        checkCurrentAuthState();
-                        clearInterval(checkSystem);
-                    }
-                }, 100);
-                
-                // Fallback after 5 seconds
-                setTimeout(() => {
-                    if (!window.supersteaks) {
-                        console.log('SuperSteaks not available after timeout, showing login buttons');
-                        showLoggedOutState();
-                        clearInterval(checkSystem);
-                    }
-                }, 5000);
-            }
-            
-            setupEventListeners();
-        }
-// Removed stray closing braces from previous patch attempts
-        
-        function setupModalControls() {
-            // Close modal buttons
-            const closeModalBtns = document.querySelectorAll('#close-modal, #close-reset-modal');
-            closeModalBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.getElementById('auth-modal').classList.add('hidden');
-                    document.getElementById('reset-password-modal').classList.add('hidden');
-                });
-            });
-            
-            // Click outside modal to close
-            const authModal = document.getElementById('auth-modal');
-            const resetModal = document.getElementById('reset-password-modal');
-            
-            [authModal, resetModal].forEach(modal => {
-                if (modal) {
-                    modal.addEventListener('click', (e) => {
-                        if (e && e.target === modal) {
-                            modal.classList.add('hidden');
-                        }
-                    });
-                }
-            });
-            
-            // Switch between forms
-            const switchToRegister = document.getElementById('switch-to-register');
-            const switchToLogin = document.getElementById('switch-to-login');
-            const forgotPasswordLink = document.getElementById('forgot-password-link');
-            const cancelReset = document.getElementById('cancel-reset');
-            
-            if (switchToRegister) {
-                switchToRegister.addEventListener('click', () => {
-                    document.getElementById('login-form').classList.add('hidden');
-                    document.getElementById('register-form').classList.remove('hidden');
-                });
-            }
-            
-            if (switchToLogin) {
-                switchToLogin.addEventListener('click', () => {
-                    document.getElementById('register-form').classList.add('hidden');
-                    document.getElementById('login-form').classList.remove('hidden');
-                });
-            }
-            
-            if (forgotPasswordLink) {
-                forgotPasswordLink.addEventListener('click', () => {
-                    document.getElementById('auth-modal').classList.add('hidden');
-                    document.getElementById('reset-password-modal').classList.remove('hidden');
-                });
-            }
-            
-            if (cancelReset) {
-                cancelReset.addEventListener('click', () => {
-                    document.getElementById('reset-password-modal').classList.add('hidden');
-                    document.getElementById('auth-modal').classList.remove('hidden');
-                    document.getElementById('login-form').classList.remove('hidden');
-                    document.getElementById('register-form').classList.add('hidden');
-                });
-            }
-            
-            // Form submissions
-            const loginForm = document.getElementById('login-form-element');
-            const registerForm = document.getElementById('register-form-element');
-            const resetForm = document.getElementById('reset-password-form-element');
-            
-            if (loginForm) {
-                loginForm.addEventListener('submit', handleLogin);
-            }
-            
-            if (registerForm) {
-                registerForm.addEventListener('submit', handleRegister);
-            }
-            
-            if (resetForm) {
-                resetForm.addEventListener('submit', handlePasswordReset);
-            }
-        }
-        
-        function handleLogin(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-            
-            console.log('Attempting login for:', email);
-            
-            if (!window.supersteaks) {
-                alert('Authentication system not available. Please try again later.');
-                return;
-            }
-            
-            window.supersteaks.login(email, password)
-                .then(result => {
-                    if (result.success) {
-                        console.log('Login successful:', result.user);
-                        // Don't manually update UI - let the auth state listener handle it
-                        document.getElementById('auth-modal').classList.add('hidden');
-                        
-                        // Clear form
-                        document.getElementById('login-form-element').reset();
-                    } else {
-                        console.error('Login failed:', result.error);
-                        alert('Login failed: ' + result.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Login failed:', error);
-                    alert('Login failed: ' + error.message);
-                });
-        }
-        
-        function handleRegister(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('register-username').value.trim();
-            const email = document.getElementById('register-email').value.trim();
-            const password = document.getElementById('register-password').value;
-            
-            console.log('Attempting registration for:', email, 'with username:', username);
-            
-            // Comprehensive validation
-            if (!username) {
-                alert('Username is required. Please enter a username.');
-                document.getElementById('register-username').focus();
-                return;
-            }
-            
-            if (username.length < 3) {
-                alert('Username must be at least 3 characters long.');
-                document.getElementById('register-username').focus();
-                return;
-            }
-            
-            if (username.length > 20) {
-                alert('Username must be 20 characters or less.');
-                document.getElementById('register-username').focus();
-                return;
-            }
-            
-            // Check for valid username characters (letters, numbers, dots, underscores, hyphens)
-            if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
-                alert('Username can only contain letters, numbers, dots, underscores, and hyphens.');
-                document.getElementById('register-username').focus();
-                return;
-            }
-            
-            if (!email) {
-                alert('Email is required.');
-                document.getElementById('register-email').focus();
-                return;
-            }
-            
-            // Basic email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                alert('Please enter a valid email address.');
-                document.getElementById('register-email').focus();
-                return;
-            }
-            
-            if (!password) {
-                alert('Password is required.');
-                document.getElementById('register-password').focus();
-                return;
-            }
-            
-            if (password.length < 6) {
-                alert('Password must be at least 6 characters long.');
-                document.getElementById('register-password').focus();
-                return;
-            }
-            
-            if (!window.supersteaks) {
-                alert('Authentication system not available. Please try again later.');
-                return;
-            }
-            
-            window.supersteaks.register(email, password, username)
-                .then(result => {
-                    if (result.success) {
-                        console.log('Registration successful:', result.user);
-                        // Don't manually update UI - let the auth state listener handle it
-                        document.getElementById('auth-modal').classList.add('hidden');
-                        
-                        // Clear form
-                        document.getElementById('register-form-element').reset();
-                    } else {
-                        console.error('Registration failed:', result.error);
-                        alert('Registration failed: ' + result.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Registration failed:', error);
-                    alert('Registration failed: ' + error.message);
-                });
-        }
-        
-        function handlePasswordReset(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('reset-email').value;
-            const messageDiv = document.getElementById('reset-message');
-            
-            if (!window.supersteaks) {
-                alert('Authentication system not available. Please try again later.');
-                return;
-            }
-            
-            // Use Firebase auth directly for password reset
-            firebase.auth().sendPasswordResetEmail(email)
-                .then(() => {
-                    messageDiv.textContent = 'Password reset email sent! Check your inbox.';
-                    messageDiv.className = 'mt-4 p-3 rounded-lg bg-green-100 text-green-800';
-                    messageDiv.classList.remove('hidden');
-                    
-                    // Clear form
-                    document.getElementById('reset-password-form-element').reset();
-                    
-                    // Auto close after 3 seconds
-                    setTimeout(() => {
-                        document.getElementById('reset-password-modal').classList.add('hidden');
-                        messageDiv.classList.add('hidden');
-                    }, 3000);
-                })
-                .catch(error => {
-                    console.error('Password reset failed:', error);
-                    messageDiv.textContent = 'Failed to send reset email: ' + error.message;
-                    messageDiv.className = 'mt-4 p-3 rounded-lg bg-red-100 text-red-800';
-                    messageDiv.classList.remove('hidden');
-                });
-        }
-
-    // Mobile profile dropdown logic
-    document.addEventListener('DOMContentLoaded', function() {
-        var mobileProfileBtn = document.getElementById('mobile-profile-btn');
-        var mobileProfileDropdown = document.getElementById('mobile-profile-dropdown');
-        if (mobileProfileBtn && mobileProfileDropdown) {
-            mobileProfileBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                // On mobile, open the login/register modal directly
-                if (window.innerWidth < 640) {
-                    document.getElementById('auth-modal').classList.remove('hidden');
-                    document.getElementById('login-form').classList.remove('hidden');
-                    document.getElementById('register-form').classList.add('hidden');
-                    mobileProfileDropdown.classList.add('hidden');
-                } else {
-                    mobileProfileDropdown.classList.toggle('hidden');
-                }
-            });
-            // Optional: Hide dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!mobileProfileBtn.contains(e.target) && !mobileProfileDropdown.contains(e.target)) {
-                    mobileProfileDropdown.classList.add('hidden');
-                }
-            });
-        }
-    });
-    </script>
-</body>
-</html>
 
