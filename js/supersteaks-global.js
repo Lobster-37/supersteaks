@@ -37,17 +37,19 @@ class SuperSteaksGlobal {
     async init() {
         try {
             console.log('Initializing SuperSteaks Global system...');
-            
+            // Remove auth-ready before auth state is determined
+            document.body.classList.remove('auth-ready');
             // Initialize Firebase Auth and Firestore
             this.auth = firebase.auth();
             this.firestore = firebase.firestore();
-            
             // Set up auth state listener with error protection
             try {
                 this.auth.onAuthStateChanged((user) => {
                     try {
                         this.currentUser = user;
                         this.updateUIForAuthState(user);
+                        // Add auth-ready after auth state is determined
+                        document.body.classList.add('auth-ready');
                     } catch (error) {
                         console.warn('Error in auth state change handler:', error);
                         // Continue execution even if UI update fails
@@ -56,10 +58,8 @@ class SuperSteaksGlobal {
             } catch (error) {
                 console.warn('Error setting up auth state listener:', error);
             }
-            
             this.initialized = true;
             console.log('SuperSteaks Global system initialized successfully');
-            
         } catch (error) {
             console.error('Error initializing SuperSteaks Global:', error);
         }
