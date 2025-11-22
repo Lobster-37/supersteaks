@@ -381,7 +381,8 @@ class SuperSteaksGlobal {
         const authButtons = document.getElementById('auth-buttons');
         const userInfo = document.getElementById('user-info');
         const usernameDisplay = document.getElementById('username-display');
-        
+        const authSkeleton = document.getElementById('auth-skeleton');
+
         if (authButtons) {
             authButtons.classList.add('hidden');
             authButtons.style.display = 'none';
@@ -389,6 +390,10 @@ class SuperSteaksGlobal {
         if (userInfo) {
             userInfo.classList.remove('hidden');
             userInfo.style.display = '';
+        }
+        if (authSkeleton) {
+            authSkeleton.classList.add('hidden');
+            authSkeleton.style.display = 'none';
         }
         if (usernameDisplay) {
             let username = user.displayName;
@@ -405,7 +410,8 @@ class SuperSteaksGlobal {
         // Update all pages to show unauthenticated state
         const authButtons = document.getElementById('auth-buttons');
         const userInfo = document.getElementById('user-info');
-        
+        const authSkeleton = document.getElementById('auth-skeleton');
+
         if (authButtons) {
             authButtons.classList.remove('hidden');
             authButtons.style.display = '';
@@ -413,6 +419,10 @@ class SuperSteaksGlobal {
         if (userInfo) {
             userInfo.classList.add('hidden');
             userInfo.style.display = 'none';
+        }
+        if (authSkeleton) {
+            authSkeleton.classList.add('hidden');
+            authSkeleton.style.display = 'none';
         }
     }
     
