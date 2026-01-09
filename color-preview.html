@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SuperSteaks — Nav Color Preview</title>
+  <style>
+    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#f3f4f6; margin:24px; }
+    .grid { display:flex; flex-wrap:wrap; gap:20px; }
+    .swatch { width:240px; border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(2,6,23,0.08); }
+    .color { height:96px; display:flex; align-items:center; justify-content:center; font-weight:700; color:white; }
+    .meta { padding:12px; background:white; font-size:13px; color:#111827; }
+    .nav-sample { display:inline-block; margin-top:10px; padding:10px 14px; border-radius:8px; color:white; font-weight:600; }
+    .note { margin-top:12px; font-size:12px; color:#374151; }
+    h1 { font-size:20px; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+  <h1>SuperSteaks — Active Nav Color Preview</h1>
+  <p>Click the tile that looks best and tell me which hex to apply. This shows the color and a nav-button sample.</p>
+  <div class="grid">
+    <div class="swatch">
+      <div class="color" style="background:#60a5fa">#60a5fa</div>
+      <div class="meta">
+        <div><strong>Light Blue</strong> (Tailwind blue-400)</div>
+        <div class="note">Appearance: Bright, fairly light — high energy but lower contrast on white.</div>
+        <div class="note">Sample: <span class="nav-sample" style="background:#60a5fa">Home</span></div>
+      </div>
+    </div>
+
+    <div class="swatch">
+      <div class="color" style="background:#3730a3">#3730a3</div>
+      <div class="meta">
+        <div><strong>Darker Indigo</strong> (previous color)</div>
+        <div class="note">Appearance: Deep indigo/purple — medium-dark, elegant and legible.</div>
+        <div class="note">Sample: <span class="nav-sample" style="background:#3730a3">Home</span></div>
+      </div>
+    </div>
+
+    <div class="swatch">
+      <div class="color" style="background:#4f46e5">#4f46e5</div>
+      <div class="meta">
+        <div><strong>Indigo-600</strong> (Tailwind indigo-600)</div>
+        <div class="note">Appearance: Rich indigo, slightly brighter than #3730a3; good contrast.</div>
+        <div class="note">Sample: <span class="nav-sample" style="background:#4f46e5">Home</span></div>
+      </div>
+    </div>
+
+    <div class="swatch">
+      <div class="color" style="background:#3b82f6">#3b82f6</div>
+      <div class="meta">
+        <div><strong>Blue-500</strong> (Tailwind blue-500)</div>
+        <div class="note">Appearance: Vivid medium blue — bright, strong contrast with white.</div>
+        <div class="note">Sample: <span class="nav-sample" style="background:#3b82f6">Home</span></div>
+      </div>
+    </div>
+
+    <div class="swatch">
+      <div class="color" style="background:#2563eb">#2563eb</div>
+      <div class="meta">
+        <div><strong>Blue-600</strong> (Tailwind blue-600)</div>
+        <div class="note">Appearance: Rich medium-dark blue — bold and very legible.</div>
+        <div class="note">Sample: <span class="nav-sample" style="background:#2563eb">Home</span></div>
+      </div>
+    </div>
+
+    <div class="swatch">
+      <div class="color" style="background:#1e3a8a">#1e3a8a</div>
+      <div class="meta">
+        <div><strong>Blue-800</strong> (Tailwind blue-800)</div>
+        <div class="note">Appearance: Very dark blue — near-indigo, high contrast and formal.</div>
+        <div class="note">Sample: <span class="nav-sample" style="background:#1e3a8a">Home</span></div>
+      </div>
+    </div>
+
+  </div>
+  <p style="margin-top:18px; color:#6b7280; font-size:13px;">When you pick one, I can apply it to just `index.html` or site-wide. To view this file, open it in your browser (double-click it or run the command below in PowerShell):</p>
+  <pre style="background:#111827; color:#fff; padding:12px; border-radius:8px; display:inline-block">Start-Process "${PWD.value}\color-preview.html"</pre>
+</body>
+</html>

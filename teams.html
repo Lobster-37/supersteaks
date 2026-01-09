@@ -1,474 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Directory - SuperSteaks</title>
+    <title>SuperSteaks - Team Directory</title>
+    <meta name="description" content="Browse all teams available in SuperSteaks competitions and see team details, stats, and assignments.">
     <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
-    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <script>
-        console.log('TailwindCSS CSS loading...');
-        setTimeout(() => {
-            const testEl = document.createElement('div');
-            testEl.className = 'bg-red-500';
-            document.body.appendChild(testEl);
-            const styles = getComputedStyle(testEl);
-            if (styles.backgroundColor === 'rgb(239, 68, 68)' || styles.backgroundColor.includes('239')) {
-                console.log('✅ TailwindCSS CSS loaded successfully');
-            } else {
-                console.error('❌ TailwindCSS CSS failed to load');
-            }
-            document.body.removeChild(testEl);
-        }, 1000);
-    </script>
-    
-    <!-- Firebase CDN Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    
-    <!-- SuperSteaks Global System -->
-    <script src="js/supersteaks-global.js"></script>
-    
-    <!-- Firebase Configuration -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s",
             authDomain: "supersteaks-240f7.firebaseapp.com",
             projectId: "supersteaks-240f7",
-            storageBucket: "supersteaks-240f7.firebasestorage.app",
+            storageBucket: "supersteaks-240f7.appspot.com",
             messagingSenderId: "325643072121",
             appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
         };
-        
-        // Set global config for user-accounts.js
-        window.firebaseConfig = firebaseConfig;
-        
-        // Initialize Firebase immediately
         try {
             firebase.initializeApp(firebaseConfig);
-            console.log('Firebase initialized successfully in head');
-            
-            // Set a global flag that Firebase is ready
             window.firebaseReady = true;
         } catch (error) {
             console.error('Firebase initialization failed:', error);
         }
     </script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
-        
-        /* Hide teams content until authentication is verified */
-        #teams-content {
-            display: none;
-        }
-        
-        /* Show teams content when authenticated */
-        body.authenticated #teams-content {
-            display: block;
-        }
-        
-        /* Hide loading when auth check complete */
-        body.authenticated #page-loading {
-            display: none;
-        }
+        .nav-link { background-color: transparent !important; color: inherit !important; }
+        .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
+        .nav-link.enter-now { color: #fbbf24 !important; }
     </style>
-    
-    <!-- User Account System -->
-
+    <script src="js/supersteaks-global.js?v=20241118001"></script>
 </head>
 <body class="min-h-screen flex flex-col">
-        <!-- Draggable Logo -->
-        <a href="index.html">
-            <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" id="draggable-logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-50" style="left: 0px; top: 0px; filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); cursor: move; user-select: none;" draggable="false">
-        </a>
-        <!-- Logo -->
-        <a href="index.html">
-            <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-50 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
-        </head>
-        <style>
-            .logo-cursor:hover {
-                cursor: pointer;
-            }
-        </style>
-        </a>
-
-    <!-- Header & Navigation -->
+    <a href="index.html" class="hidden sm:block">
+        <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-0" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
+    </a>
     <header class="bg-indigo-800 text-white shadow-xl">
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
                 <div class="text-center sm:text-left">
-                    <a href="index.html" class="hover:opacity-80 transition-opacity">
-                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
-                    </a>
+                    <div class="flex flex-row items-center justify-center sm:block">
+                        <a href="index.html" class="hover:opacity-80 transition-opacity">
+                            <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="h-12 w-auto mr-2 sm:hidden" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
+                        </a>
+                        <a href="index.html" class="hover:opacity-80 transition-opacity">
+                            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0">SUPERSTEAKS</h1>
+                        </a>
+                    </div>
                 </div>
                 <div class="flex flex-col items-end space-y-3">
-                    <!-- User Account Section -->
                     <div id="user-account-section">
-                        <!-- Login/Register buttons (shown when not logged in) -->
-                        <div id="auth-buttons" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3" style="display: none;">
-                            <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition text-sm">
-                                Login
-                            </button>
-                            <button id="register-btn" class="bg-transparent border-2 border-yellow-400 text-yellow-400 px-3 py-2 rounded-lg font-semibold hover:bg-yellow-400 hover:text-indigo-800 transition text-sm">
-                                Register
+                        <div class="hidden sm:block">
+                            <div id="auth-skeleton" class="text-right">
+                                <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
+                                <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                    <div class="skeleton h-6 rounded" style="width: 48px;"></div>
+                                    <div class="skeleton h-6 rounded" style="width: 64px;"></div>
+                                </div>
+                            </div>
+                            <div id="auth-buttons" class="sm:block hidden">
+                                <p class="text-yellow-400 font-semibold text-sm mb-1">Join SuperSteaks Today!</p>
+                                <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                    <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">Login</button>
+                                    <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">Sign Up</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute top-4 right-4 sm:hidden">
+                            <button id="mobile-profile-btn" aria-label="Profile" class="focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.001 9.001 0 0112 15c2.21 0 4.21.805 5.879 2.146M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
                             </button>
                         </div>
-                        <!-- User info (when logged in) -->
-                        <div id="user-info" class="text-right">
+                        <div id="user-info" class="text-right hidden">
                             <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">Lobster37</span>!</p>
                             <div class="flex items-center justify-center sm:justify-end space-x-2">
                                 <div class="relative">
-                                    <button id="profile-dropdown-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">
-                                        My Profile ▼
-                                    </button>
+                                    <button id="profile-dropdown-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">My Profile ▼</button>
                                     <div id="profile-dropdown" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                                        <span class="block px-4 py-2 text-sm text-indigo-600 font-semibold bg-indigo-50 rounded-t-lg">
-                                            📊 Team Directory (Current)
-                                        </span>
-                                        <button id="view-profile-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            👤 View My Profile
-                                        </button>
-                                        <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">
-                                            🚪 Logout
-                                        </button>
+                                        <a href="teams.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">📊 Team Directory</a>
+                                        <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">🚪 Logout</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <script>
-                        // Hardcoded fix for lobster37
-                        document.getElementById('username-display').textContent = 'Lobster37';
-                        </script>
                     </div>
                 </div>
             </div>
             <nav aria-label="Main navigation" class="mt-4">
-                        <ul class="flex flex-wrap justify-center space-x-3 sm:space-x-6">
-                            <li>
-                                <a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
-                            </li>
-                            <li>
-                                <a href="contests.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Our Draws</a>
-                            </li>
-                            <li>
-                                <a href="games.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base">Enter Now</a>
-                            </li>
-                            <li>
-                                <a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a>
-                            </li>
-                            <li>
-                                <a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a>
-                            </li>
-
-                        </ul>
-                    </nav>
+                <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
+                    <li><a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a></li>
+                    <li><a href="contests.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Our Draws</a></li>
+                    <li><a href="games.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Enter Now</a></li>
+                    <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
+                    <li><a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
-        <!-- Loading State -->
-        <div id="page-loading" class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-gray-400">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <h2 class="text-2xl font-bold text-gray-600">Loading Teams...</h2>
-            <p class="text-gray-500">Preparing your team directory</p>
-        </div>
-        
-
-        
-        <!-- Teams Content (shown when logged in) -->
-        <section id="teams-content" class="text-center bg-white p-4 sm:p-8 md:p-16 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
-            <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-indigo-900 mb-4 sm:mb-6 leading-tight">
-                Team <span class="text-yellow-500">Directory</span>
-            </h2>
-            <p class="text-lg sm:text-xl text-gray-700 max-w-4xl mx-auto mb-8 sm:mb-12">
-                See who's supporting which teams in our random draws! Check out the current team assignments and join the community.
-            </p>
-
-
-
-            <!-- Teams Display Area -->
-            <div id="teams-container" class="text-left">
-            <!-- Loading message -->
-            <div id="loading-message" class="text-center text-white text-lg">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-                Loading teams...
-            </div>
-            
-            <!-- No teams message -->
-            <div id="no-teams-message" class="hidden text-center bg-yellow-100 border border-yellow-400 text-yellow-700 px-6 py-4 rounded-lg">
-                <h3 class="font-bold text-lg mb-2">No Teams Assigned Yet!</h3>
-                <p>Be the first to join a contest and get your team assignment!</p>
-                <a href="games.html" class="inline-block mt-4 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg transition duration-200">
-                    Go to Games
-                </a>
-            </div>
-            
-            <!-- Teams list -->
-            <div id="teams-list" class="space-y-4">
-                <!-- Teams will be populated here by JavaScript -->
-            </div>
-            </div>
-
-    <!-- Authentication Modal (same as other pages) -->
-    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-8 w-full max-w-md mx-4">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">Account</h2>
-                <button id="close-modal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-            </div>
-            
-            <!-- Login Form -->
-            <div id="login-form">
-                <form id="login-form-element" class="space-y-4">
-                    <div>
-                        <label for="login-username" class="block text-sm font-medium text-gray-700 mb-1">Email or Username</label>
-                        <input type="text" id="login-username" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your email or username">
-                    </div>
-                    <div>
-                        <label for="login-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input type="password" id="login-password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <div class="mt-2 text-right">
-                            <button type="button" id="forgot-password-link" class="text-sm text-blue-600 hover:text-blue-800 font-medium underline">
-                                Forgot Password?
-                            </button>
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition duration-200">
-                        Login
-                    </button>
-                </form>
-                <p class="text-center text-sm text-gray-600 mt-4">
-                    Don't have an account? 
-                    <button id="switch-to-register" class="text-blue-600 hover:text-blue-800 font-medium">Sign up here</button>
-                </p>
-            </div>
-            
-            <!-- Register Form -->
-            <div id="register-form" class="hidden">
-                <form id="register-form-element" class="space-y-4">
-                    <div>
-                        <label for="register-username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                        <input type="text" id="register-username" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label for="register-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" id="register-email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label for="register-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input type="password" id="register-password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition duration-200">
-                        Create Account
-                    </button>
-                </form>
-                <p class="text-center text-sm text-gray-600 mt-4">
-                    Already have an account? 
-                    <button id="switch-to-login" class="text-blue-600 hover:text-blue-800 font-medium">Login here</button>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Password Reset Modal -->
-    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-4">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">Reset Password</h2>
-            <form id="reset-password-form-element">
-                <div class="mb-4">
-                    <label for="reset-email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                    <input type="email" id="reset-email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <p id="reset-validation-text" class="text-sm text-gray-600 mb-4">
-                    Enter your email address and we'll send you a link to reset your password.
-                </p>
-                <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
-                <div class="flex gap-3">
-                    <button type="submit" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition w-full sm:w-auto">
-                        Send Reset Email
-                    </button>
-                    <button type="button" id="cancel-reset" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition w-full sm:w-auto">
-                        Cancel
-                    </button>
-                </div>
-            </form>
-            <button id="close-reset-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-        </div>
-    </div>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .logged-out #auth-buttons { display: block !important; }
+        .logged-out #user-info { display: none !important; }
+        .logged-in #auth-buttons { display: none !important; }
+        .logged-in #user-info { display: block !important; }
+        body:not(.auth-ready) #auth-buttons { display: none !important; }
+        body:not(.auth-ready) #user-info { display: none !important; }
+        body:not(.auth-ready) #auth-skeleton { display: block !important; }
+        #user-account-section { min-height: 52px; width: 176px; flex-shrink: 0; }
+        .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        /* Mobile-specific spacing to match contests/index/template */
+        @media (max-width: 639px) {
+            header .container {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            header .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 0 !important;
+            }
+            nav[aria-label="Main navigation"] {
+                margin-top: -12px !important;
+            }
+            .flex.flex-row.items-center.justify-center.sm\:block {
+                margin-bottom: -8px !important;
+            }
+            #auth-skeleton { display: none !important; }
+            /* Mobile banner typography/layout to match contests page */
+            main .text-center { margin-top: 2rem !important; margin-bottom: 2rem !important; }
+            main h2:first-of-type { font-size: 1.875rem !important; line-height: 2.25rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; color: #1f2937 !important; }
+            main h2:first-of-type + p { font-size: 1.125rem !important; line-height: 1.75rem !important; color: #4b5563 !important; }
+        }
+    </style>
 
     <script>
-        // Teams page functionality
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Teams page loaded');
-            
-            // Check authentication periodically until ready
-            const checkAuth = () => {
-                if (window.superSteaksGlobal) {
-                    checkTeamsAuthentication();
-                } else {
-                    setTimeout(checkAuth, 500);
-                }
-            };
-            checkAuth();
+            initializeAuthentication();
         });
 
-        async function loadAllTeams() {
-            console.log('Loading all teams from Firestore...');
-            
-            const loadingMessage = document.getElementById('loading-message');
-            const noTeamsMessage = document.getElementById('no-teams-message');
-            const teamsList = document.getElementById('teams-list');
-            
-            try {
-                if (!window.superSteaksGlobal) {
-                    console.log('SuperSteaks Global not ready yet, retrying...');
-                    setTimeout(loadAllTeams, 1000);
-                    return;
-                }
-                
-                // Get all team assignments from Firestore
-                const allTeams = await window.superSteaksGlobal.getAllTeamAssignments();
-                console.log('All teams loaded from Firestore:', allTeams);
-                
-                // Hide loading message
-                loadingMessage.classList.add('hidden');
-                
-                if (allTeams.length === 0) {
-                    // Show no teams message
-                    noTeamsMessage.classList.remove('hidden');
-                    teamsList.innerHTML = '';
-                } else {
-                    // Hide no teams message and show teams
-                    noTeamsMessage.classList.add('hidden');
-                    displayTeams(allTeams);
-                }
-            } catch (error) {
-                console.error('Error loading teams:', error);
-                loadingMessage.innerHTML = '<div class="text-red-500">Error loading teams from global database. Please try again.</div>';
-            }
-        }
-
-        function displayTeams(teams) {
-            const teamsList = document.getElementById('teams-list');
-            
-            if (teams.length === 0) {
-                teamsList.innerHTML = '<div class="text-center text-white">No teams assigned yet!</div>';
-                return;
-            }
-
-            // Group teams by contest
-            const teamsByContest = {};
-            teams.forEach(team => {
-                if (!teamsByContest[team.contest]) {
-                    teamsByContest[team.contest] = [];
-                }
-                teamsByContest[team.contest].push(team);
-            });
-
-            let html = '';
-            
-            for (const contestName in teamsByContest) {
-                const contestTeams = teamsByContest[contestName];
-                const totalPossibleTeams = 36; // Champions League has 36 teams
-                const teamsAssigned = contestTeams.length;
-                const teamsRemaining = totalPossibleTeams - teamsAssigned;
-                
-                html += `
-                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                        <div class="text-center mb-4">
-                            <h3 class="text-2xl font-bold text-gray-800 mb-2">${contestName}</h3>
-                            <div class="flex justify-center space-x-4 text-sm">
-                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                                    ${teamsAssigned} Teams Assigned
-                                </span>
-                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-                                    ${teamsRemaining} Teams Available
-                                </span>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                `;
-                
-                contestTeams.forEach(assignment => {
-                    let date = 'Recent';
-                    if (assignment.assignedAt) {
-                        if (assignment.assignedAt.toDate) {
-                            // Firestore timestamp
-                            date = assignment.assignedAt.toDate().toLocaleDateString();
-                        } else if (assignment.assignedAt instanceof Date) {
-                            // Regular Date object
-                            date = assignment.assignedAt.toLocaleDateString();
-                        } else if (typeof assignment.assignedAt === 'string') {
-                            // String date
-                            date = new Date(assignment.assignedAt).toLocaleDateString();
-                        }
+        function initializeAuthentication() {
+            if (window.superSteaksGlobal) {
+                window.supersteaks = window.superSteaksGlobal;
+                checkCurrentAuthState();
+            } else {
+                const checkSystem = setInterval(() => {
+                    if (window.superSteaksGlobal) {
+                        window.supersteaks = window.superSteaksGlobal;
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
                     }
-                    const currentUser = window.superSteaksGlobal ? window.superSteaksGlobal.getCurrentUser() : null;
-                    const isCurrentUser = currentUser && (currentUser.uid === assignment.userId || currentUser.displayName === assignment.username);
-                    
-                    html += `
-                        <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border-2 ${isCurrentUser ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'}">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="font-bold text-gray-800 ${isCurrentUser ? 'text-green-700' : ''}">${assignment.username}</span>
-                                ${isCurrentUser ? '<span class="text-green-600 text-sm font-medium">(You)</span>' : ''}
-                            </div>
-                            <div class="text-lg font-semibold text-blue-700 mb-1">${assignment.team}</div>
-                            <div class="text-sm text-gray-500">Assigned: ${date}</div>
-                        </div>
-                    `;
+                }, 100);
+                setTimeout(() => {
+                    if (!window.supersteaks) {
+                        showLoggedOutState();
+                        clearInterval(checkSystem);
+                    }
+                }, 5000);
+            }
+            setupEventListeners();
+        }
+
+        function checkCurrentAuthState() {
+            try {
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        showLoggedInState(user);
+                    } else {
+                        showLoggedOutState();
+                    }
                 });
-                
-                html += `
-                        </div>
-                        ${teamsRemaining > 0 ? `
-                            <div class="text-center mt-6">
-                                <a href="games.html" class="inline-block bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200">
-                                    🎮 Join Contest (${teamsRemaining} spots left!)
-                                </a>
-                            </div>
-                        ` : `
-                            <div class="text-center mt-6">
-                                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-                                    <strong>Contest Full!</strong> All teams have been assigned.
-                                </div>
-                            </div>
-                        `}
-                    </div>
-                `;
+            } catch (error) {
+                showLoggedOutState();
             }
-            
-            teamsList.innerHTML = html;
         }
 
+        function showLoggedInState(user) {
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-in');
+                document.body.classList.remove('logged-out');
+                const usernameDisplay = document.getElementById('username-display');
+                if (usernameDisplay && user) {
+                    let username = user.displayName || (user.email ? user.email.split('@')[0] : '');
+                    if (username) usernameDisplay.textContent = username;
+                }
+            }, 100);
+        }
 
+        function showLoggedOutState() {
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-out');
+                document.body.classList.remove('logged-in');
+            }, 100);
+        }
 
-        // ===== AUTHENTICATION UI FUNCTIONS =====
-        
-        function updateUIForLoggedInState(user) {
-            if (!user || !user.username) {
-                console.error('Invalid user object passed to updateUIForLoggedInState:', user);
-                updateUIForLoggedOutState();
-                return;
+        function setupEventListeners() {
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            if (loginBtn) loginBtn.addEventListener('click', () => showAuthModal(false));
+            if (registerBtn) registerBtn.addEventListener('click', () => showAuthModal(true));
+            const logoutBtn = document.getElementById('logout-btn-dropdown');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (window.supersteaks && typeof window.supersteaks.signOut === 'function') {
+                        window.supersteaks.signOut();
+                    } else {
+                        firebase.auth().signOut();
+                    }
+                });
             }
-            
-            document.getElementById('auth-buttons').classList.add('hidden');
-            document.getElementById('user-info').classList.remove('hidden');
-            document.getElementById('username-display').textContent = user.username;
-            
-            console.log('UI updated for logged in user:', user.username);
         }
-        
-        function updateUIForLoggedOutState() {
-            document.getElementById('auth-buttons').classList.remove('hidden');
-            document.getElementById('user-info').classList.add('hidden');
-        }
-        
+
         function showAuthModal(showRegister = false) {
             document.getElementById('auth-modal').classList.remove('hidden');
             if (showRegister) {
@@ -479,192 +227,196 @@
                 document.getElementById('register-form').classList.add('hidden');
             }
         }
-        
-        function hideAuthModal() {
-            document.getElementById('auth-modal').classList.add('hidden');
-            // Reset forms if they exist
-            const loginForm = document.getElementById('login-form-element');
-            const registerForm = document.getElementById('register-form-element');
-            if (loginForm) loginForm.reset();
-            if (registerForm) registerForm.reset();
-        }
-        
-        function showResetPasswordModal() {
-            document.getElementById('reset-password-modal').classList.remove('hidden');
-        }
-        
-        function hideResetPasswordModal() {
-            document.getElementById('reset-password-modal').classList.add('hidden');
-            document.getElementById('reset-password-form-element').reset();
-        }
-        
-        async function resetPassword(email) {
-            console.log('Reset password function called with email:', email);
-            const messageDiv = document.getElementById('reset-message');
-            
-            try {
-                console.log('Attempting to send Firebase reset email...');
-                await firebase.auth().sendPasswordResetEmail(email);
-                console.log('Firebase reset email sent successfully');
-                
-                // Close modal instantly and clear form
-                hideResetPasswordModal();
-                document.getElementById('reset-email').value = '';
-                
-                // Show success message on main screen
-                const successMsg = document.createElement('div');
-                successMsg.className = 'fixed top-4 right-4 z-50 bg-green-100 text-green-700 px-6 py-3 rounded-lg shadow-lg font-medium';
-                successMsg.textContent = '✅ Password reset email sent! Check your inbox.';
-                document.body.appendChild(successMsg);
-                
-                // Remove message after 3 seconds
-                setTimeout(() => {
-                    if (successMsg.parentNode) {
-                        successMsg.parentNode.removeChild(successMsg);
-                    }
-                }, 3000);
-            } catch (error) {
-                console.error('Firebase reset email error:', error);
-                
-                // Show error message on main screen
-                const errorMsg = document.createElement('div');
-                errorMsg.className = 'fixed top-4 right-4 z-50 bg-red-100 text-red-700 px-6 py-3 rounded-lg shadow-lg font-medium';
-                errorMsg.textContent = '❌ Error: ' + (error?.message || 'Password reset failed. Please try again.');
-                document.body.appendChild(errorMsg);
-                
-                // Remove error message after 5 seconds
-                setTimeout(() => {
-                    if (errorMsg.parentNode) {
-                        errorMsg.parentNode.removeChild(errorMsg);
-                    }
-                }, 5000);
-            }
-        }
-        
-        function createAccount(username, email, password) {
-            if (!window.SuperSteaksAuth) {
-                throw new Error('Authentication system not loaded');
-            }
-            return window.SuperSteaksAuth.register(username, email, password);
-        }
-        
-        function loginUser(username, password) {
-            if (!window.SuperSteaksAuth) {
-                throw new Error('Authentication system not loaded');
-            }
-            return window.SuperSteaksAuth.login(username, password);
-        }
-        
-        async function logoutUser() {
-            if (window.superSteaksGlobal) {
-                const result = await window.superSteaksGlobal.signOut();
-                if (result.success) {
-                    console.log('User logged out successfully');
-                    // UI will update automatically via auth state listener
-                } else {
-                    console.error('Logout failed:', result.error);
-                }
-            }
-        }
-        
-        // Initialize authentication when page loads
-        window.addEventListener('load', function() {
-            console.log('Teams page loaded, initializing auth...');
-            
-            if (window.SuperSteaksAuth) {
-                window.SuperSteaksAuth.checkExistingSession();
-                console.log('SuperSteaksAuth initialized on teams page');
-            }
-            
-            // Set up auth event listeners
-            document.getElementById('login-btn').addEventListener('click', () => showAuthModal(false));
-            document.getElementById('register-btn').addEventListener('click', () => showAuthModal(true));
-            document.getElementById('logout-btn').addEventListener('click', logoutUser);
-            
-            // Password Reset Event Listeners
-            document.getElementById('forgot-password-link').addEventListener('click', showResetPasswordModal);
-            document.getElementById('close-reset-modal').addEventListener('click', hideResetPasswordModal);
-            document.getElementById('cancel-reset').addEventListener('click', hideResetPasswordModal);
-            
-            // Password Reset Form Submission
-            document.getElementById('reset-password-form-element').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('reset-email').value;
-                
-                try {
-                    await resetPassword(email);
-                } catch (error) {
-                    console.error('Password reset error:', error);
-                }
-            });
-            
-            // Set up modal close functionality
-            const authModal = document.getElementById('auth-modal');
-            if (authModal) {
-                authModal.addEventListener('click', function(e) {
-                    if (e.target.id === 'auth-modal') {
-                        hideAuthModal();
-                    }
-                });
-            }
-        });
-        
-        // Authentication check for teams page - ALWAYS SHOW TEAMS (no redirect)
-        function checkTeamsAuthentication() {
-            console.log('Loading teams page - authentication check disabled');
-            
-            // Always show teams content (remove redirect entirely)
-            console.log('Showing teams content for all users');
-            document.body.classList.add('authenticated');
-            
-            // Load teams data
-            setTimeout(loadAllTeams, 200);
-        }
-        
-        // Run authentication check immediately and multiple times
-        checkTeamsAuthentication();
-        document.addEventListener('DOMContentLoaded', checkTeamsAuthentication);
-        window.addEventListener('load', checkTeamsAuthentication);
-        
-        // Also check when user account system loads
-        setTimeout(checkTeamsAuthentication, 500);
-        setTimeout(checkTeamsAuthentication, 1000);
-        setTimeout(checkTeamsAuthentication, 2000);
-        
-        // Profile dropdown functionality
-        document.addEventListener('click', function(e) {
-            const dropdownBtn = document.getElementById('profile-dropdown-btn');
-            const dropdown = document.getElementById('profile-dropdown');
-            const logoutBtnDropdown = document.getElementById('logout-btn-dropdown');
-            
-            if (dropdownBtn && e.target === dropdownBtn) {
-                dropdown.classList.toggle('hidden');
-            } else if (dropdown && !dropdown.contains(e.target)) {
-                dropdown.classList.add('hidden');
-            }
-            
-            if (logoutBtnDropdown && e.target === logoutBtnDropdown) {
-                logoutUserHardcoded();
-            }
-        });
-        
-        // Fixed logout functionality
-        function logoutUserHardcoded() {
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('userTeamAssignments');
-            window.location.href = 'index.html';
-        }
     </script>
-    
 
-        </section>
+    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
+        <header class="text-center mt-8 mb-8 sm:mt-12 sm:mb-12">
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">Team <span class="text-yellow-500">Directory</span></h2>
+            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">Browse all the teams available in our current competitions. Find your randomly assigned team and track their performance!</p>
+        </header>
+        <div class="text-left bg-white p-4 sm:p-8 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+
+            <div id="teams-loading" class="text-center py-12">
+                <div class="inline-block">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                    <p class="mt-4 text-indigo-600 font-semibold">Loading teams...</p>
+                </div>
+            </div>
+
+            <div id="teams-list" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Teams will be dynamically loaded here -->
+            </div>
+
+            <div id="teams-empty" class="hidden text-center py-12">
+                <p class="text-gray-600 text-lg">No teams available at this time. Check back soon!</p>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <a href="games.html" class="inline-block bg-yellow-500 text-indigo-800 font-extrabold py-3 px-6 sm:px-8 rounded-full text-base sm:text-lg shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50">
+                Enter a Draw Now
+            </a>
+        </div>
     </main>
 
-    <!-- Footer -->
     <footer class="bg-indigo-900 text-white py-6 mt-12">
         <div class="container mx-auto px-4 text-center text-sm">
-            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests. </p>
+            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests.</p>
         </div>
     </footer>
+
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div id="auth-modal-content" class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]" role="dialog" aria-modal="true">
+            <!-- Modal Close X Button -->
+            <button id="close-modal" aria-label="Close modal" type="button"
+                class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2 z-[1000002]"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email or Username</label>
+                        <input type="text" id="login-username" class="border rounded w-full py-2 px-3" placeholder="Enter your email or username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="login-password" class="border rounded w-full py-2 px-3" placeholder="Enter your password" required />
+                        <div class="text-right mt-2">
+                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:underline">Forgot Password?</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Login</button>
+                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">Need an account?</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="hidden">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Create an Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="register-email" class="border rounded w-full py-2 px-3" placeholder="Enter your email" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="register-username" class="border rounded w-full py-2 px-3" placeholder="Choose a username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="register-password" class="border rounded w-full py-2 px-3" placeholder="Create a password" required />
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Register</button>
+                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">Already have an account?</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Password Reset Modal -->
+    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]">
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6">Reset Password</h2>
+            <form id="reset-password-form-element">
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="reset-email" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="Enter your email address" required>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Send Reset Email</button>
+                    <button type="button" id="cancel-reset" class="text-indigo-600 hover:underline text-sm">Cancel</button>
+                </div>
+            </form>
+            <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
+            <button id="close-reset-modal" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            function closeIfOutside(e) {
+                try {
+                    const authModal = document.getElementById('auth-modal');
+                    if (!authModal || authModal.classList.contains('hidden')) return;
+                    const inner = authModal.querySelector('.modal-inner');
+                    if (!inner) return;
+                    if (!inner.contains(e.target)) {
+                        authModal.classList.add('hidden');
+                        const reset = document.getElementById('reset-password-modal');
+                        if (reset) reset.classList.add('hidden');
+                    }
+                } catch (err) {}
+            }
+            function escHandler(e) {
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    const authModal = document.getElementById('auth-modal');
+                    if (authModal && !authModal.classList.contains('hidden')) authModal.classList.add('hidden');
+                    const reset = document.getElementById('reset-password-modal');
+                    if (reset && !reset.classList.contains('hidden')) reset.classList.add('hidden');
+                }
+            }
+            document.addEventListener('click', closeIfOutside, true);
+            document.addEventListener('keydown', escHandler, true);
+        })();
+    </script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTeams();
+        });
+
+        async function loadTeams() {
+            try {
+                const teamsContainer = document.getElementById('teams-list');
+                const emptyState = document.getElementById('teams-empty');
+                const loadingState = document.getElementById('teams-loading');
+
+                // Simulate a short loading delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // For now, show empty state or add sample teams
+                loadingState.classList.add('hidden');
+
+                // Sample teams for demonstration
+                const sampleTeams = [
+                    { id: 1, name: 'Thunder Hawks', sport: 'Football', wins: 8, losses: 2 },
+                    { id: 2, name: 'Phoenix Rising', sport: 'Cricket', wins: 12, losses: 3 },
+                    { id: 3, name: 'Dragon Force', sport: 'Rugby', wins: 6, losses: 4 },
+                    { id: 4, name: 'Silver Strikers', sport: 'Football', wins: 7, losses: 3 },
+                    { id: 5, name: 'Golden Eagles', sport: 'Cricket', wins: 10, losses: 5 },
+                    { id: 6, name: 'Steel Warriors', sport: 'Rugby', wins: 5, losses: 5 }
+                ];
+
+                if (sampleTeams.length > 0) {
+                    teamsContainer.innerHTML = sampleTeams.map(team => `
+                        <div class="p-4 sm:p-6 bg-indigo-50 rounded-lg shadow-md border-l-4 border-indigo-600 hover:shadow-lg transition">
+                            <h3 class="font-bold text-lg sm:text-xl text-indigo-900 mb-2">${team.name}</h3>
+                            <p class="text-sm text-gray-600 mb-3">🏆 ${team.sport}</p>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-green-600 font-semibold">Wins: ${team.wins}</span>
+                                <span class="text-red-600 font-semibold">Losses: ${team.losses}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    teamsContainer.classList.remove('hidden');
+                } else {
+                    emptyState.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                document.getElementById('teams-loading').classList.add('hidden');
+                document.getElementById('teams-empty').classList.remove('hidden');
+            }
+        }
+    </script>
 </body>
 </html>
