@@ -128,17 +128,6 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-        .logged-out #auth-buttons { display: block !important; }
-        .logged-out #user-info { display: none !important; }
-        .logged-in #auth-buttons { display: none !important; }
-        .logged-in #user-info { display: block !important; }
-        body:not(.auth-ready) #auth-buttons { display: none !important; }
-        body:not(.auth-ready) #user-info { display: none !important; }
-        body:not(.auth-ready) #auth-skeleton { display: block !important; }
-        #user-account-section { min-height: 52px; width: 176px; flex-shrink: 0; }
-        .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
-        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        /* Mobile-specific spacing to match contests/index/template */
         @media (max-width: 639px) {
             header .container {
                 padding-top: 0 !important;
@@ -153,10 +142,47 @@
             .flex.flex-row.items-center.justify-center.sm\:block {
                 margin-bottom: -8px !important;
             }
-            #auth-skeleton { display: none !important; }
-            /* Mobile banner typography/layout to match contests page */
+        }
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+        /* Authentication state management with skeleton loading */
+        .logged-out #auth-buttons { display: block !important; }
+        .logged-out #user-info { display: none !important; }
+        .logged-out #auth-skeleton { display: none !important; }
+        @media (max-width: 639px) {
+            #auth-skeleton {
+                display: none !important;
+            }
+        }
+        .logged-in #auth-buttons { display: none !important; }
+        .logged-in #user-info { display: block !important; }
+        .logged-in #auth-skeleton { display: none !important; }
+        /* Force skeleton loading state initially - override everything */
+        body:not(.auth-ready) #auth-buttons { display: none !important; }
+        body:not(.auth-ready) #user-info { display: none !important; }
+        body:not(.auth-ready) #auth-skeleton { display: block !important; }
+        /* Reserve exact space to prevent layout shift */
+        #user-account-section {
+            min-height: 52px; /* Reserve space for 2 lines + spacing */
+            width: 176px; /* Fixed width to match content */
+            flex-shrink: 0;
+        }
+        /* Skeleton loading animation */
+        .skeleton { 
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        /* Mobile banner typography/layout to match contests page */
+        @media (max-width: 639px) {
+            /* Tighten top banner spacing */
             main .text-center { margin-top: 2rem !important; margin-bottom: 2rem !important; }
+            /* h2 sizing and weight to mirror contests banner */
             main h2:first-of-type { font-size: 1.875rem !important; line-height: 2.25rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; color: #1f2937 !important; }
+            /* paragraph under banner */
             main h2:first-of-type + p { font-size: 1.125rem !important; line-height: 1.75rem !important; color: #4b5563 !important; }
         }
     </style>
