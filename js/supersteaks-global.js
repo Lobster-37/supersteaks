@@ -42,6 +42,7 @@ class SuperSteaksGlobal {
             // Initialize Firebase Auth and Firestore
             this.auth = firebase.auth();
             this.firestore = firebase.firestore();
+            this.functions = firebase.functions();
             // Set up auth state listener with error protection
             try {
                 this.auth.onAuthStateChanged((user) => {
@@ -226,7 +227,7 @@ class SuperSteaksGlobal {
         }
         
         try {
-            // Check if user already has assignment (outside transaction first)
+            // Check if user already has assignment
             const existingAssignment = await this.getUserAssignment(contestName);
             if (existingAssignment) {
                 return { 
@@ -308,6 +309,22 @@ class SuperSteaksGlobal {
             const snapshot = await this.firestore
                 .collection('teamAssignments')
                 .where('userId', '==', this.currentUser.uid)
+                .where('contest', '==', contestName)
+                .limit(1)
+                .get();
+            
+            if (snapshot.empty) return null;
+            
+            return {
+                id: snapshot.docs[0].id,
+                ...snapshot.docs[0].data()
+            };
+            
+        } catch (error) {
+            console.error('Error getting user assignment:', error);
+            return null;
+        }
+    }
                 .where('contest', '==', contestName)
                 .get();
                 

@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthed() { return request.auth != null; }
+    // Pre-approved Champions League teams (must match client list)
+    function allowedTeams() {
+      return [
+        'Ajax','Arsenal','Atalanta','Athletic Club','Atlético Madrid','Barcelona',
+        'Bayer Leverkusen','Bayern München','Benfica','Bodø/Glimt','Borussia Dortmund','Chelsea',
+        'Club Brugge','Copenhagen','Eintracht Frankfurt','Galatasaray','Inter Milan','Juventus',
+        'Kairat Almaty','Liverpool','Manchester City','Marseille','Monaco','Napoli',
+        'Newcastle United','Olympiacos','Paris Saint-Germain','Real Madrid','Slavia Praha','Sporting CP'
+      ];
+    }
+
+    // Team assignments
+    match /teamAssignments/{docId} {
+      // Allow authenticated users to read assignments (client filters to compute availability)
+      allow read: if isAuthed();
+      // Allow creates only from the authenticated user for valid data; block updates/deletes
+      allow create: if isAuthed()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.team in allowedTeams()
+                    && request.resource.data.contest is string
+                    && request.resource.data.assignedAt != null;
+      allow update, delete: if false;
+    }
+
+    // User profiles collection (unchanged)
+    match /users/{userId} {
+      allow read: if isAuthed();
+      allow write: if isAuthed() && request.auth.uid == userId;
+    }
+
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

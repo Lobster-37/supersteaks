@@ -4,6 +4,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-functions-compat.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperSteaks - Team Directory</title>
@@ -232,30 +233,39 @@
     <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
         <header class="text-center mt-8 mb-8 sm:mt-12 sm:mb-12">
             <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">Team <span class="text-yellow-500">Directory</span></h2>
-            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">Browse all the teams available in our current competitions. Find your randomly assigned team and track their performance!</p>
+            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">See all team assignments across SuperSteaks! Find your team and see who else has been assigned the same team.</p>
         </header>
-        <div class="text-left bg-white p-4 sm:p-8 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+        
+        <!-- User Assignments Section -->
+        <div class="text-left bg-white p-4 sm:p-8 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400 mb-12">
+            <h3 class="text-2xl font-bold text-indigo-800 mb-6">All Team Assignments</h3>
 
-            <div id="teams-loading" class="text-center py-12">
+            <div id="assignments-loading" class="text-center py-12">
                 <div class="inline-block">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                    <p class="mt-4 text-indigo-600 font-semibold">Loading teams...</p>
+                    <p class="mt-4 text-indigo-600 font-semibold">Loading assignments...</p>
                 </div>
             </div>
 
-            <div id="teams-list" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Teams will be dynamically loaded here -->
+            <div id="assignments-table-container" class="hidden overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-indigo-100 border-b-2 border-indigo-600">
+                            <th class="px-4 py-3 text-left text-sm sm:text-base font-bold text-indigo-800">Username</th>
+                            <th class="px-4 py-3 text-left text-sm sm:text-base font-bold text-indigo-800">Team</th>
+                            <th class="px-4 py-3 text-left text-sm sm:text-base font-bold text-indigo-800">Contest</th>
+                            <th class="px-4 py-3 text-left text-sm sm:text-base font-bold text-indigo-800">Assigned</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assignments-list">
+                        <!-- Assignments will be loaded here -->
+                    </tbody>
+                </table>
             </div>
 
-            <div id="teams-empty" class="hidden text-center py-12">
-                <p class="text-gray-600 text-lg">No teams available at this time. Check back soon!</p>
+            <div id="assignments-empty" class="hidden text-center py-12">
+                <p class="text-gray-600 text-lg">No assignments yet. Be the first to enter a draw!</p>
             </div>
-        </div>
-
-        <div class="mt-8 text-center">
-            <a href="games.html" class="inline-block bg-yellow-500 text-indigo-800 font-extrabold py-3 px-6 sm:px-8 rounded-full text-base sm:text-lg shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50">
-                Enter a Draw Now
-            </a>
         </div>
     </main>
 
@@ -371,50 +381,66 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            loadTeams();
+            loadAssignments();
         });
 
-        async function loadTeams() {
+        async function loadAssignments() {
             try {
-                const teamsContainer = document.getElementById('teams-list');
-                const emptyState = document.getElementById('teams-empty');
-                const loadingState = document.getElementById('teams-loading');
+                const container = document.getElementById('assignments-table-container');
+                const tbody = document.getElementById('assignments-list');
+                const loadingState = document.getElementById('assignments-loading');
+                const emptyState = document.getElementById('assignments-empty');
 
-                // Simulate a short loading delay
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Wait for supersteaks global to be ready
+                let attempts = 0;
+                while (!window.supersteaks && attempts < 20) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
 
-                // For now, show empty state or add sample teams
+                if (!window.supersteaks) {
+                    throw new Error('SuperSteaks system not ready');
+                }
+
+                // Get all team assignments
+                const assignments = await window.supersteaks.getAllTeamAssignments();
+                
                 loadingState.classList.add('hidden');
 
-                // Sample teams for demonstration
-                const sampleTeams = [
-                    { id: 1, name: 'Thunder Hawks', sport: 'Football', wins: 8, losses: 2 },
-                    { id: 2, name: 'Phoenix Rising', sport: 'Cricket', wins: 12, losses: 3 },
-                    { id: 3, name: 'Dragon Force', sport: 'Rugby', wins: 6, losses: 4 },
-                    { id: 4, name: 'Silver Strikers', sport: 'Football', wins: 7, losses: 3 },
-                    { id: 5, name: 'Golden Eagles', sport: 'Cricket', wins: 10, losses: 5 },
-                    { id: 6, name: 'Steel Warriors', sport: 'Rugby', wins: 5, losses: 5 }
-                ];
+                if (assignments && assignments.length > 0) {
+                    // Sort by assignedAt descending (newest first)
+                    const sorted = assignments.sort((a, b) => {
+                        const dateA = new Date(a.assignedAt);
+                        const dateB = new Date(b.assignedAt);
+                        return dateB - dateA;
+                    });
 
-                if (sampleTeams.length > 0) {
-                    teamsContainer.innerHTML = sampleTeams.map(team => `
-                        <div class="p-4 sm:p-6 bg-indigo-50 rounded-lg shadow-md border-l-4 border-indigo-600 hover:shadow-lg transition">
-                            <h3 class="font-bold text-lg sm:text-xl text-indigo-900 mb-2">${team.name}</h3>
-                            <p class="text-sm text-gray-600 mb-3">🏆 ${team.sport}</p>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-green-600 font-semibold">Wins: ${team.wins}</span>
-                                <span class="text-red-600 font-semibold">Losses: ${team.losses}</span>
-                            </div>
-                        </div>
-                    `).join('');
-                    teamsContainer.classList.remove('hidden');
+                    tbody.innerHTML = sorted.map(assignment => {
+                        const dateStr = new Date(assignment.assignedAt).toLocaleDateString();
+                        const isYourTeam = window.supersteaks.currentUser && 
+                                          assignment.userId === window.supersteaks.currentUser.uid;
+                        const rowClass = isYourTeam ? 'bg-yellow-50 border-l-4 border-yellow-400' : '';
+                        
+                        return `
+                            <tr class="${rowClass} border-b border-gray-200 hover:bg-indigo-50 transition">
+                                <td class="px-4 py-3 text-sm sm:text-base text-gray-800">
+                                    ${assignment.username}${isYourTeam ? ' <span class="text-yellow-600 font-bold text-xs ml-1">(You)</span>' : ''}
+                                </td>
+                                <td class="px-4 py-3 text-sm sm:text-base font-semibold text-indigo-700">${assignment.team}</td>
+                                <td class="px-4 py-3 text-sm sm:text-base text-gray-600">${assignment.contest}</td>
+                                <td class="px-4 py-3 text-xs sm:text-sm text-gray-500">${dateStr}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    container.classList.remove('hidden');
                 } else {
                     emptyState.classList.remove('hidden');
                 }
             } catch (error) {
-                console.error('Error loading teams:', error);
-                document.getElementById('teams-loading').classList.add('hidden');
-                document.getElementById('teams-empty').classList.remove('hidden');
+                console.error('Error loading assignments:', error);
+                document.getElementById('assignments-loading').classList.add('hidden');
+                document.getElementById('assignments-empty').classList.remove('hidden');
             }
         }
     </script>
