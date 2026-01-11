@@ -325,21 +325,6 @@ class SuperSteaksGlobal {
             return null;
         }
     }
-                .where('contest', '==', contestName)
-                .get();
-                
-            if (snapshot.empty) return null;
-            
-            return {
-                id: snapshot.docs[0].id,
-                ...snapshot.docs[0].data()
-            };
-            
-        } catch (error) {
-            console.error('Error getting user assignment:', error);
-            return null;
-        }
-    }
     
     // Helper Methods
     getAvailableTeams(assignedTeams) {
