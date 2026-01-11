@@ -276,6 +276,71 @@
                 document.getElementById('register-form').classList.add('hidden');
             }
         }
+
+        // Enter Draw functionality
+        async function enterDraw() {
+            const enterButton = document.getElementById('enter-button');
+            const assignedTeam = document.getElementById('assigned-team');
+            const messageArea = document.getElementById('message-area');
+            const teamBadge = document.getElementById('team-badge');
+            const teamContainer = document.getElementById('team-container');
+            
+            // Check if user is logged in
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                showAuthModal(false);
+                return;
+            }
+            
+            // Disable button while processing
+            enterButton.disabled = true;
+            enterButton.textContent = 'Assigning Team...';
+            messageArea.textContent = 'Getting your random team assignment...';
+            
+            try {
+                // Call the draw function
+                if (!window.supersteaks) {
+                    throw new Error('SuperSteaks system not initialized');
+                }
+                
+                const result = await window.supersteaks.enterDraw('The League Lottery');
+                
+                if (result.success) {
+                    // Update UI with assigned team
+                    const team = result.team;
+                    assignedTeam.textContent = team.name;
+                    assignedTeam.classList.remove('text-gray-600');
+                    assignedTeam.classList.add('text-green-600');
+                    
+                    // Update message
+                    messageArea.textContent = `🎉 Congratulations! You've been assigned to ${team.name}!`;
+                    messageArea.classList.remove('text-indigo-600');
+                    messageArea.classList.add('text-green-600');
+                    
+                    // Update button state
+                    enterButton.disabled = true;
+                    enterButton.textContent = 'Team Already Assigned!';
+                    enterButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-400');
+                    enterButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                    
+                    // Update container styling
+                    teamContainer.classList.remove('border-yellow-400');
+                    teamContainer.classList.add('border-green-500', 'bg-green-50');
+                } else {
+                    // Handle error
+                    messageArea.textContent = `Error: ${result.error}`;
+                    messageArea.classList.add('text-red-600');
+                    enterButton.disabled = false;
+                    enterButton.textContent = 'Enter Draw Now!';
+                }
+            } catch (error) {
+                console.error('Error in enterDraw:', error);
+                messageArea.textContent = `Error: ${error.message}`;
+                messageArea.classList.add('text-red-600');
+                enterButton.disabled = false;
+                enterButton.textContent = 'Enter Draw Now!';
+            }
+        }
     </script>
 
     <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
