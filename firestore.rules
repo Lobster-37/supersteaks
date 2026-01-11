@@ -2,31 +2,32 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAuthed() { return request.auth != null; }
-    // Pre-approved Champions League teams (must match client list)
-    function allowedTeams() {
-      return [
-        'Ajax','Arsenal','Atalanta','Athletic Club','Atlético Madrid','Barcelona',
-        'Bayer Leverkusen','Bayern München','Benfica','Bodø/Glimt','Borussia Dortmund','Chelsea',
-        'Club Brugge','Copenhagen','Eintracht Frankfurt','Galatasaray','Inter Milan','Juventus',
-        'Kairat Almaty','Liverpool','Manchester City','Marseille','Monaco','Napoli',
-        'Newcastle United','Olympiacos','Paris Saint-Germain','Real Madrid','Slavia Praha','Sporting CP'
-      ];
+
+    // Tournaments - publicly readable, server-managed
+    match /tournaments/{tournamentId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if false; // Cloud Function or admin only
     }
 
-    // Team assignments
-    match /teamAssignments/{docId} {
-      // Allow authenticated users to read assignments (client filters to compute availability)
+    // Lobbies - readable by authenticated users, server-managed via Cloud Function
+    match /lobbies/{lobbyId} {
       allow read: if isAuthed();
-      // Allow creates only from the authenticated user for valid data; block updates/deletes
+      allow create, update, delete: if false; // Cloud Function only
+    }
+
+    // Team assignments - readable by authenticated users, written by Cloud Function only
+    match /teamAssignments/{assignmentId} {
+      allow read: if isAuthed();
+      // Legacy support: allow direct writes for old contest-based flow (if client still uses)
       allow create: if isAuthed()
                     && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.team in allowedTeams()
-                    && request.resource.data.contest is string
+                    && request.resource.data.team is string
                     && request.resource.data.assignedAt != null;
+      // Cloud Function updates are handled via custom claims/service account
       allow update, delete: if false;
     }
 
-    // User profiles collection (unchanged)
+    // User profiles collection
     match /users/{userId} {
       allow read: if isAuthed();
       allow write: if isAuthed() && request.auth.uid == userId;

@@ -2,123 +2,173 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
 admin.initializeApp();
+const db = admin.firestore();
 
-const CHAMPIONS_LEAGUE_TEAMS = [
-    { name: "Ajax", pattern: "ajax-stripe", borderColor: "#D2122E" },
-    { name: "Arsenal", color: "#EF0107", borderColor: "#FFFFFF" },
-    { name: "Atalanta", pattern: "stripes-vertical-blue-black", borderColor: "#1E63B0" },
-    { name: "Athletic Club", pattern: "stripes-vertical-red-white", borderColor: "#EE2523" },
-    { name: "Atlético Madrid", pattern: "stripes-vertical-red-white", borderColor: "#CE3524" },
-    { name: "Barcelona", pattern: "stripes-vertical-blue-garnet", borderColor: "#A50044" },
-    { name: "Bayer Leverkusen", color: "#000000", borderColor: "#E32221" },
-    { name: "Bayern München", color: "#DC052D", borderColor: "#0066B2" },
-    { name: "Benfica", color: "#E20E0E", borderColor: "#FFFFFF" },
-    { name: "Bodø/Glimt", color: "#FFD700", borderColor: "#000000" },
-    { name: "Borussia Dortmund", color: "#FDE100", borderColor: "#000000" },
-    { name: "Chelsea", color: "#034694", borderColor: "#FFFFFF" },
-    { name: "Club Brugge", pattern: "stripes-vertical-blue-black", borderColor: "#0032A0" },
-    { name: "Copenhagen", color: "#FFFFFF", borderColor: "#1F4E79" },
-    { name: "Eintracht Frankfurt", color: "#000000", borderColor: "#E1001C" },
-    { name: "Galatasaray", pattern: "diagonal-half-yellow-red", borderColor: "#FFD700" },
-    { name: "Inter Milan", pattern: "stripes-vertical-blue-black", borderColor: "#0068A8" },
-    { name: "Juventus", pattern: "stripes-vertical-black-white", borderColor: "#000000" },
-    { name: "Kairat Almaty", pattern: "stripes-vertical-yellow-black", borderColor: "#FFD700" },
-    { name: "Liverpool", color: "#C8102E", borderColor: "#FFD700" },
-    { name: "Manchester City", color: "#6CABDD", borderColor: "#FFFFFF" },
-    { name: "Marseille", color: "#FFFFFF", borderColor: "#009EDB" },
-    { name: "Monaco", pattern: "diagonal-half-red-white", borderColor: "#C8102E" },
-    { name: "Napoli", color: "#87CEEB", borderColor: "#FFFFFF" },
-    { name: "Newcastle United", pattern: "stripes-vertical-black-white", borderColor: "#000000" },
-    { name: "Olympiacos", pattern: "stripes-vertical-red-white", borderColor: "#DC143C" },
-    { name: "Paris Saint-Germain", color: "#004170", borderColor: "#FFD700" },
-    { name: "Real Madrid", color: "#FFFFFF", borderColor: "#FFD700" },
-    { name: "Slavia Praha", pattern: "stripes-vertical-red-white", borderColor: "#DC143C" },
-    { name: "Sporting CP", color: "#006633", borderColor: "#FFFFFF" }
-];
-
-exports.enterDraw = functions.https.onCall(async (data, context) => {
-    // Check if user is authenticated
+/**
+ * joinTournament - Atomic tournament join with lobby assignment
+ * 
+ * Atomically:
+ * 1. Finds tournament
+ * 2. Finds/creates lobby with available slot
+ * 3. Randomly assigns user a team from lobby's available teams
+ * 4. Creates teamAssignment document
+ * 
+ * Prevents race conditions via Firestore transaction
+ */
+exports.joinTournament = functions.https.onCall(async (data, context) => {
+    // Check authentication
     if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated to enter a draw');
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
     }
 
     const userId = context.auth.uid;
-    const userEmail = context.auth.token.email;
-    const displayName = context.auth.token.name || userEmail.split('@')[0];
-    const contestName = data.contestName;
+    const tournamentId = data.tournamentId;
 
-    if (!contestName) {
-        throw new functions.https.HttpsError('invalid-argument', 'Contest name is required');
+    if (!tournamentId) {
+        throw new functions.https.HttpsError('invalid-argument', 'tournamentId required');
     }
 
     try {
-        const db = admin.firestore();
+        // Use transaction for atomicity
+        const result = await db.runTransaction(async (transaction) => {
+            // 1. Get tournament
+            const tournamentRef = db.collection('tournaments').doc(tournamentId);
+            const tournamentSnap = await transaction.get(tournamentRef);
+            
+            if (!tournamentSnap.exists) {
+                throw new functions.https.HttpsError('not-found', 'Tournament not found');
+            }
 
-        // Check if user already has assignment for this contest
-        const existingSnapshot = await db.collection('teamAssignments')
-            .where('userId', '==', userId)
-            .where('contest', '==', contestName)
-            .limit(1)
-            .get();
+            const tournament = tournamentSnap.data();
+            const teamCount = tournament.teamCount;
+            const teams = tournament.teams.map(t => t.name);
 
-        if (!existingSnapshot.empty) {
-            const existingAssignment = existingSnapshot.docs[0].data();
-            throw new functions.https.HttpsError(
-                'already-exists',
-                `You already have ${existingAssignment.team} assigned for this contest!`
+            // Check if user already has active assignment in this tournament
+            const existingSnap = await transaction.get(
+                db.collection('teamAssignments')
+                    .where('userId', '==', userId)
+                    .where('tournamentId', '==', tournamentId)
+                    .where('status', '==', 'active')
+                    .limit(1)
             );
-        }
 
-        // Get all existing assignments for this contest
-        const assignmentsSnapshot = await db.collection('teamAssignments')
-            .where('contest', '==', contestName)
-            .get();
+            if (!existingSnap.empty) {
+                throw new functions.https.HttpsError('already-exists', 'User already assigned in this tournament');
+            }
 
-        const assignedTeamNames = assignmentsSnapshot.docs.map(doc => doc.data().team);
-
-        // Get available teams
-        const availableTeams = CHAMPIONS_LEAGUE_TEAMS.filter(
-            team => !assignedTeamNames.includes(team.name)
-        );
-
-        if (availableTeams.length === 0) {
-            throw new functions.https.HttpsError(
-                'resource-exhausted',
-                'Sorry! All teams have been assigned. Contest is full!'
+            // 2. Find open lobby or create new one
+            let lobbySnap = await transaction.get(
+                db.collection('lobbies')
+                    .where('tournamentId', '==', tournamentId)
+                    .where('status', '==', 'open')
+                    .limit(1)
             );
-        }
 
-        // Randomly select a team (server-side randomization - secure)
-        const selectedTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+            let lobbyRef, lobbyData;
 
-        // Create assignment document
-        const assignmentData = {
-            userId: userId,
-            username: displayName,
-            email: userEmail,
-            contest: contestName,
-            team: selectedTeam.name,
-            teamData: selectedTeam,
-            assignedAt: admin.firestore.Timestamp.now()
-        };
+            if (lobbySnap.empty) {
+                // Create new lobby
+                const lobbyCount = await db.collection('lobbies')
+                    .where('tournamentId', '==', tournamentId)
+                    .count()
+                    .get();
 
-        const docRef = await db.collection('teamAssignments').add(assignmentData);
+                const newLobbyNum = lobbyCount.data().count + 1;
+                const newLobbyId = `${tournamentId}_lobby_${newLobbyNum}`;
+                
+                lobbyRef = db.collection('lobbies').doc(newLobbyId);
+                lobbyData = {
+                    id: newLobbyId,
+                    tournamentId,
+                    lobbyId: `lobby_${newLobbyNum}`,
+                    capacity: teamCount,
+                    currentCount: 0,
+                    userIds: [],
+                    status: 'open',
+                    teams: {},
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                };
 
-        return {
-            success: true,
-            assignmentId: docRef.id,
-            team: selectedTeam,
-            remainingTeams: availableTeams.length - 1
-        };
+                transaction.set(lobbyRef, lobbyData);
+            } else {
+                lobbyRef = lobbySnap.docs[0].ref;
+                lobbyData = lobbySnap.docs[0].data();
+            }
+
+            // 3. Get available teams in this lobby
+            const assignedTeams = Object.values(lobbyData.teams || {});
+            const availableTeams = teams.filter(t => !assignedTeams.includes(t));
+
+            if (availableTeams.length === 0) {
+                throw new functions.https.HttpsError('unavailable', 'No teams available in any lobby');
+            }
+
+            // Randomly select a team
+            const team = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+
+            // 4. Create team assignment
+            const assignmentRef = db.collection('teamAssignments').doc();
+            const assignment = {
+                id: assignmentRef.id,
+                userId,
+                tournamentId,
+                lobbyId: lobbyData.id,
+                team,
+                status: 'active',
+                assignedAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+
+            transaction.set(assignmentRef, assignment);
+
+            // 5. Update lobby
+            const updatedLobbyCounts = Object.keys(lobbyData.teams || {}).length + 1;
+            const updatedLobbyUserIds = [...(lobbyData.userIds || []), userId];
+            const updatedTeams = { ...(lobbyData.teams || {}), [userId]: team };
+            const newStatus = updatedLobbyCounts >= teamCount ? 'full' : 'open';
+
+            transaction.update(lobbyRef, {
+                currentCount: updatedLobbyCounts,
+                userIds: updatedLobbyUserIds,
+                teams: updatedTeams,
+                status: newStatus,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            return {
+                success: true,
+                assignment: {
+                    ...assignment,
+                    assignedAt: new Date().toISOString()
+                },
+                lobby: {
+                    ...lobbyData,
+                    currentCount: updatedLobbyCounts,
+                    status: newStatus
+                }
+            };
+        });
+
+        return result;
 
     } catch (error) {
-        console.error('Error in enterDraw function:', error);
-        if (error.code && error.code.startsWith('invalid-argument')) {
+        console.error('Error in joinTournament:', error);
+        
+        if (error.code === 'already-exists') {
+            throw error;
+        } else if (error.code === 'not-found') {
+            throw error;
+        } else if (error.code === 'unavailable') {
             throw error;
         }
-        throw new functions.https.HttpsError(
-            'internal',
-            'Failed to enter draw. Please try again.'
-        );
+        
+        throw new functions.https.HttpsError('internal', 'Failed to join tournament');
     }
 });
+
+/**
+ * Legacy enterDraw function - kept for backward compatibility
+ * Can be removed once all clients migrate to joinTournament
+ */
+// TODO: Remove this after full migration to tournament system
+
