@@ -279,6 +279,50 @@ class SuperSteaksGlobal {
         }
     }
     
+    // Tournament-based team assignment via Cloud Function
+    async joinTournament(tournamentId) {
+        if (!this.currentUser) {
+            return { success: false, error: 'User not authenticated' };
+        }
+        
+        try {
+            // Call Cloud Function to atomically join tournament
+            const joinTournamentFunction = this.functions.httpsCallable('joinTournament');
+            const result = await joinTournamentFunction({
+                tournamentId: tournamentId
+            });
+            
+            if (result.data && result.data.assignment) {
+                return {
+                    success: true,
+                    assignment: result.data.assignment,
+                    lobby: result.data.lobby
+                };
+            } else {
+                return { 
+                    success: false, 
+                    error: result.data?.error || 'Failed to join tournament' 
+                };
+            }
+        } catch (error) {
+            console.error('Error joining tournament:', error);
+            let errorMessage = 'Failed to join tournament. Please try again.';
+            
+            // Handle specific error codes
+            if (error.code === 'unauthenticated') {
+                errorMessage = 'Please log in first';
+            } else if (error.code === 'not-found') {
+                errorMessage = 'Tournament not found';
+            } else if (error.code === 'already-exists') {
+                errorMessage = 'You are already registered for this tournament';
+            } else if (error.code === 'unavailable') {
+                errorMessage = 'No teams available in this tournament';
+            }
+            
+            return { success: false, error: errorMessage };
+        }
+    }
+    
     async getAllTeamAssignments() {
         try {
             const snapshot = await this.firestore

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-functions-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperSteaks - Tournaments</title>
+    <meta name="description" content="Browse and join SuperSteaks tournaments">
+    <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s",
+            authDomain: "supersteaks-240f7.firebaseapp.com",
+            projectId: "supersteaks-240f7",
+            storageBucket: "supersteaks-240f7.appspot.com",
+            messagingSenderId: "325643072121",
+            appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
+        };
+        try {
+            firebase.initializeApp(firebaseConfig);
+            window.firebaseReady = true;
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Ensure only the currently-active nav link is highlighted (match index) */
+        .nav-link { background-color: transparent !important; color: inherit !important; }
+        .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
+        /* Match Tailwind text-yellow-400 (#fbbf24) used in SUPERSTEAKS heading */
+        .nav-link.enter-now { color: #fbbf24 !important; }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        @media (max-width: 639px) {
+            header .container { padding-top: 0 !important; padding-bottom: 0 !important; }
+            header .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
+            nav[aria-label="Main navigation"] { margin-top: -12px !important; }
+            .flex.flex-row.items-center.justify-center.sm\:block { margin-bottom: -8px !important; }
+        }
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+        /* Authentication state management */
+        .logged-out #auth-buttons { display: block !important; }
+        .logged-out #user-info { display: none !important; }
+        .logged-out #auth-skeleton { display: none !important; }
+        @media (max-width: 639px) { #auth-skeleton { display: none !important; } }
+        .logged-in #auth-buttons { display: none !important; }
+        .logged-in #user-info { display: block !important; }
+        .logged-in #auth-skeleton { display: none !important; }
+        body:not(.auth-ready) #auth-buttons { display: none !important; }
+        body:not(.auth-ready) #user-info { display: none !important; }
+        body:not(.auth-ready) #auth-skeleton { display: block !important; }
+        #user-account-section { min-height: 52px; width: 176px; flex-shrink: 0; }
+        .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @media (max-width: 639px) {
+            main .text-center { margin-top: 2rem !important; margin-bottom: 2rem !important; }
+            main h2:first-of-type { font-size: 1.875rem !important; line-height: 2.25rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; color: #1f2937 !important; }
+            main h2:first-of-type + p { font-size: 1.125rem !important; line-height: 1.75rem !important; color: #4b5563 !important; }
+        }
+        .tournament-card { transition: all 0.3s ease; }
+        .tournament-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); }
+        .join-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .lobby-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+        .lobby-fill { height: 100%; background: linear-gradient(90deg, #10b981, #059669); }
+    </style>
+    <script src="js/supersteaks-global.js?v=20241118001"></script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <a href="index.html" class="hidden sm:block">
+        <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-0 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
+    </a>
+    <header class="bg-indigo-800 text-white shadow-xl">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                <div class="text-center sm:text-left">
+                    <div class="flex flex-row items-center justify-center sm:block">
+                        <a href="index.html" class="hover:opacity-80 transition-opacity">
+                            <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="h-12 w-auto mr-2 sm:hidden" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
+                        </a>
+                        <a href="index.html" class="hover:opacity-80 transition-opacity">
+                            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0">SUPERSTEAKS</h1>
+                        </a>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end space-y-3">
+                    <div id="user-account-section">
+                        <div class="hidden sm:block">
+                            <div id="auth-skeleton" class="text-right">
+                                <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
+                                <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                    <div class="skeleton h-6 rounded" style="width: 48px;"></div>
+                                    <div class="skeleton h-6 rounded" style="width: 64px;"></div>
+                                </div>
+                            </div>
+                            <div id="auth-buttons" class="sm:block hidden">
+                                <p class="text-yellow-400 font-semibold text-sm mb-1">Join SuperSteaks Today!</p>
+                                <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                    <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">Login</button>
+                                    <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">Sign Up</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute top-4 right-4 sm:hidden">
+                            <button id="mobile-profile-btn" aria-label="Profile" class="focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.001 9.001 0 0112 15c2.21 0 4.21.805 5.879 2.146M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="user-info" class="text-right hidden">
+                            <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">User</span>!</p>
+                            <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                <div class="relative">
+                                    <button id="profile-dropdown-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">My Profile ▼</button>
+                                    <div id="profile-dropdown" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                        <a href="teams.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">📊 Team Directory</a>
+                                        <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">🚪 Logout</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav aria-label="Main navigation" class="mt-4">
+                <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
+                    <li><a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a></li>
+                    <li><a href="tournaments.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Tournaments</a></li>
+                    <li><a href="teams.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Team Directory</a></li>
+                    <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
+                    <li><a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
+        <header class="text-center mt-8 mb-8 sm:mt-12 sm:mb-12">
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">Available Tournaments</h2>
+            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">Choose a tournament, join a lobby, and get randomly assigned a team!</p>
+        </header>
+
+        <div id="tournaments-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Tournaments will be loaded here -->
+            <div class="col-span-full flex justify-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-indigo-900 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests.</p>
+        </div>
+    </footer>
+
+    <!-- Auth Modal (from other pages) -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div id="auth-modal-content" class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]" role="dialog" aria-modal="true">
+            <button id="close-modal" aria-label="Close modal" type="button"
+                class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2 z-[1000002]"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <div id="login-form">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email or Username</label>
+                        <input type="text" id="login-username" class="border rounded w-full py-2 px-3" placeholder="Enter your email or username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="login-password" class="border rounded w-full py-2 px-3" placeholder="Enter your password" required />
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Login</button>
+                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">Need an account?</button>
+                    </div>
+                </form>
+            </div>
+            <div id="register-form" class="hidden">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Create an Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="register-email" class="border rounded w-full py-2 px-3" placeholder="Enter your email" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="register-username" class="border rounded w-full py-2 px-3" placeholder="Choose a username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="register-password" class="border rounded w-full py-2 px-3" placeholder="Create a password" required />
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Register</button>
+                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">Already have an account?</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tournamentFunctions = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initializeAuthentication();
+            await loadTournaments();
+        });
+
+        function initializeAuthentication() {
+            if (window.superSteaksGlobal) {
+                window.supersteaks = window.superSteaksGlobal;
+                checkCurrentAuthState();
+            } else {
+                const checkSystem = setInterval(() => {
+                    if (window.superSteaksGlobal) {
+                        window.supersteaks = window.superSteaksGlobal;
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
+                    }
+                }, 100);
+                setTimeout(() => {
+                    if (!window.supersteaks) {
+                        showLoggedOutState();
+                        clearInterval(checkSystem);
+                    }
+                }, 200);
+            }
+            setupEventListeners();
+        }
+
+        function checkCurrentAuthState() {
+            try {
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        showLoggedInState(user);
+                    } else {
+                        showLoggedOutState();
+                    }
+                });
+            } catch (error) {
+                showLoggedOutState();
+            }
+        }
+
+        function showLoggedInState(user) {
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-in');
+                document.body.classList.remove('logged-out');
+                const usernameDisplay = document.getElementById('username-display');
+                if (usernameDisplay && user) {
+                    usernameDisplay.textContent = user.displayName || user.email.split('@')[0];
+                }
+            }, 100);
+        }
+
+        function showLoggedOutState() {
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-out');
+                document.body.classList.remove('logged-in');
+            }, 100);
+        }
+
+        function setupEventListeners() {
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
+            const logoutBtn = document.getElementById('logout-btn-dropdown');
+
+            if (loginBtn) loginBtn.addEventListener('click', () => showAuthModal(false));
+            if (registerBtn) registerBtn.addEventListener('click', () => showAuthModal(true));
+            if (profileDropdownBtn) profileDropdownBtn.addEventListener('click', () => profileDropdown?.classList.toggle('hidden'));
+            if (logoutBtn) logoutBtn.addEventListener('click', () => {
+                firebase.auth().signOut().then(() => {
+                    showLoggedOutState();
+                }).catch(err => console.error('Logout error:', err));
+            });
+
+            setupModalControls();
+        }
+
+        function setupModalControls() {
+            const closeBtn = document.getElementById('close-modal');
+            const authModal = document.getElementById('auth-modal');
+            const switchToRegister = document.getElementById('switch-to-register');
+            const switchToLogin = document.getElementById('switch-to-login');
+            const loginForm = document.getElementById('login-form-element');
+            const registerForm = document.getElementById('register-form-element');
+
+            if (closeBtn) closeBtn.addEventListener('click', hideAuthModal);
+            if (switchToRegister) switchToRegister.addEventListener('click', () => {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            });
+            if (switchToLogin) switchToLogin.addEventListener('click', () => {
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+            });
+
+            if (loginForm) loginForm.addEventListener('submit', handleLogin);
+            if (registerForm) registerForm.addEventListener('submit', handleRegister);
+
+            if (authModal) {
+                authModal.addEventListener('click', (e) => {
+                    if (e.target.id === 'auth-modal') hideAuthModal();
+                });
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
+            }
+            window.supersteaks.login(email, password)
+                .then(result => {
+                    if (result.success) {
+                        hideAuthModal();
+                        document.getElementById('login-form-element').reset();
+                    } else {
+                        alert('Login failed: ' + result.error);
+                    }
+                })
+                .catch(error => alert('Login failed: ' + error.message));
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            if (!username || username.length < 3 || username.length > 20) {
+                alert('Username must be 3-20 characters');
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Invalid email');
+                return;
+            }
+            if (password.length < 6) {
+                alert('Password must be 6+ characters');
+                return;
+            }
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
+            }
+            window.supersteaks.register(email, password, username)
+                .then(result => {
+                    if (result.success) {
+                        hideAuthModal();
+                        document.getElementById('register-form-element').reset();
+                    } else {
+                        alert('Registration failed: ' + result.error);
+                    }
+                })
+                .catch(error => alert('Registration failed: ' + error.message));
+        }
+
+        function showAuthModal(showRegister = false) {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            if (showRegister) {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            } else {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('register-form').classList.add('hidden');
+            }
+        }
+
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('login-form-element').reset();
+            document.getElementById('register-form-element').reset();
+        }
+
+        async function loadTournaments() {
+            try {
+                const container = document.getElementById('tournaments-container');
+                const db = firebase.firestore();
+
+                const snapshot = await db.collection('tournaments')
+                    .where('status', '==', 'active')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="col-span-full text-center text-gray-600 py-12">No active tournaments at this time</div>';
+                    return;
+                }
+
+                const tournamentsHtml = await Promise.all(snapshot.docs.map(async (doc) => {
+                    const tournament = doc.data();
+                    const lobbySnap = await db.collection('lobbies')
+                        .where('tournamentId', '==', doc.id)
+                        .where('status', '==', 'open')
+                        .limit(1)
+                        .get();
+
+                    const isLoggedIn = document.body.classList.contains('logged-in');
+                    let buttonText = 'Login to Join';
+                    let joinHandler = 'showAuthModal(false)';
+
+                    if (isLoggedIn) {
+                        buttonText = lobbySnap.empty ? 'Join (New Lobby)' : 'Join';
+                        joinHandler = `joinTournament('${doc.id}')`;
+                    }
+
+                    return `
+                        <div class="tournament-card bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-600">
+                            <h3 class="text-2xl font-bold text-indigo-800 mb-2">${tournament.name}</h3>
+                            <p class="text-gray-600 mb-4">${tournament.description || ''}</p>
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-semibold text-gray-700">Teams: ${tournament.teamCount}</span>
+                                    <span class="text-sm text-indigo-600">${lobbySnap.size} open lobby</span>
+                                </div>
+                                ${lobbySnap.size > 0 ? `
+                                    <div class="lobby-bar">
+                                        <div class="lobby-fill" style="width: ${(lobbySnap.docs[0].data().currentCount / tournament.teamCount) * 100}%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mt-1">${lobbySnap.docs[0].data().currentCount}/${tournament.teamCount} players</p>
+                                ` : '<p class="text-xs text-gray-600 mt-1">Next lobby will be created when you join</p>'}
+                            </div>
+                            <button onclick="${joinHandler}" class="join-btn w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition ${!isLoggedIn ? 'cursor-pointer' : ''}">${buttonText}</button>
+                        </div>
+                    `;
+                }));
+
+                container.innerHTML = tournamentsHtml.join('');
+            } catch (error) {
+                console.error('Error loading tournaments:', error);
+                document.getElementById('tournaments-container').innerHTML = '<div class="col-span-full text-center text-red-600 py-12">Error loading tournaments</div>';
+            }
+        }
+
+        async function joinTournament(tournamentId) {
+            try {
+                if (!window.supersteaks) {
+                    alert('System not ready. Please try again.');
+                    return;
+                }
+
+                const result = await window.supersteaks.joinTournament(tournamentId);
+                if (result.success) {
+                    alert(`🎉 Joined! Your team: ${result.assignment.team}`);
+                    // Optionally redirect to lobby view
+                    window.location.href = `lobby.html?tournamentId=${tournamentId}&lobbyId=${result.lobby.id}`;
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error joining tournament:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>
