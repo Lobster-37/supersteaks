@@ -210,6 +210,18 @@
                 return;
             }
 
+            // Wait for authentication to be ready
+            await new Promise((resolve) => {
+                const checkAuth = () => {
+                    if (firebase.auth().currentUser) {
+                        resolve();
+                    } else {
+                        setTimeout(checkAuth, 100);
+                    }
+                };
+                checkAuth();
+            });
+
             try {
                 db = firebase.firestore();
                 await loadLobbyData();
