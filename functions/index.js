@@ -41,15 +41,22 @@ exports.joinTournament = functions.https.onCall(async (data, context) => {
 
             const tournament = tournamentSnap.data();
             const teamCount = tournament.teamCount;
-            const teams = tournament.teams.map(t => t.name);
+            
+            // All available teams (same list used in supersteaks-global.js)
+            const allTeams = [
+                "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton", "Chelsea", "Crystal Palace",
+                "Everton", "Fulham", "Ipswich Town", "Leicester City", "Liverpool", "Manchester City",
+                "Manchester United", "Newcastle United", "Nottingham Forest", "Southampton", "Tottenham",
+                "West Ham", "Wolverhampton", "AC Milan", "Atalanta", "Bologna", "Como", "Fiorentina",
+                "Genoa", "Inter Milan", "Juventus", "Kairat Almaty", "Napoli", "Olympiacos", "Paris Saint-Germain",
+                "Real Madrid", "Slavia Praha", "Sporting CP"
+            ];
 
             // Check if user already has active assignment in this tournament
             const existingSnap = await transaction.get(
                 db.collection('teamAssignments')
                     .where('userId', '==', userId)
                     .where('tournamentId', '==', tournamentId)
-                    .where('status', '==', 'active')
-                    .limit(1)
             );
 
             if (!existingSnap.empty) {
@@ -98,7 +105,7 @@ exports.joinTournament = functions.https.onCall(async (data, context) => {
 
             // 3. Get available teams in this lobby
             const assignedTeams = Object.values(lobbyData.teams || {});
-            const availableTeams = teams.filter(t => !assignedTeams.includes(t));
+            const availableTeams = allTeams.filter(t => !assignedTeams.includes(t)).slice(0, teamCount);
 
             if (availableTeams.length === 0) {
                 throw new functions.https.HttpsError('unavailable', 'No teams available in any lobby');
