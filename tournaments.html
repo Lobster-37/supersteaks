@@ -213,10 +213,24 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             initializeAuthentication();
-            // Wait a bit for auth state to be established
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Wait for auth state to be ready
+            await waitForAuth();
             await loadTournaments();
         });
+
+        function waitForAuth() {
+            return new Promise((resolve) => {
+                const unsubscribe = firebase.auth().onAuthStateChanged(() => {
+                    unsubscribe();
+                    resolve();
+                });
+                // Fallback timeout in case auth never fires
+                setTimeout(() => {
+                    unsubscribe();
+                    resolve();
+                }, 2000);
+            });
+        }
 
         function initializeAuthentication() {
             if (window.superSteaksGlobal) {
