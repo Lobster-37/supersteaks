@@ -420,19 +420,24 @@
 
                     if (isLoggedIn && user) {
                         // Check if user is already in this tournament
+                        console.log('Checking tournament:', tournament.name, 'tournamentId:', doc.id, 'userId:', user.uid);
                         const userAssignment = await db.collection('teamAssignments')
                             .where('userId', '==', user.uid)
                             .where('tournamentId', '==', doc.id)
                             .get();
 
+                        console.log('Assignment query result:', userAssignment.size, 'docs found');
+                        
                         if (!userAssignment.empty) {
                             // User already joined - show View Teams button
                             buttonText = 'View Tournament Teams';
                             const assignment = userAssignment.docs[0].data();
+                            console.log('Found assignment:', assignment);
                             joinHandler = `viewTournamentLobby('${doc.id}', '${assignment.lobbyId}')`;
                             buttonClass = 'bg-green-600 hover:bg-green-700';
                         } else {
                             // User hasn't joined yet
+                            console.log('No assignment found - showing Join button');
                             buttonText = lobbySnap.empty ? 'Join (New Lobby)' : 'Join';
                             joinHandler = `joinTournament('${doc.id}')`;
                             buttonClass = 'bg-indigo-600 hover:bg-indigo-700';
