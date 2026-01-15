@@ -74,11 +74,13 @@ const tournaments = [
 
 const ADMIN_SECRET = 'supersteaks-admin-2026';
 const FUNCTION_URL = 'https://us-central1-supersteaks-240f7.cloudfunctions.net/addTournamentsAdmin';
+// Reverse order so newest created docs appear in desired sequence
+const orderedTournaments = [...tournaments].reverse();
 
-function callFunction(data) {
+function callFunction(data, action = 'refresh') {
     return new Promise((resolve, reject) => {
         const payload = JSON.stringify({
-            action: 'refresh',
+            action: action,
             tournaments: data
         });
 
@@ -117,16 +119,24 @@ function callFunction(data) {
 }
 
 async function main() {
+    console.log('🗑️ Cleaning up old tournaments...\n');
+    
     console.log('🚀 Adding tournaments...\n');
     
-    tournaments.forEach(t => {
+        orderedTournaments.forEach(t => {
         console.log(`  • ${t.name} (${t.teamCount} teams)`);
     });
 
     console.log('\n⏳ Sending to Cloud Function...\n');
 
     try {
-        const result = await callFunction(tournaments);
+        // First, delete all existing tournaments
+        const deleteResult = await callFunction([], 'deleteAll');
+        console.log('✅ Cleanup complete: ' + deleteResult.message);
+        
+        // Then add the new tournaments
+        console.log('\n🚀 Adding new tournaments...\n');
+        const result = await callFunction(orderedTournaments);
         console.log('✅ Success!');
         console.log(`   ${result.message}`);
         console.log(`   Added ${result.count} tournaments\n`);

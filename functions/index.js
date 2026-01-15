@@ -281,16 +281,25 @@ exports.addTournamentsAdmin = functions.https.onRequest(async (req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { action, tournaments } = req.body;
+    const { action } = req.body;
+    const tournaments = req.body.tournaments || [];
 
-    if (!action || !tournaments) {
-        return res.status(400).json({ error: 'Missing action or tournaments' });
+    if (!action) {
+        return res.status(400).json({ error: 'Missing action' });
     }
 
     try {
-        if (action === 'refresh') {
+        if (action === 'deleteAll') {
             const batch = db.batch();
-            const toDelete = ["FIFA World Cup 2026", "UEFA Europa League 2025-26", "La Liga 2025-26", "Copa Libertadores 2026", "Ligue 1 2025-26", "Ligue 2 2025-26", "Ligue 1 2025-26", "Ligue 2 2025-26"];
+            const snapshot = await db.collection('tournaments').get();
+            for (const doc of snapshot.docs) {
+                batch.delete(doc.ref);
+            }
+            await batch.commit();
+            return res.status(200).json({ message: 'All tournaments deleted successfully' });
+        } else if (action === 'refresh') {
+            const batch = db.batch();
+            const toDelete = ["FIFA World Cup 2026", "UEFA Europa League 2025-26", "La Liga 2025-26", "Copa Libertadores 2026", "Ligue 1 2025-26", "Ligue 2 2025-26"];
             const snapshot = await db.collection('tournaments').get();
             
             for (const doc of snapshot.docs) {
@@ -311,6 +320,46 @@ exports.addTournamentsAdmin = functions.https.onRequest(async (req, res) => {
 
             await batch.commit();
             return res.json({ success: true, message: `Added ${tournaments.length} tournaments`, count: tournaments.length });
+        } else if (action === 'migrateChampionsOrphans') {
+            // Move any orphaned lobbies/teamAssignments (with tournamentIds not in current tournaments)
+            // to the current Champions League tournament
+            const tournamentsSnap = await db.collection('tournaments').get();
+            const validIds = new Set(tournamentsSnap.docs.map(d => d.id));
+            const championsDoc = tournamentsSnap.docs.find(d => (d.data().name || '').includes('UEFA Champions League'));
+
+            if (!championsDoc) {
+                return res.status(404).json({ error: 'No Champions League tournament found to attach orphans' });
+            }
+
+            const championsId = championsDoc.id;
+
+            const assignmentsSnap = await db.collection('teamAssignments').get();
+            const lobbiesSnap = await db.collection('lobbies').get();
+
+            const orphanAssignments = assignmentsSnap.docs.filter(doc => !validIds.has(doc.data().tournamentId));
+            const orphanLobbies = lobbiesSnap.docs.filter(doc => !validIds.has(doc.data().tournamentId));
+
+            // Batch updates (chunk to avoid 500 limit)
+            const updates = [];
+            for (const doc of orphanAssignments) {
+                updates.push({ ref: doc.ref, data: { tournamentId: championsId } });
+            }
+            for (const doc of orphanLobbies) {
+                updates.push({ ref: doc.ref, data: { tournamentId: championsId } });
+            }
+
+            // Commit in chunks of 400
+            let updated = 0;
+            for (let i = 0; i < updates.length; i += 400) {
+                const batch = db.batch();
+                for (const item of updates.slice(i, i + 400)) {
+                    batch.update(item.ref, item.data);
+                }
+                await batch.commit();
+                updated += Math.min(400, updates.length - i);
+            }
+
+            return res.json({ success: true, message: 'Orphans migrated to Champions League', assignments: orphanAssignments.length, lobbies: orphanLobbies.length, updated });
         }
 
         return res.status(400).json({ error: 'Invalid action' });
@@ -319,6 +368,85 @@ exports.addTournamentsAdmin = functions.https.onRequest(async (req, res) => {
         console.error('Error in addTournamentsAdmin:', error);
         return res.status(500).json({ error: error.message });
     }
+});
+
+/**
+ * Daily backup function - exports critical collections to Cloud Storage
+ * Runs daily at 2 AM UTC
+ */
+exports.dailyBackup = functions.pubsub.schedule('0 2 * * *').timeZone('UTC').onRun(async (context) => {
+    const timestamp = new Date().toISOString().split('T')[0];
+    const collections = ['tournaments', 'teamAssignments', 'lobbies', 'users'];
+    
+    const backups = {};
+    
+    for (const collectionName of collections) {
+        const snapshot = await db.collection(collectionName).get();
+        backups[collectionName] = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    }
+    
+    // Store in Firestore backups collection (you could also use Cloud Storage)
+    await db.collection('backups').doc(`backup_${timestamp}`).set({
+        timestamp: admin.firestore.Timestamp.now(),
+        date: timestamp,
+        collections: backups,
+        counts: {
+            tournaments: backups.tournaments.length,
+            teamAssignments: backups.teamAssignments.length,
+            lobbies: backups.lobbies.length,
+            users: backups.users.length
+        }
+    });
+    
+    console.log(`✅ Backup created for ${timestamp}`);
+    return null;
+});
+
+/**
+ * Manual backup trigger - HTTP endpoint
+ */
+exports.createBackup = functions.https.onRequest(async (req, res) => {
+    const adminSecret = req.headers['x-admin-secret'];
+    
+    if (adminSecret !== 'supersteaks-admin-2026') {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    const timestamp = new Date().toISOString();
+    const collections = ['tournaments', 'teamAssignments', 'lobbies', 'users'];
+    
+    const backups = {};
+    
+    for (const collectionName of collections) {
+        const snapshot = await db.collection(collectionName).get();
+        backups[collectionName] = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    }
+    
+    const backupDoc = `backup_${timestamp}`;
+    await db.collection('backups').doc(backupDoc).set({
+        timestamp: admin.firestore.Timestamp.now(),
+        date: timestamp,
+        collections: backups,
+        counts: {
+            tournaments: backups.tournaments.length,
+            teamAssignments: backups.teamAssignments.length,
+            lobbies: backups.lobbies.length,
+            users: backups.users.length
+        }
+    });
+    
+    return res.json({ 
+        success: true, 
+        message: 'Backup created',
+        backupId: backupDoc,
+        counts: backups
+    });
 });
 
 /** * Legacy enterDraw function - kept for backward compatibility

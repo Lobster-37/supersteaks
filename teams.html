@@ -478,8 +478,36 @@
                 const db = firebase.firestore();
                 const hasData = { tournament: false, classic: false };
 
-                // Load tournament assignments (new model)
+                // Load tournament assignments (new model) - ONLY show lobbies user is in
                 try {
+                    const currentUserId = window.supersteaks?.currentUser?.uid;
+                    
+                    if (!currentUserId) {
+                        // Not logged in - show nothing
+                        throw new Error('Not authenticated');
+                    }
+
+                    // Get user's lobbies first
+                    const userAssignments = await db.collection('teamAssignments')
+                        .where('userId', '==', currentUserId)
+                        .get();
+
+                    if (userAssignments.empty) {
+                        throw new Error('No user assignments found');
+                    }
+
+                    // Extract lobby IDs user is in
+                    const userLobbyIds = new Set();
+                    userAssignments.docs.forEach(doc => {
+                        const lobbyId = doc.data().lobbyId;
+                        if (lobbyId) userLobbyIds.add(lobbyId);
+                    });
+
+                    if (userLobbyIds.size === 0) {
+                        throw new Error('No lobbies found');
+                    }
+
+                    // Now fetch ONLY assignments from those lobbies
                     const tournamentAssignments = await db.collection('teamAssignments')
                         .where('tournamentId', '!=', null)
                         .orderBy('tournamentId')
@@ -489,10 +517,16 @@
                     if (!tournamentAssignments.empty) {
                         hasData.tournament = true;
                         
-                        // Group by tournament and lobby
+                        // Group by tournament and lobby - FILTER to only user's lobbies
                         const groupedByTournament = {};
                         tournamentAssignments.docs.forEach(doc => {
                             const assignment = doc.data();
+                            
+                            // SECURITY: Only show if in same lobby as user
+                            if (!userLobbyIds.has(assignment.lobbyId)) {
+                                return; // Skip this assignment
+                            }
+                            
                             if (!groupedByTournament[assignment.tournamentId]) {
                                 groupedByTournament[assignment.tournamentId] = {};
                             }
