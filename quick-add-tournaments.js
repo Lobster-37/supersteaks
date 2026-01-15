@@ -77,7 +77,7 @@ const FUNCTION_URL = 'https://us-central1-supersteaks-240f7.cloudfunctions.net/a
 // Reverse order so newest created docs appear in desired sequence
 const orderedTournaments = [...tournaments].reverse();
 
-function callFunction(data, action = 'refresh') {
+function callFunction(data, action = 'updateTeams') {
     return new Promise((resolve, reject) => {
         const payload = JSON.stringify({
             action: action,
@@ -119,27 +119,22 @@ function callFunction(data, action = 'refresh') {
 }
 
 async function main() {
-    console.log('🗑️ Cleaning up old tournaments...\n');
+    console.log('� Updating tournament rosters (preserving user assignments)...\n');
     
-    console.log('🚀 Adding tournaments...\n');
+    console.log('📋 Tournaments:\n');
     
-        orderedTournaments.forEach(t => {
+    orderedTournaments.forEach(t => {
         console.log(`  • ${t.name} (${t.teamCount} teams)`);
     });
 
     console.log('\n⏳ Sending to Cloud Function...\n');
 
     try {
-        // First, delete all existing tournaments
-        const deleteResult = await callFunction([], 'deleteAll');
-        console.log('✅ Cleanup complete: ' + deleteResult.message);
-        
-        // Then add the new tournaments
-        console.log('\n🚀 Adding new tournaments...\n');
-        const result = await callFunction(orderedTournaments);
+        // Use updateTeams to safely update rosters WITHOUT deleting tournaments or losing user assignments
+        const result = await callFunction(orderedTournaments, 'updateTeams');
         console.log('✅ Success!');
         console.log(`   ${result.message}`);
-        console.log(`   Added ${result.count} tournaments\n`);
+        console.log(`   Updated: ${result.updated} | Created: ${result.created}\n`);
         process.exit(0);
     } catch (error) {
         console.error('❌ Error:', error.message);

@@ -297,6 +297,47 @@ exports.addTournamentsAdmin = functions.https.onRequest(async (req, res) => {
             }
             await batch.commit();
             return res.status(200).json({ message: 'All tournaments deleted successfully' });
+        } else if (action === 'updateTeams') {
+            // Safely update team rosters WITHOUT changing tournament IDs or deleting tournaments
+            // Maps tournaments by name and updates their team lists
+            const batch = db.batch();
+            const snapshot = await db.collection('tournaments').get();
+            
+            const tournamentMap = new Map();
+            snapshot.docs.forEach(doc => {
+                tournamentMap.set(doc.data().name, { id: doc.id, ref: doc.ref });
+            });
+
+            let updated = 0;
+            for (const tournament of tournaments) {
+                const existing = tournamentMap.get(tournament.name);
+                if (existing) {
+                    // Update existing tournament with new team data
+                    batch.update(existing.ref, {
+                        teams: tournament.teams,
+                        teamCount: tournament.teamCount,
+                        description: tournament.description,
+                        updatedAt: admin.firestore.Timestamp.now()
+                    });
+                    updated++;
+                } else {
+                    // Tournament doesn't exist, create it
+                    batch.set(db.collection('tournaments').doc(), {
+                        ...tournament,
+                        createdAt: admin.firestore.Timestamp.now(),
+                        createdBy: 'admin',
+                        status: 'active'
+                    });
+                }
+            }
+
+            await batch.commit();
+            return res.json({ 
+                success: true, 
+                message: `Updated ${updated} tournaments, created ${tournaments.length - updated} new ones`,
+                updated,
+                created: tournaments.length - updated
+            });
         } else if (action === 'refresh') {
             const batch = db.batch();
             const toDelete = ["FIFA World Cup 2026", "UEFA Europa League 2025-26", "La Liga 2025-26", "Copa Libertadores 2026", "Ligue 1 2025-26", "Ligue 2 2025-26"];
