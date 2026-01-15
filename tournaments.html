@@ -425,7 +425,7 @@
 
                         if (!userAssignment.empty) {
                             // User already joined - show View Teams button
-                            buttonText = 'View My Team';
+                            buttonText = 'View Tournament Teams';
                             const assignment = userAssignment.docs[0].data();
                             joinHandler = `viewTournamentLobby('${doc.id}', '${assignment.lobbyId}')`;
                             buttonClass = 'bg-green-600 hover:bg-green-700';
