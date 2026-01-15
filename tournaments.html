@@ -391,6 +391,7 @@
             try {
                 const container = document.getElementById('tournaments-container');
                 const db = firebase.firestore();
+                const user = firebase.auth().currentUser;
 
                 const snapshot = await db.collection('tournaments')
                     .where('status', '==', 'active')
@@ -413,10 +414,27 @@
                     const isLoggedIn = document.body.classList.contains('logged-in');
                     let buttonText = 'Login to Join';
                     let joinHandler = 'showAuthModal(false)';
+                    let buttonClass = '';
 
-                    if (isLoggedIn) {
-                        buttonText = lobbySnap.empty ? 'Join (New Lobby)' : 'Join';
-                        joinHandler = `joinTournament('${doc.id}')`;
+                    if (isLoggedIn && user) {
+                        // Check if user is already in this tournament
+                        const userAssignment = await db.collection('teamAssignments')
+                            .where('userId', '==', user.uid)
+                            .where('tournamentId', '==', doc.id)
+                            .get();
+
+                        if (!userAssignment.empty) {
+                            // User already joined - show View Teams button
+                            buttonText = 'View My Team';
+                            const assignment = userAssignment.docs[0].data();
+                            joinHandler = `viewTournamentLobby('${doc.id}', '${assignment.lobbyId}')`;
+                            buttonClass = 'bg-green-600 hover:bg-green-700';
+                        } else {
+                            // User hasn't joined yet
+                            buttonText = lobbySnap.empty ? 'Join (New Lobby)' : 'Join';
+                            joinHandler = `joinTournament('${doc.id}')`;
+                            buttonClass = 'bg-indigo-600 hover:bg-indigo-700';
+                        }
                     }
 
                     return `
@@ -435,7 +453,7 @@
                                     <p class="text-xs text-gray-600 mt-1">${lobbySnap.docs[0].data().currentCount}/${tournament.teamCount} players</p>
                                 ` : '<p class="text-xs text-gray-600 mt-1">Next lobby will be created when you join</p>'}
                             </div>
-                            <button onclick="${joinHandler}" class="join-btn w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition ${!isLoggedIn ? 'cursor-pointer' : ''}">${buttonText}</button>
+                            <button onclick="${joinHandler}" class="join-btn w-full ${buttonClass} text-white font-semibold py-2 px-4 rounded-lg transition ${!isLoggedIn ? 'bg-gray-400 cursor-pointer' : ''}">${buttonText}</button>
                         </div>
                     `;
                 }));
@@ -445,6 +463,11 @@
                 console.error('Error loading tournaments:', error);
                 document.getElementById('tournaments-container').innerHTML = '<div class="col-span-full text-center text-red-600 py-12">Error loading tournaments</div>';
             }
+        }
+
+        function viewTournamentLobby(tournamentId, lobbyId) {
+            // Navigate to lobby page with tournament and lobby ID
+            window.location.href = `lobby.html?tournamentId=${tournamentId}&lobbyId=${lobbyId}`;
         }
 
         async function joinTournament(tournamentId) {
