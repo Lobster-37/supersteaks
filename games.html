@@ -331,7 +331,7 @@
                     throw new Error('SuperSteaks system not initialized');
                 }
                 
-                const result = await window.supersteaks.enterDraw('The League Lottery');
+                const result = await window.supersteaks.joinTournament('UEFA Champions League 2025-26');
                 
                 if (result.success) {
                     // Update UI with assigned team
