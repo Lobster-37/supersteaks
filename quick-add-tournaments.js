@@ -11,16 +11,15 @@ const tournaments = [
     {
         name: "UEFA Champions League 2025-26",
         description: "Europe's elite club competition - the best of the best",
-        teamCount: 32,
+        teamCount: 36,
         teams: [
-            "Real Madrid", "Barcelona", "Atletico Madrid", "Sevilla",
-            "Manchester City", "Manchester United", "Liverpool", "Arsenal", "Chelsea", "Tottenham",
-            "Inter Milan", "AC Milan", "Juventus", "Roma", "Napoli",
-            "Bayern Munich", "Borussia Dortmund", "RB Leipzig", "Leverkusen",
-            "Paris Saint-Germain", "AS Monaco", "Marseille",
-            "Benfica", "Porto", "Sporting Lisbon",
-            "Ajax", "PSV Eindhoven",
-            "Galatasaray", "Fiorentina", "Shakhtar Donetsk", "Sheriff Tiraspol"
+            "Arsenal", "Bayern Munich", "Paris Saint-Germain", "Manchester City", "Atalanta",
+            "Inter Milan", "Real Madrid", "Atletico Madrid", "Liverpool", "Borussia Dortmund",
+            "Tottenham Hotspur", "Newcastle United", "Chelsea", "Sporting CP", "Barcelona",
+            "Marseille", "Juventus", "Galatasaray", "Napoli", "Copenhagen",
+            "Benfica", "Pafos", "Union Saint-Gilloise", "Bayer Leverkusen", "AC Milan",
+            "Monaco", "Eintracht Frankfurt", "Club Brugge", "Bodoe Glimt", "Slavia Prague",
+            "Ajax", "Villarreal", "Qarabag", "Kairat", "Athletic Bilbao", "Olympiacos"
         ]
     },
     {
