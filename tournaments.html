@@ -213,6 +213,8 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             initializeAuthentication();
+            // Wait a bit for auth state to be established
+            await new Promise(resolve => setTimeout(resolve, 500));
             await loadTournaments();
         });
 
@@ -392,6 +394,7 @@
                 const container = document.getElementById('tournaments-container');
                 const db = firebase.firestore();
                 const user = firebase.auth().currentUser;
+                const isLoggedIn = !!user;
 
                 const snapshot = await db.collection('tournaments')
                     .where('status', '==', 'active')
@@ -411,10 +414,9 @@
                         .limit(1)
                         .get();
 
-                    const isLoggedIn = document.body.classList.contains('logged-in');
                     let buttonText = 'Login to Join';
                     let joinHandler = 'showAuthModal(false)';
-                    let buttonClass = '';
+                    let buttonClass = 'bg-indigo-600 hover:bg-indigo-700';
 
                     if (isLoggedIn && user) {
                         // Check if user is already in this tournament
@@ -453,7 +455,7 @@
                                     <p class="text-xs text-gray-600 mt-1">${lobbySnap.docs[0].data().currentCount}/${tournament.teamCount} players</p>
                                 ` : '<p class="text-xs text-gray-600 mt-1">Next lobby will be created when you join</p>'}
                             </div>
-                            <button onclick="${joinHandler}" class="join-btn w-full ${buttonClass} text-white font-semibold py-2 px-4 rounded-lg transition ${!isLoggedIn ? 'bg-gray-400 cursor-pointer' : ''}">${buttonText}</button>
+                            <button onclick="${joinHandler}" class="join-btn w-full ${buttonClass} text-white font-semibold py-2 px-4 rounded-lg transition">${buttonText}</button>
                         </div>
                     `;
                 }));
