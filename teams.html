@@ -574,11 +574,50 @@
 
                 // Load classic contest assignments (legacy model)
                 try {
-                    const assignments = await window.supersteaks.getAllTeamAssignments();
+                    const allAssignments = await db.collection('teamAssignments').get();
                     
-                    if (assignments && assignments.length > 0) {
+                    // Fetch all tournaments to map IDs to names
+                    const tournamentsSnap = await db.collection('tournaments').get();
+                    const tournamentMap = {};
+                    tournamentsSnap.docs.forEach(doc => {
+                        tournamentMap[doc.id] = doc.data().name;
+                    });
+                    
+                    // Fetch usernames for all assignments
+                    const assignmentsWithDetails = [];
+                    for (const doc of allAssignments.docs) {
+                        const assignment = doc.data();
+                        
+                        // Get username
+                        let username = assignment.username || 'Unknown User';
+                        if (!assignment.username && assignment.userId) {
+                            try {
+                                const userDoc = await db.collection('users').doc(assignment.userId).get();
+                                if (userDoc.exists) {
+                                    username = userDoc.data().displayName || userDoc.data().username || 'Unknown User';
+                                }
+                            } catch (e) {
+                                username = assignment.userId.substring(0, 8);
+                            }
+                        }
+                        
+                        // Get contest/tournament name
+                        let contestName = assignment.contest || 'Unknown Contest';
+                        if (assignment.tournamentId && tournamentMap[assignment.tournamentId]) {
+                            contestName = tournamentMap[assignment.tournamentId];
+                        }
+                        
+                        assignmentsWithDetails.push({
+                            ...assignment,
+                            username,
+                            contest: contestName,
+                            assignedAt: assignment.assignedAt || new Date().toISOString()
+                        });
+                    }
+                    
+                    if (assignmentsWithDetails.length > 0) {
                         hasData.classic = true;
-                        const sorted = assignments.sort((a, b) => {
+                        const sorted = assignmentsWithDetails.sort((a, b) => {
                             const dateA = new Date(a.assignedAt);
                             const dateB = new Date(b.assignedAt);
                             return dateB - dateA;
