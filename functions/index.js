@@ -360,6 +360,43 @@ exports.addTournamentsAdmin = functions.https.onRequest(async (req, res) => {
             }
 
             return res.json({ success: true, message: 'Orphans migrated to Champions League', assignments: orphanAssignments.length, lobbies: orphanLobbies.length, updated });
+        } else if (action === 'cleanupDuplicates') {
+            // Remove duplicate assignments - keep only the most recent per user per tournament
+            const assignmentsSnap = await db.collection('teamAssignments').get();
+            
+            // Group by userId + tournamentId
+            const grouped = {};
+            assignmentsSnap.docs.forEach(doc => {
+                const data = doc.data();
+                const key = `${data.userId}_${data.tournamentId}`;
+                if (!grouped[key]) {
+                    grouped[key] = [];
+                }
+                grouped[key].push({ id: doc.id, ...data });
+            });
+            
+            // For each group with duplicates, keep newest and delete rest
+            let deleted = 0;
+            const batch = db.batch();
+            for (const [key, assignments] of Object.entries(grouped)) {
+                if (assignments.length > 1) {
+                    // Sort by assignedAt descending (newest first)
+                    assignments.sort((a, b) => {
+                        const dateA = a.assignedAt?.toDate?.() || new Date(a.assignedAt);
+                        const dateB = b.assignedAt?.toDate?.() || new Date(b.assignedAt);
+                        return dateB - dateA;
+                    });
+                    
+                    // Delete all except the first (newest)
+                    for (let i = 1; i < assignments.length; i++) {
+                        batch.delete(db.collection('teamAssignments').doc(assignments[i].id));
+                        deleted++;
+                    }
+                }
+            }
+            
+            await batch.commit();
+            return res.json({ success: true, message: 'Duplicate assignments cleaned up', deleted });
         }
 
         return res.status(400).json({ error: 'Invalid action' });
