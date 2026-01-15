@@ -42,15 +42,17 @@ exports.joinTournament = functions.https.onCall(async (data, context) => {
             const tournament = tournamentSnap.data();
             const teamCount = tournament.teamCount;
             
-            // All available teams (same list used in supersteaks-global.js)
-            const allTeams = [
-                "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton", "Chelsea", "Crystal Palace",
-                "Everton", "Fulham", "Ipswich Town", "Leicester City", "Liverpool", "Manchester City",
-                "Manchester United", "Newcastle United", "Nottingham Forest", "Southampton", "Tottenham",
-                "West Ham", "Wolverhampton", "AC Milan", "Atalanta", "Bologna", "Como", "Fiorentina",
-                "Genoa", "Inter Milan", "Juventus", "Kairat Almaty", "Napoli", "Olympiacos", "Paris Saint-Germain",
-                "Real Madrid", "Slavia Praha", "Sporting CP"
-            ];
+            // Use tournament-specific teams if available, otherwise use default list
+            const allTeams = tournament.teams && tournament.teams.length > 0 
+                ? tournament.teams 
+                : [
+                    "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton", "Chelsea", "Crystal Palace",
+                    "Everton", "Fulham", "Ipswich Town", "Leicester City", "Liverpool", "Manchester City",
+                    "Manchester United", "Newcastle United", "Nottingham Forest", "Southampton", "Tottenham",
+                    "West Ham", "Wolverhampton", "AC Milan", "Atalanta", "Bologna", "Como", "Fiorentina",
+                    "Genoa", "Inter Milan", "Juventus", "Napoli", "Olympiacos", "Paris Saint-Germain",
+                    "Real Madrid", "Sporting CP", "Galatasaray"
+                ];
 
             // Check if user already has active assignment in this tournament
             const existingSnap = await transaction.get(
@@ -173,8 +175,97 @@ exports.joinTournament = functions.https.onCall(async (data, context) => {
     }
 });
 
-/**
- * Legacy enterDraw function - kept for backward compatibility
+/** * manageTournaments - Admin function to create, update, or delete tournaments
+ * Usage: Call via HTTPS with ?action=create|update|delete and tournament data
+ * Requires authentication (admin user)
+ */
+exports.manageTournaments = functions.https.onCall(async (data, context) => {
+    // Check if user is authenticated
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be logged in');
+    }
+
+    const { action, tournaments } = data;
+
+    if (!action || !tournaments) {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing action or tournaments data');
+    }
+
+    try {
+        if (action === 'refresh') {
+            // Delete old tournaments and add new ones
+            const batch = db.batch();
+            
+            // Delete old tournaments
+            const toDelete = ["FIFA World Cup 2026", "UEFA Europa League 2025-26", "La Liga 2025-26", "Copa Libertadores 2026"];
+            const snapshot = await db.collection('tournaments').get();
+            
+            for (const doc of snapshot.docs) {
+                if (toDelete.includes(doc.data().name)) {
+                    batch.delete(doc.ref);
+                }
+            }
+
+            // Add new tournaments
+            for (const tournament of tournaments) {
+                const newTournament = {
+                    ...tournament,
+                    createdAt: admin.firestore.Timestamp.now(),
+                    createdBy: context.auth.uid,
+                    status: 'active'
+                };
+                batch.set(db.collection('tournaments').doc(), newTournament);
+            }
+
+            await batch.commit();
+            return { success: true, message: `Refreshed ${tournaments.length} tournaments` };
+
+        } else if (action === 'create') {
+            // Add new tournaments without deleting
+            const batch = db.batch();
+            const ids = [];
+
+            for (const tournament of tournaments) {
+                const docRef = db.collection('tournaments').doc();
+                const newTournament = {
+                    ...tournament,
+                    createdAt: admin.firestore.Timestamp.now(),
+                    createdBy: context.auth.uid,
+                    status: 'active'
+                };
+                batch.set(docRef, newTournament);
+                ids.push(docRef.id);
+            }
+
+            await batch.commit();
+            return { success: true, message: `Created ${tournaments.length} tournaments`, ids };
+
+        } else if (action === 'delete') {
+            // Delete specific tournaments by name
+            const batch = db.batch();
+            const snapshot = await db.collection('tournaments').get();
+            let deleted = 0;
+
+            for (const doc of snapshot.docs) {
+                if (tournaments.includes(doc.data().name)) {
+                    batch.delete(doc.ref);
+                    deleted++;
+                }
+            }
+
+            await batch.commit();
+            return { success: true, message: `Deleted ${deleted} tournaments` };
+        }
+
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid action');
+
+    } catch (error) {
+        console.error('Error in manageTournaments:', error);
+        throw new functions.https.HttpsError('internal', error.message);
+    }
+});
+
+/** * Legacy enterDraw function - kept for backward compatibility
  * Can be removed once all clients migrate to joinTournament
  */
 // TODO: Remove this after full migration to tournament system
