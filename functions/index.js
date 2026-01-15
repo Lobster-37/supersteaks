@@ -265,6 +265,62 @@ exports.manageTournaments = functions.https.onCall(async (data, context) => {
     }
 });
 
+/**
+ * addTournamentsAdmin - HTTP endpoint for programmatic tournament addition
+ * Call with: curl -X POST https://.../addTournamentsAdmin -H "x-admin-secret: YOUR_SECRET" -d '{"action":"refresh","tournaments":[...]}'
+ */
+exports.addTournamentsAdmin = functions.https.onRequest(async (req, res) => {
+    const adminSecret = req.headers['x-admin-secret'];
+    const expectedSecret = 'supersteaks-admin-2026'; // You can change this
+    
+    if (adminSecret !== expectedSecret) {
+        return res.status(403).json({ error: 'Unauthorized - invalid admin secret' });
+    }
+
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { action, tournaments } = req.body;
+
+    if (!action || !tournaments) {
+        return res.status(400).json({ error: 'Missing action or tournaments' });
+    }
+
+    try {
+        if (action === 'refresh') {
+            const batch = db.batch();
+            const toDelete = ["FIFA World Cup 2026", "UEFA Europa League 2025-26", "La Liga 2025-26", "Copa Libertadores 2026", "Ligue 1 2025-26", "Ligue 2 2025-26", "Ligue 1 2025-26", "Ligue 2 2025-26"];
+            const snapshot = await db.collection('tournaments').get();
+            
+            for (const doc of snapshot.docs) {
+                if (toDelete.includes(doc.data().name)) {
+                    batch.delete(doc.ref);
+                }
+            }
+
+            for (const tournament of tournaments) {
+                const newTournament = {
+                    ...tournament,
+                    createdAt: admin.firestore.Timestamp.now(),
+                    createdBy: 'admin',
+                    status: 'active'
+                };
+                batch.set(db.collection('tournaments').doc(), newTournament);
+            }
+
+            await batch.commit();
+            return res.json({ success: true, message: `Added ${tournaments.length} tournaments`, count: tournaments.length });
+        }
+
+        return res.status(400).json({ error: 'Invalid action' });
+
+    } catch (error) {
+        console.error('Error in addTournamentsAdmin:', error);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
 /** * Legacy enterDraw function - kept for backward compatibility
  * Can be removed once all clients migrate to joinTournament
  */
