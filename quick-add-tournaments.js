@@ -28,11 +28,11 @@ const tournaments = [
         description: "England's second division - 24 teams fighting for promotion",
         teamCount: 24,
         teams: [
-            "Leeds United", "Southampton", "Leicester City", "Ipswich Town", "Norwich City",
-            "Coventry City", "West Bromwich Albion", "Sunderland", "Burnley", "Watford",
-            "Middlesbrough", "Bristol City", "Derby County", "Plymouth Argyle", "Preston North End",
-            "Millwall", "Hull City", "Luton Town", "Blackburn Rovers", "Stoke City",
-            "Swansea City", "Sheffield United", "Cardiff City", "Blackpool"
+            "Birmingham City", "Blackburn Rovers", "Bristol City", "Charlton Athletic", "Coventry City",
+            "Derby County", "Hull City", "Ipswich Town", "Leicester City", "Middlesbrough",
+            "Millwall", "Norwich City", "Oxford United", "Portsmouth", "Preston North End",
+            "Queens Park Rangers", "Sheffield United", "Sheffield Wednesday", "Southampton", "Stoke City",
+            "Swansea City", "Watford", "West Bromwich Albion", "Wrexham"
         ]
     },
     {
@@ -40,10 +40,10 @@ const tournaments = [
         description: "The most-watched football league in the world - 20 English giants",
         teamCount: 20,
         teams: [
-            "Manchester City", "Manchester United", "Liverpool", "Arsenal", "Chelsea",
-            "Tottenham", "Newcastle United", "Brighton", "Aston Villa", "Wolves",
-            "Everton", "Leicester City", "Brentford", "West Ham", "Southampton",
-            "Crystal Palace", "Fulham", "Ipswich Town", "Nottingham Forest", "Luton Town"
+            "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton",
+            "Burnley", "Chelsea", "Crystal Palace", "Everton", "Fulham",
+            "Leeds United", "Liverpool", "Manchester City", "Manchester United", "Newcastle United",
+            "Nottingham Forest", "Sunderland", "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers"
         ]
     },
     {
@@ -51,11 +51,11 @@ const tournaments = [
         description: "England's third tier - 24 ambitious clubs",
         teamCount: 24,
         teams: [
-            "Wycombe Wanderers", "Stockport County", "Reading", "Wrexham", "Rotherham United",
-            "Bolton Wanderers", "MK Dons", "Charlton Athletic", "Huddersfield Town", "Peterborough United",
-            "Bristol Rovers", "Oxford United", "Lincoln City", "Northampton Town", "Stevenage",
-            "Crawley Town", "Shrewsbury Town", "Leyton Orient", "Colchester United", "Wigan Athletic",
-            "Cambridge United", "Exeter City", "Cheltenham Town", "Blackpool"
+            "AFC Wimbledon", "Barnsley", "Blackpool", "Bolton Wanderers", "Bradford City",
+            "Burton Albion", "Cardiff City", "Doncaster Rovers", "Exeter City", "Huddersfield Town",
+            "Leyton Orient", "Lincoln City", "Luton Town", "Mansfield Town", "Northampton Town",
+            "Peterborough United", "Plymouth Argyle", "Port Vale", "Reading", "Rotherham United",
+            "Stevenage", "Stockport County", "Wigan Athletic", "Wycombe Wanderers"
         ]
     },
     {
@@ -63,11 +63,11 @@ const tournaments = [
         description: "England's fourth tier - 24 clubs battling for promotion",
         teamCount: 24,
         teams: [
-            "Newport County", "Forest Green Rovers", "Salford City", "Swindon Town", "Barrow",
-            "Accrington Stanley", "Tranmere Rovers", "Grimsby Town", "Doncaster Rovers", "Harrogate Town",
-            "Mansfield Town", "Carlisle United", "Port Vale", "Scunthorpe United", "Crewe Alexandra",
-            "Sutton United", "Torquay United", "Oldham Athletic", "Stockton Town", "Notts County",
-            "Morecambe", "Sunderland U23", "Bradford City", "Hartley Wintney"
+            "Accrington Stanley", "Barnet", "Barrow", "Bristol Rovers", "Bromley",
+            "Cambridge United", "Cheltenham Town", "Chesterfield", "Colchester United", "Crawley Town",
+            "Crewe Alexandra", "Fleetwood Town", "Gillingham", "Grimsby Town", "Harrogate Town",
+            "Milton Keynes Dons", "Newport County", "Notts County", "Oldham Athletic", "Salford City",
+            "Shrewsbury Town", "Swindon Town", "Tranmere Rovers", "Walsall"
         ]
     }
 ];
