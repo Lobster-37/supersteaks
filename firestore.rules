@@ -1,36 +1,52 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAuthed() { return request.auth != null; }
+    // Helper functions
+    function isAuthed() { 
+      return request.auth != null; 
+    }
+    
+    function isAdmin() { 
+      return isAuthed() && request.auth.token.admin == true; 
+    }
 
-    // Tournaments - publicly readable, server-managed
+    // Tournaments - authenticated users can read, only Cloud Functions write
     match /tournaments/{tournamentId} {
       allow read: if isAuthed();
-      allow create, update, delete: if false; // Cloud Function or admin only
+      allow create, update, delete: if false; // Cloud Functions only
     }
 
-    // Lobbies - readable by authenticated users, server-managed via Cloud Function
+    // Lobbies - authenticated users can read, Cloud Functions write only
     match /lobbies/{lobbyId} {
       allow read: if isAuthed();
-      allow create, update, delete: if false; // Cloud Function only
+      allow create, update, delete: if false; // Cloud Functions only
     }
 
-    // Team assignments - readable by authenticated users, written by Cloud Function only
+    // Team assignments - users can read their own assignments
     match /teamAssignments/{assignmentId} {
-      allow read: if isAuthed();
-      // Legacy support: allow direct writes for old contest-based flow (if client still uses)
-      allow create: if isAuthed()
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.team is string
-                    && request.resource.data.assignedAt != null;
-      // Cloud Function updates are handled via custom claims/service account
-      allow update, delete: if false;
+      allow read: if isAuthed() && resource.data.userId == request.auth.uid;
+      
+      // No direct writes - only Cloud Functions
+      allow write: if false;
     }
 
-    // User profiles collection
+    // User profiles - users can read public info, write only their own
     match /users/{userId} {
       allow read: if isAuthed();
       allow write: if isAuthed() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // Audit log - read only for admins, Cloud Functions write
+    match /auditLog/{logId} {
+      allow read: if isAdmin();
+      allow write: if false; // Cloud Functions only
+    }
+
+    // Backups - admin only
+    match /backups/{backupId} {
+      allow read: if isAdmin();
+      allow write: if false; // Cloud Functions only
     }
 
     // Deny all other access by default

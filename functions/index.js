@@ -5,6 +5,88 @@ admin.initializeApp();
 const db = admin.firestore();
 
 /**
+ * Security & Validation Utilities
+ */
+
+// Rate limiting: Track function calls per user
+const rateLimitStore = new Map();
+
+function checkRateLimit(userId, functionName, maxCalls = 10, windowMs = 60000) {
+    const key = `${userId}:${functionName}`;
+    const now = Date.now();
+    
+    if (!rateLimitStore.has(key)) {
+        rateLimitStore.set(key, []);
+    }
+    
+    const calls = rateLimitStore.get(key);
+    const recentCalls = calls.filter(timestamp => now - timestamp < windowMs);
+    
+    if (recentCalls.length >= maxCalls) {
+        throw new functions.https.HttpsError('resource-exhausted', 'Rate limit exceeded. Please try again later.');
+    }
+    
+    recentCalls.push(now);
+    rateLimitStore.set(key, recentCalls);
+}
+
+// Input validation helpers
+function validateTournamentId(id) {
+    if (!id || typeof id !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid tournament ID format');
+    }
+    if (id.length > 256 || id.length < 1) {
+        throw new functions.https.HttpsError('invalid-argument', 'Tournament ID length invalid');
+    }
+    // Prevent NoSQL injection - only alphanumeric, hyphens, underscores
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Tournament ID contains invalid characters');
+    }
+    return id;
+}
+
+function validateUserId(id) {
+    if (!id || typeof id !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid user ID');
+    }
+    if (id.length > 256) {
+        throw new functions.https.HttpsError('invalid-argument', 'User ID too long');
+    }
+    return id;
+}
+
+function validateTeamName(name) {
+    if (!name || typeof name !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid team name');
+    }
+    if (name.length > 150 || name.length < 1) {
+        throw new functions.https.HttpsError('invalid-argument', 'Team name length invalid');
+    }
+    // Allow alphanumeric, spaces, hyphens, apostrophes, periods
+    if (!/^[a-zA-Z0-9\s\-'\.]+$/.test(name)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Team name contains invalid characters');
+    }
+    return name;
+}
+
+// Audit logging
+async function logAudit(userId, action, details, success = true) {
+    try {
+        await db.collection('auditLog').add({
+            userId,
+            action,
+            details,
+            success,
+            timestamp: admin.firestore.Timestamp.now(),
+            ipAddress: details.ipAddress || 'unknown'
+        });
+    } catch (error) {
+        console.error('Audit logging failed:', error);
+        // Don't throw - logging failure shouldn't break the operation
+    }
+}
+
+/**
  * joinTournament - Atomic tournament join with lobby assignment
  * 
  * Atomically:
@@ -22,13 +104,14 @@ exports.joinTournament = functions.https.onCall(async (data, context) => {
     }
 
     const userId = context.auth.uid;
-    const tournamentId = data.tournamentId;
-
-    if (!tournamentId) {
-        throw new functions.https.HttpsError('invalid-argument', 'tournamentId required');
-    }
-
+    
     try {
+        // Validate input
+        const tournamentId = validateTournamentId(data.tournamentId);
+        
+        // Rate limit: 10 joins per minute per user
+        checkRateLimit(userId, 'joinTournament', 10, 60000);
+
         // Use transaction for atomicity
         const result = await db.runTransaction(async (transaction) => {
             // 1. Get tournament
@@ -42,8 +125,13 @@ exports.joinTournament = functions.https.onCall(async (data, context) => {
             const tournament = tournamentSnap.data();
             const teamCount = tournament.teamCount;
             
+            // Validate tournament data
+            if (!teamCount || typeof teamCount !== 'number' || teamCount < 1 || teamCount > 1000) {
+                throw new functions.https.HttpsError('internal', 'Invalid tournament configuration');
+            }
+            
             // Use tournament-specific teams if available, otherwise use default list
-            const allTeams = tournament.teams && tournament.teams.length > 0 
+            const allTeams = tournament.teams && Array.isArray(tournament.teams) && tournament.teams.length > 0 
                 ? tournament.teams 
                 : [
                     "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton", "Chelsea", "Crystal Palace",
@@ -176,8 +264,8 @@ exports.joinTournament = functions.https.onCall(async (data, context) => {
 });
 
 /** * manageTournaments - Admin function to create, update, or delete tournaments
- * Usage: Call via HTTPS with ?action=create|update|delete and tournament data
- * Requires authentication (admin user)
+ * Usage: Call via Cloud Function with proper Firebase authentication
+ * Requires: User with 'admin' custom claim set to true
  */
 exports.manageTournaments = functions.https.onCall(async (data, context) => {
     // Check if user is authenticated
@@ -185,10 +273,24 @@ exports.manageTournaments = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('unauthenticated', 'User must be logged in');
     }
 
+    // Check if user has admin claim
+    if (!context.auth.token.admin) {
+        await logAudit(context.auth.uid, 'manageTournaments_unauthorized', { action: data.action }, false);
+        throw new functions.https.HttpsError('permission-denied', 'Admin privileges required');
+    }
+
     const { action, tournaments } = data;
 
-    if (!action || !tournaments) {
-        throw new functions.https.HttpsError('invalid-argument', 'Missing action or tournaments data');
+    if (!action || typeof action !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing or invalid action');
+    }
+
+    if (!tournaments || !Array.isArray(tournaments)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid tournaments data');
+    }
+
+    if (tournaments.length > 100) {
+        throw new functions.https.HttpsError('invalid-argument', 'Too many tournaments at once');
     }
 
     try {
@@ -206,8 +308,19 @@ exports.manageTournaments = functions.https.onCall(async (data, context) => {
                 }
             }
 
-            // Add new tournaments
+            // Add new tournaments with validation
             for (const tournament of tournaments) {
+                // Validate tournament data
+                if (!tournament.name || typeof tournament.name !== 'string' || tournament.name.length > 200) {
+                    throw new functions.https.HttpsError('invalid-argument', 'Invalid tournament name');
+                }
+                if (!tournament.teamCount || typeof tournament.teamCount !== 'number' || tournament.teamCount < 1 || tournament.teamCount > 1000) {
+                    throw new functions.https.HttpsError('invalid-argument', 'Invalid team count');
+                }
+                if (tournament.teams && !Array.isArray(tournament.teams)) {
+                    throw new functions.https.HttpsError('invalid-argument', 'Teams must be an array');
+                }
+                
                 const newTournament = {
                     ...tournament,
                     createdAt: admin.firestore.Timestamp.now(),
@@ -267,25 +380,51 @@ exports.manageTournaments = functions.https.onCall(async (data, context) => {
 
 /**
  * addTournamentsAdmin - HTTP endpoint for programmatic tournament addition
- * Call with: curl -X POST https://.../addTournamentsAdmin -H "x-admin-secret: YOUR_SECRET" -d '{"action":"refresh","tournaments":[...]}'
+ * DEPRECATED: Use manageTournaments Cloud Function instead (requires Firebase auth + admin claim)
+ * Kept for backward compatibility but validates using Firebase Custom Claims
  */
 exports.addTournamentsAdmin = functions.https.onRequest(async (req, res) => {
-    const adminSecret = req.headers['x-admin-secret'];
-    const expectedSecret = 'supersteaks-admin-2026'; // You can change this
-    
-    if (adminSecret !== expectedSecret) {
-        return res.status(403).json({ error: 'Unauthorized - invalid admin secret' });
-    }
-
+    // Only accept POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // Validate Firebase ID token if provided
+    const authHeader = req.headers.authorization;
+    let adminVerified = false;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        try {
+            const token = authHeader.substring(7);
+            const decodedToken = await admin.auth().verifyIdToken(token);
+            
+            // Check if user has admin claim
+            if (decodedToken.admin === true) {
+                adminVerified = true;
+            }
+        } catch (error) {
+            console.error('Token verification failed:', error);
+        }
+    }
+
+    // Fallback: check for legacy admin secret (from environment variable, not hardcoded)
+    const legacySecret = process.env.ADMIN_SECRET;
+    const providedSecret = req.headers['x-admin-secret'];
+    
+    if (!adminVerified && (!legacySecret || providedSecret !== legacySecret)) {
+        await logAudit('unknown', 'addTournamentsAdmin_unauthorized', { method: req.method }, false);
+        return res.status(403).json({ error: 'Unauthorized - invalid credentials' });
     }
 
     const { action } = req.body;
     const tournaments = req.body.tournaments || [];
 
-    if (!action) {
-        return res.status(400).json({ error: 'Missing action' });
+    if (!action || typeof action !== 'string') {
+        return res.status(400).json({ error: 'Missing or invalid action' });
+    }
+
+    if (tournaments && !Array.isArray(tournaments)) {
+        return res.status(400).json({ error: 'Invalid tournaments data' });
     }
 
     try {
@@ -296,7 +435,8 @@ exports.addTournamentsAdmin = functions.https.onRequest(async (req, res) => {
                 batch.delete(doc.ref);
             }
             await batch.commit();
-            return res.status(200).json({ message: 'All tournaments deleted successfully' });
+            await logAudit('admin', 'deleteAll_tournaments', { count: snapshot.size }, true);
+            return res.status(200).json({ message: 'All tournaments deleted successfully', count: snapshot.size });
         } else if (action === 'updateTeams') {
             // Safely update team rosters WITHOUT changing tournament IDs or deleting tournaments
             // Maps tournaments by name and updates their team lists
@@ -484,12 +624,36 @@ exports.dailyBackup = functions.pubsub.schedule('0 2 * * *').timeZone('UTC').onR
 });
 
 /**
- * Manual backup trigger - HTTP endpoint
+ * Manual backup trigger - HTTP endpoint with improved security
  */
 exports.createBackup = functions.https.onRequest(async (req, res) => {
-    const adminSecret = req.headers['x-admin-secret'];
+    // Only accept POST
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // Validate Firebase ID token if provided (preferred method)
+    let adminVerified = false;
+    const authHeader = req.headers.authorization;
     
-    if (adminSecret !== 'supersteaks-admin-2026') {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        try {
+            const token = authHeader.substring(7);
+            const decodedToken = await admin.auth().verifyIdToken(token);
+            
+            if (decodedToken.admin === true) {
+                adminVerified = true;
+            }
+        } catch (error) {
+            console.error('Token verification failed:', error);
+        }
+    }
+
+    // Fallback: check for legacy admin secret (from environment variable only)
+    const legacySecret = process.env.ADMIN_SECRET;
+    const providedSecret = req.headers['x-admin-secret'];
+    
+    if (!adminVerified && (!legacySecret || providedSecret !== legacySecret)) {
         return res.status(403).json({ error: 'Unauthorized' });
     }
     
