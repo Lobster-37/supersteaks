@@ -24,6 +24,17 @@ const tournaments = [
         ]
     },
     {
+        name: "Premier League 2025-26",
+        description: "The most-watched football league in the world - 20 English giants",
+        teamCount: 20,
+        teams: [
+            "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton",
+            "Burnley", "Chelsea", "Crystal Palace", "Everton", "Fulham",
+            "Leeds United", "Liverpool", "Manchester City", "Manchester United", "Newcastle United",
+            "Nottingham Forest", "Sunderland", "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers"
+        ]
+    },
+    {
         name: "Championship 2025-26",
         description: "England's second division - 24 teams fighting for promotion",
         teamCount: 24,
@@ -33,17 +44,6 @@ const tournaments = [
             "Millwall", "Norwich City", "Oxford United", "Portsmouth", "Preston North End",
             "Queens Park Rangers", "Sheffield United", "Sheffield Wednesday", "Southampton", "Stoke City",
             "Swansea City", "Watford", "West Bromwich Albion", "Wrexham"
-        ]
-    },
-    {
-        name: "Premier League 2025-26",
-        description: "The most-watched football league in the world - 20 English giants",
-        teamCount: 20,
-        teams: [
-            "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton",
-            "Burnley", "Chelsea", "Crystal Palace", "Everton", "Fulham",
-            "Leeds United", "Liverpool", "Manchester City", "Manchester United", "Newcastle United",
-            "Nottingham Forest", "Sunderland", "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers"
         ]
     },
     {
