@@ -285,42 +285,78 @@
 
         async function loadLobbyData() {
             try {
-                const [tournamentDoc, lobbyDoc, assignmentDoc] = await Promise.all([
-                    db.collection('tournaments').doc(currentTournamentId).get(),
-                    db.collection('lobbies').doc(currentLobbyId).get(),
-                    db.collection('teamAssignments')
-                        .where('userId', '==', firebase.auth().currentUser.uid)
-                        .where('tournamentId', '==', currentTournamentId)
-                        .limit(1)
-                        .get()
-                ]);
-
-                if (!tournamentDoc.exists || !lobbyDoc.exists) {
-                    throw new Error('Tournament or lobby not found');
+                const user = firebase.auth().currentUser;
+                
+                if (!user) {
+                    throw new Error('User not authenticated');
                 }
 
-                const tournament = tournamentDoc.data();
-                const lobby = lobbyDoc.data();
-                const userAssignment = assignmentDoc.docs[0]?.data();
+                // Call the getTournamentTeamVisibility Cloud Function to get properly filtered data
+                const getTournamentTeamVisibility = firebase.functions().httpsCallable('getTournamentTeamVisibility');
+                
+                try {
+                    const result = await getTournamentTeamVisibility({ tournamentId: currentTournamentId });
+                    const { tournament, lobby, userAssignment, visibleTeamList } = result.data;
 
-                // Update page title and info
-                document.getElementById('tournament-name').textContent = `${tournament.name} - Lobby ${lobby.id}`;
-                document.getElementById('lobby-info').textContent = `${lobby.currentCount}/${tournament.teamCount} players assigned`;
+                    // Update page title and info
+                    document.getElementById('tournament-name').textContent = `${tournament.name} - Lobby ${currentLobbyId}`;
+                    document.getElementById('lobby-info').textContent = `${lobby.currentCount}/${tournament.teamCount} players assigned`;
 
-                // Display user's team
-                if (userAssignment) {
-                    displayUserTeam(userAssignment.team);
+                    // Display user's team
+                    if (userAssignment) {
+                        displayUserTeam(userAssignment.team);
+                    }
+
+                    // Update lobby status
+                    const percentFull = (lobby.currentCount / tournament.teamCount) * 100;
+                    document.getElementById('players-count').textContent = lobby.currentCount;
+                    document.getElementById('available-teams').textContent = tournament.teamCount - lobby.currentCount;
+                    document.getElementById('lobby-progress').style.width = percentFull + '%';
+                    document.getElementById('progress-text').textContent = Math.round(percentFull) + '%';
+
+                    // Load players in lobby
+                    await loadLobbyPlayers(lobby);
+                } catch (cloudFunctionError) {
+                    // Fallback: Load data directly from Firestore (non-filtered) if Cloud Function is not available
+                    console.warn('Cloud Function getTournamentTeamVisibility not available, using fallback:', cloudFunctionError.message);
+                    
+                    const [tournamentDoc, lobbyDoc, assignmentDoc] = await Promise.all([
+                        db.collection('tournaments').doc(currentTournamentId).get(),
+                        db.collection('lobbies').doc(currentLobbyId).get(),
+                        db.collection('teamAssignments')
+                            .where('userId', '==', user.uid)
+                            .where('tournamentId', '==', currentTournamentId)
+                            .limit(1)
+                            .get()
+                    ]);
+
+                    if (!tournamentDoc.exists || !lobbyDoc.exists) {
+                        throw new Error('Tournament or lobby not found');
+                    }
+
+                    const tournament = tournamentDoc.data();
+                    const lobby = lobbyDoc.data();
+                    const userAssignment = assignmentDoc.docs[0]?.data();
+
+                    // Update page title and info
+                    document.getElementById('tournament-name').textContent = `${tournament.name} - Lobby ${lobby.id}`;
+                    document.getElementById('lobby-info').textContent = `${lobby.currentCount}/${tournament.teamCount} players assigned`;
+
+                    // Display user's team
+                    if (userAssignment) {
+                        displayUserTeam(userAssignment.team);
+                    }
+
+                    // Update lobby status
+                    const percentFull = (lobby.currentCount / tournament.teamCount) * 100;
+                    document.getElementById('players-count').textContent = lobby.currentCount;
+                    document.getElementById('available-teams').textContent = tournament.teamCount - lobby.currentCount;
+                    document.getElementById('lobby-progress').style.width = percentFull + '%';
+                    document.getElementById('progress-text').textContent = Math.round(percentFull) + '%';
+
+                    // Load players in lobby
+                    await loadLobbyPlayers(lobby);
                 }
-
-                // Update lobby status
-                const percentFull = (lobby.currentCount / tournament.teamCount) * 100;
-                document.getElementById('players-count').textContent = lobby.currentCount;
-                document.getElementById('available-teams').textContent = tournament.teamCount - lobby.currentCount;
-                document.getElementById('lobby-progress').style.width = percentFull + '%';
-                document.getElementById('progress-text').textContent = Math.round(percentFull) + '%';
-
-                // Load players in lobby
-                await loadLobbyPlayers(lobby);
             } catch (error) {
                 console.error('Error loading lobby data:', error);
                 document.querySelector('main').innerHTML += '<p class="text-red-600 mt-4">Error loading lobby information</p>';

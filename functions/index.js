@@ -527,6 +527,96 @@ exports.createBackup = functions.https.onRequest(async (req, res) => {
     });
 });
 
+/**
+ * getTournamentTeamVisibility - Returns only the teams visible to the current user
+ * Filters tournament data to show ONLY teams from the user's assigned lobby
+ * 
+ * This is the critical access control function that prevents cross-lobby team viewing.
+ */
+exports.getTournamentTeamVisibility = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+
+    const userId = context.auth.uid;
+    const tournamentId = data.tournamentId;
+
+    if (!tournamentId) {
+        throw new functions.https.HttpsError('invalid-argument', 'tournamentId required');
+    }
+
+    try {
+        // Get user's assignment in this tournament
+        const assignmentSnap = await db.collection('teamAssignments')
+            .where('userId', '==', userId)
+            .where('tournamentId', '==', tournamentId)
+            .limit(1)
+            .get();
+
+        if (assignmentSnap.empty) {
+            throw new functions.https.HttpsError('not-found', 'User not assigned to this tournament');
+        }
+
+        const userAssignment = assignmentSnap.docs[0].data();
+        const userLobbyId = userAssignment.lobbyId;
+
+        // Get the user's lobby
+        const lobbySnap = await db.collection('lobbies').doc(userLobbyId).get();
+        
+        if (!lobbySnap.exists) {
+            throw new functions.https.HttpsError('not-found', 'Lobby not found');
+        }
+
+        const lobby = lobbySnap.data();
+
+        // Get tournament data
+        const tournamentSnap = await db.collection('tournaments').doc(tournamentId).get();
+        
+        if (!tournamentSnap.exists) {
+            throw new functions.https.HttpsError('not-found', 'Tournament not found');
+        }
+
+        const tournament = tournamentSnap.data();
+
+        // Get ALL team assignments in this lobby to show visible teams
+        const lobbyAssignmentsSnap = await db.collection('teamAssignments')
+            .where('lobbyId', '==', userLobbyId)
+            .where('tournamentId', '==', tournamentId)
+            .get();
+
+        const visibleTeams = {};
+        lobbyAssignmentsSnap.docs.forEach(doc => {
+            const assignment = doc.data();
+            visibleTeams[assignment.userId] = assignment.team;
+        });
+
+        // Return tournament data with ONLY the user's lobby teams
+        return {
+            tournament: {
+                id: tournamentId,
+                name: tournament.name,
+                teamCount: tournament.teamCount,
+                description: tournament.description
+            },
+            lobby: {
+                id: userLobbyId,
+                currentCount: lobby.currentCount,
+                capacity: lobby.capacity
+            },
+            userAssignment: {
+                team: userAssignment.team,
+                lobbyId: userAssignment.lobbyId
+            },
+            visibleTeams: visibleTeams, // Only teams in user's lobby
+            visibleTeamList: Object.values(visibleTeams), // Array of visible teams
+            allTournamentsTeams: undefined // HIDDEN - not sent to client
+        };
+    } catch (error) {
+        console.error('Error in getTournamentTeamVisibility:', error);
+        throw new functions.https.HttpsError('internal', error.message);
+    }
+});
+
 /** * Legacy enterDraw function - kept for backward compatibility
  * Can be removed once all clients migrate to joinTournament
  */
