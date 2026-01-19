@@ -59,38 +59,6 @@
         .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
         /* Match Tailwind text-yellow-400 (#fbbf24) used in SUPERSTEAKS heading */
         .nav-link.enter-now { color: #fbbf24 !important; }
-        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-        @media (max-width: 639px) {
-            header .container { padding-top: 0 !important; padding-bottom: 0 !important; }
-            header .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
-            nav[aria-label="Main navigation"] { margin-top: -12px !important; }
-            .flex.flex-row.items-center.justify-center.sm\:block { margin-bottom: -8px !important; }
-        }
-        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
-        /* Authentication state management */
-        .logged-out #auth-buttons { display: block !important; }
-        .logged-out #user-info { display: none !important; }
-        .logged-out #auth-skeleton { display: none !important; }
-        @media (max-width: 639px) { #auth-skeleton { display: none !important; } }
-        .logged-in #auth-buttons { display: none !important; }
-        .logged-in #user-info { display: block !important; }
-        .logged-in #auth-skeleton { display: none !important; }
-        body:not(.auth-ready) #auth-buttons { display: none !important; }
-        body:not(.auth-ready) #user-info { display: none !important; }
-        body:not(.auth-ready) #auth-skeleton { display: block !important; }
-        #user-account-section { min-height: 52px; width: 176px; flex-shrink: 0; }
-        .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
-        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        @media (max-width: 639px) {
-            main .text-center { margin-top: 2rem !important; margin-bottom: 2rem !important; }
-            main h2:first-of-type { font-size: 1.875rem !important; line-height: 2.25rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; color: #1f2937 !important; }
-            main h2:first-of-type + p { font-size: 1.125rem !important; line-height: 1.75rem !important; color: #4b5563 !important; }
-        }
-        .tournament-card { transition: all 0.3s ease; }
-        .tournament-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); }
-        .join-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .lobby-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
-        .lobby-fill { height: 100%; background: linear-gradient(90deg, #10b981, #059669); }
     </style>
     <script src="js/supersteaks-global.js?v=20241118001"></script>
 </head>
