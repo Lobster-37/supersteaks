@@ -413,12 +413,28 @@
         function setupEventListeners() {
             const loginBtn = document.getElementById('login-btn');
             const registerBtn = document.getElementById('register-btn');
+            const mobileProfileBtn = document.getElementById('mobile-profile-btn');
             const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
             const profileDropdown = document.getElementById('profile-dropdown');
             const logoutBtn = document.getElementById('logout-btn-dropdown');
 
             if (loginBtn) loginBtn.addEventListener('click', () => showAuthModal(false));
             if (registerBtn) registerBtn.addEventListener('click', () => showAuthModal(true));
+            if (mobileProfileBtn) {
+                mobileProfileBtn.addEventListener('click', (e) => {
+                    try {
+                        const isLoggedIn = document.body.classList.contains('logged-in');
+                        if (!isLoggedIn) {
+                            e.preventDefault();
+                            showAuthModal(false);
+                            return;
+                        }
+                    } catch (err) {
+                        // ignore
+                    }
+                    if (profileDropdown) profileDropdown.classList.toggle('hidden');
+                });
+            }
             if (profileDropdownBtn) profileDropdownBtn.addEventListener('click', () => profileDropdown?.classList.toggle('hidden'));
             if (logoutBtn) logoutBtn.addEventListener('click', () => {
                 firebase.auth().signOut().then(() => {

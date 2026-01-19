@@ -275,7 +275,21 @@
         }
 
         function setupEventListeners() {
+            const mobileProfileBtn = document.getElementById('mobile-profile-btn');
+            const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
+            const profileDropdown = document.getElementById('profile-dropdown');
             const logoutBtn = document.getElementById('logout-btn-dropdown');
+
+            if (mobileProfileBtn) {
+                mobileProfileBtn.addEventListener('click', (e) => {
+                    if (profileDropdown) profileDropdown.classList.toggle('hidden');
+                });
+            }
+            if (profileDropdownBtn) {
+                profileDropdownBtn.addEventListener('click', () => {
+                    if (profileDropdown) profileDropdown.classList.toggle('hidden');
+                });
+            }
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', () => {
                     firebase.auth().signOut();
