@@ -10,9 +10,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperSteaks - Tournaments</title>
     <meta name="description" content="Browse and join SuperSteaks tournaments">
+    <meta name="google-adsense-account" content="ca-pub-7338242306259977">
     <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script>
+        // Verify CSS loaded
+        console.log('TailwindCSS CSS loading...');
+        setTimeout(() => {
+            const testEl = document.createElement('div');
+            testEl.className = 'bg-red-500';
+            document.body.appendChild(testEl);
+            const styles = getComputedStyle(testEl);
+            if (styles.backgroundColor === 'rgb(239, 68, 68)' || styles.backgroundColor.includes('239')) {
+                console.log('✅ TailwindCSS CSS loaded successfully');
+            } else {
+                console.error('❌ TailwindCSS CSS failed to load');
+            }
+            document.body.removeChild(testEl);
+        }, 1000);
+    </script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s",
