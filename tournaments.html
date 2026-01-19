@@ -33,6 +33,7 @@
         }, 1000);
     </script>
     <script>
+        // Firebase config and initialization (must be after CDN scripts)
         const firebaseConfig = {
             apiKey: "AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s",
             authDomain: "supersteaks-240f7.firebaseapp.com",
@@ -43,12 +44,14 @@
         };
         try {
             firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully in head');
             window.firebaseReady = true;
         } catch (error) {
             console.error('Firebase initialization failed:', error);
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- User Account System -->
     <style>
         /* Ensure only the currently-active nav link is highlighted (match index) */
         .nav-link { background-color: transparent !important; color: inherit !important; }
