@@ -498,6 +498,7 @@
             e.preventDefault();
             const email = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
+            console.log('Attempting login for:', email);
             if (!window.supersteaks) {
                 alert('Authentication system not available. Please try again later.');
                 return;
@@ -505,13 +506,18 @@
             window.supersteaks.login(email, password)
                 .then(result => {
                     if (result.success) {
-                        hideAuthModal();
+                        console.log('Login successful:', result.user);
+                        document.getElementById('auth-modal').classList.add('hidden');
                         document.getElementById('login-form-element').reset();
                     } else {
+                        console.error('Login failed:', result.error);
                         alert('Login failed: ' + result.error);
                     }
                 })
-                .catch(error => alert('Login failed: ' + error.message));
+                .catch(error => {
+                    console.error('Login failed:', error);
+                    alert('Login failed: ' + error.message);
+                });
         }
 
         function handleRegister(e) {
@@ -519,16 +525,46 @@
             const username = document.getElementById('register-username').value.trim();
             const email = document.getElementById('register-email').value.trim();
             const password = document.getElementById('register-password').value;
-            if (!username || username.length < 3 || username.length > 20) {
-                alert('Username must be 3-20 characters');
+            console.log('Attempting registration for:', email, 'with username:', username);
+            if (!username) {
+                alert('Username is required. Please enter a username.');
+                document.getElementById('register-username').focus();
                 return;
             }
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                alert('Invalid email');
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters long.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (username.length > 20) {
+                alert('Username must be 20 characters or less.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
+                alert('Username can only contain letters, numbers, dots, underscores, and hyphens.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (!email) {
+                alert('Email is required.');
+                document.getElementById('register-email').focus();
+                return;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                document.getElementById('register-email').focus();
+                return;
+            }
+            if (!password) {
+                alert('Password is required.');
+                document.getElementById('register-password').focus();
                 return;
             }
             if (password.length < 6) {
-                alert('Password must be 6+ characters');
+                alert('Password must be at least 6 characters long.');
+                document.getElementById('register-password').focus();
                 return;
             }
             if (!window.supersteaks) {
@@ -538,13 +574,18 @@
             window.supersteaks.register(email, password, username)
                 .then(result => {
                     if (result.success) {
-                        hideAuthModal();
+                        console.log('Registration successful:', result.user);
+                        document.getElementById('auth-modal').classList.add('hidden');
                         document.getElementById('register-form-element').reset();
                     } else {
+                        console.error('Registration failed:', result.error);
                         alert('Registration failed: ' + result.error);
                     }
                 })
-                .catch(error => alert('Registration failed: ' + error.message));
+                .catch(error => {
+                    console.error('Registration failed:', error);
+                    alert('Registration failed: ' + error.message);
+                });
         }
 
         function showAuthModal(showRegister = false) {
