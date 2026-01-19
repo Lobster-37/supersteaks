@@ -704,32 +704,28 @@
             function closeIfOutside(e) {
                 try {
                     const authModal = document.getElementById('auth-modal');
-                    if (!authModal || authModal.classList.contains('hidden')) return;
-                    const inner = authModal.querySelector('.modal-inner');
-                    if (!inner) return;
-                    if (!inner.contains(e.target)) {
+                    const resetModal = document.getElementById('reset-password-modal');
+                    const authInner = authModal ? authModal.querySelector('.modal-inner') : null;
+                    const resetInner = resetModal ? resetModal.querySelector('.modal-inner') : null;
+                    const clickedOutsideAuth = authModal && !authModal.classList.contains('hidden') && authInner && !authInner.contains(e.target);
+                    const clickedOutsideReset = resetModal && !resetModal.classList.contains('hidden') && resetInner && !resetInner.contains(e.target);
+                    if (clickedOutsideAuth) {
                         authModal.classList.add('hidden');
-                        const reset = document.getElementById('reset-password-modal');
-                        if (reset) reset.classList.add('hidden');
+                        if (resetModal) resetModal.classList.add('hidden');
                     }
-                } catch (err) {
-                    // ignore
-                }
+                    if (clickedOutsideReset) {
+                        resetModal.classList.add('hidden');
+                    }
+                } catch (err) {}
             }
-
             function escHandler(e) {
                 if (e.key === 'Escape' || e.key === 'Esc') {
                     const authModal = document.getElementById('auth-modal');
-                    if (authModal && !authModal.classList.contains('hidden')) {
-                        authModal.classList.add('hidden');
-                    }
+                    if (authModal && !authModal.classList.contains('hidden')) authModal.classList.add('hidden');
                     const reset = document.getElementById('reset-password-modal');
-                    if (reset && !reset.classList.contains('hidden')) {
-                        reset.classList.add('hidden');
-                    }
+                    if (reset && !reset.classList.contains('hidden')) reset.classList.add('hidden');
                 }
             }
-
             document.addEventListener('click', closeIfOutside, true);
             document.addEventListener('keydown', escHandler, true);
         })();
