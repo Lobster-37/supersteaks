@@ -781,6 +781,118 @@ exports.getTournamentTeamVisibility = functions.https.onCall(async (data, contex
     }
 });
 
+/**
+ * ONE-TIME USE: Make yourself admin
+ * Call this once while logged in as ekul.kcol@gmail.com to grant admin access
+ * After you're admin, this function will be disabled
+ */
+exports.makeFirstAdmin = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Must be logged in');
+    }
+
+    const userId = context.auth.uid;
+    const userEmail = context.auth.token.email;
+
+    // Only allow ekul.kcol@gmail.com to use this
+    if (userEmail !== 'ekul.kcol@gmail.com') {
+        throw new functions.https.HttpsError('permission-denied', 'This function is for initial setup only');
+    }
+
+    try {
+        // Set admin claim
+        await admin.auth().setCustomUserClaims(userId, { admin: true });
+        
+        // Log this event
+        await logAudit(userId, 'makeFirstAdmin', { email: userEmail }, true);
+        
+        return { 
+            success: true, 
+            message: `Admin claim set for ${userEmail}. Sign out and sign back in for it to take effect.` 
+        };
+    } catch (error) {
+        console.error('Error setting admin claim:', error);
+        throw new functions.https.HttpsError('internal', 'Failed to set admin claim');
+    }
+});
+
+// Contact Form Submission
+exports.submitContactForm = functions.https.onCall(async (data, context) => {
+    // Validate input
+    const { name, email, message } = data;
+    
+    if (!name || typeof name !== 'string' || name.trim().length === 0 || name.length > 100) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid name');
+    }
+    
+    if (!email || typeof email !== 'string' || !email.includes('@') || email.length > 100) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid email');
+    }
+    
+    if (!message || typeof message !== 'string' || message.trim().length === 0 || message.length > 2000) {
+        throw new functions.https.HttpsError('invalid-argument', 'Message must be between 1 and 2000 characters');
+    }
+    
+    // Rate limiting - 3 messages per hour per IP or user
+    const identifier = context.auth ? context.auth.uid : context.rawRequest.ip;
+    const rateLimitKey = `contact_${identifier}`;
+    
+    if (!rateLimitStore[rateLimitKey]) {
+        rateLimitStore[rateLimitKey] = [];
+    }
+    
+    const now = Date.now();
+    const oneHourAgo = now - (60 * 60 * 1000);
+    rateLimitStore[rateLimitKey] = rateLimitStore[rateLimitKey].filter(time => time > oneHourAgo);
+    
+    if (rateLimitStore[rateLimitKey].length >= 3) {
+        throw new functions.https.HttpsError('resource-exhausted', 'Too many messages. Please wait an hour before sending another.');
+    }
+    
+    rateLimitStore[rateLimitKey].push(now);
+    
+    try {
+        // Save to Firestore
+        const contactMessage = {
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            message: message.trim(),
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            userId: context.auth ? context.auth.uid : null,
+            ipAddress: context.rawRequest.ip || 'unknown',
+            status: 'new',
+            read: false
+        };
+        
+        const docRef = await db.collection('contactMessages').add(contactMessage);
+        
+        console.log(`Contact form submitted: ${docRef.id} from ${email}`);
+        
+        // Send email notification to admin
+        const adminEmail = process.env.ADMIN_EMAIL || 'ekul.kcol@gmail.com';
+        await db.collection('mail').add({
+            to: adminEmail,
+            message: {
+                subject: `New Contact Form: ${name}`,
+                text: `New message from ${name} (${email}):\n\n${message}\n\nSubmitted: ${new Date().toISOString()}`,
+                html: `<h3>New Contact Form Submission</h3>
+                       <p><strong>From:</strong> ${name} (${email})</p>
+                       <p><strong>Message:</strong></p>
+                       <p>${message.replace(/\n/g, '<br>')}</p>
+                       <p><small>Submitted: ${new Date().toISOString()}</small></p>`
+            }
+        });
+        
+        return { 
+            success: true, 
+            message: 'Your message has been sent! We\'ll get back to you within 24-48 hours.' 
+        };
+    } catch (error) {
+        console.error('Error saving contact message:', error);
+        throw new functions.https.HttpsError('internal', 'Failed to submit message. Please try again.');
+    }
+});
+
 /** * Legacy enterDraw function - kept for backward compatibility
  * Can be removed once all clients migrate to joinTournament
  */

@@ -321,6 +321,7 @@
         <div class="text-left bg-white p-4 sm:p-6 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
 
             <form id="contact-form" class="max-w-2xl mx-auto space-y-6">
+                <div id="form-message" class="hidden p-4 rounded-lg mb-4"></div>
                 <div>
                     <label for="contact-name" class="block font-semibold text-indigo-900 mb-2">Your Name</label>
                     <input type="text" id="contact-name" name="name" placeholder="John Doe" class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-indigo-600 text-base" required>
@@ -333,7 +334,7 @@
                     <label for="contact-message" class="block font-semibold text-indigo-900 mb-2">Your Message</label>
                     <textarea id="contact-message" name="message" placeholder="Tell us what's on your mind..." rows="6" class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-indigo-600 text-base resize-none" required></textarea>
                 </div>
-                <button type="submit" class="w-full bg-yellow-500 text-indigo-800 font-extrabold py-3 px-6 rounded-lg text-lg shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105">
+                <button type="submit" id="submit-btn" class="w-full bg-yellow-500 text-indigo-800 font-extrabold py-3 px-6 rounded-lg text-lg shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105">
                     Send Message
                 </button>
             </form>
@@ -542,6 +543,51 @@
             document.addEventListener('click', closeIfOutside, true);
             document.addEventListener('keydown', escHandler, true);
         })();
+
+        // Contact form handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contact-form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const submitBtn = document.getElementById('submit-btn');
+                    const formMessage = document.getElementById('form-message');
+                    const name = document.getElementById('contact-name').value;
+                    const email = document.getElementById('contact-email').value;
+                    const message = document.getElementById('contact-message').value;
+                    
+                    // Disable button
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Sending...';
+                    formMessage.classList.add('hidden');
+                    
+                    try {
+                        const submitContactForm = firebase.functions().httpsCallable('submitContactForm');
+                        const result = await submitContactForm({ name, email, message });
+                        
+                        // Success
+                        formMessage.className = 'p-4 rounded-lg mb-4 bg-green-100 text-green-800 border border-green-300';
+                        formMessage.textContent = result.data.message;
+                        formMessage.classList.remove('hidden');
+                        
+                        // Clear form
+                        contactForm.reset();
+                        
+                        // Scroll to message
+                        formMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } catch (error) {
+                        // Error
+                        formMessage.className = 'p-4 rounded-lg mb-4 bg-red-100 text-red-800 border border-red-300';
+                        formMessage.textContent = error.message || 'Failed to send message. Please try again.';
+                        formMessage.classList.remove('hidden');
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Send Message';
+                    }
+                });
+            }
+        });
     </script>
 
 </body>
