@@ -101,6 +101,10 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Mobile: Login button (logged out) -->
+                        <div id="mobile-auth-buttons" class="sm:hidden absolute top-4 right-4 hidden">
+                            <button id="mobile-login-btn" aria-label="Login" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs font-semibold shadow focus:outline-none">Login</button>
+                        </div>
                         <!-- User info (when logged in) -->
                         <div id="user-info" class="text-right hidden mt-3">
                             <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">Lobster37</span>!</p>
@@ -159,6 +163,8 @@
         .logged-out #auth-buttons { display: block !important; }
         .logged-out #user-info { display: none !important; }
         .logged-out #auth-skeleton { display: none !important; }
+        .logged-out #mobile-auth-buttons { display: block !important; }
+        .logged-in #mobile-auth-buttons { display: none !important; }
         @media (max-width: 639px) {
             #auth-skeleton {
                 display: none !important;
@@ -171,6 +177,7 @@
         body:not(.auth-ready) #auth-buttons { display: none !important; }
         body:not(.auth-ready) #user-info { display: none !important; }
         body:not(.auth-ready) #auth-skeleton { display: block !important; }
+        body:not(.auth-ready) #mobile-auth-buttons { display: none !important; }
         /* Reserve exact space to prevent layout shift */
         #user-account-section {
             min-height: 52px; /* Reserve space for 2 lines + spacing */
@@ -419,6 +426,7 @@
         function setupEventListeners() {
             const loginBtn = document.getElementById('login-btn');
             const registerBtn = document.getElementById('register-btn');
+            const mobileLoginBtn = document.getElementById('mobile-login-btn');
             const mobileProfileBtn = document.getElementById('mobile-profile-btn');
             const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
             const profileDropdown = document.getElementById('profile-dropdown');
@@ -426,6 +434,13 @@
 
             if (loginBtn) loginBtn.addEventListener('click', () => showAuthModal(false));
             if (registerBtn) registerBtn.addEventListener('click', () => showAuthModal(true));
+            if (mobileLoginBtn) {
+                mobileLoginBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showAuthModal(false);
+                });
+            }
+
             if (mobileProfileBtn) {
                 mobileProfileBtn.addEventListener('click', (e) => {
                     try {

@@ -61,6 +61,8 @@
         .logged-out #auth-buttons { display: block !important; }
         .logged-out #user-info { display: none !important; }
         .logged-out #auth-skeleton { display: none !important; }
+        .logged-out #mobile-auth-buttons { display: block !important; }
+        .logged-in #mobile-auth-buttons { display: none !important; }
         @media (max-width: 639px) { #auth-skeleton { display: none !important; } }
         .logged-in #auth-buttons { display: none !important; }
         .logged-in #user-info { display: block !important; }
@@ -68,6 +70,7 @@
         body:not(.auth-ready) #auth-buttons { display: none !important; }
         body:not(.auth-ready) #user-info { display: none !important; }
         body:not(.auth-ready) #auth-skeleton { display: block !important; }
+        body:not(.auth-ready) #mobile-auth-buttons { display: none !important; }
         #user-account-section { min-height: 52px; width: 176px; flex-shrink: 0; }
         .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
         @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -116,6 +119,10 @@
                                     <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">Sign Up</button>
                                 </div>
                             </div>
+                        </div>
+                        <!-- Mobile: Login button (logged out) -->
+                        <div id="mobile-auth-buttons" class="sm:hidden absolute top-4 right-4 hidden">
+                            <button id="mobile-login-btn" aria-label="Login" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs font-semibold shadow focus:outline-none">Login</button>
                         </div>
                         <div id="user-info" class="text-right hidden mt-3">
                             <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">User</span>!</p>
@@ -286,10 +293,18 @@
         }
 
         function setupEventListeners() {
+            const mobileLoginBtn = document.getElementById('mobile-login-btn');
             const mobileProfileBtn = document.getElementById('mobile-profile-btn');
             const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
             const profileDropdown = document.getElementById('profile-dropdown');
             const logoutBtn = document.getElementById('logout-btn-dropdown');
+
+            if (mobileLoginBtn) {
+                mobileLoginBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = 'index.html';
+                });
+            }
 
             if (mobileProfileBtn) {
                 mobileProfileBtn.addEventListener('click', (e) => {
