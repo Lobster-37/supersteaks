@@ -209,6 +209,7 @@ exports.joinTournament = functions.https.onCall(async (data, context) => {
             const assignment = {
                 id: assignmentRef.id,
                 userId,
+                username: context.auth.token.name || context.auth.token.email?.split('@')[0] || 'User',
                 tournamentId,
                 lobbyId: lobbyData.id,
                 team,
