@@ -101,18 +101,15 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Mobile: Profile button (text) -->
                         <div class="absolute top-4 right-4 sm:hidden">
-                            <button id="mobile-profile-btn" aria-label="Profile" class="focus:outline-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.001 9.001 0 0112 15c2.21 0 4.21.805 5.879 2.146M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </button>
+                            <button id="mobile-profile-btn" aria-label="Profile" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs font-semibold shadow focus:outline-none">My Profile</button>
                         </div>
                         <div id="user-info" class="text-right hidden">
                             <p class="text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">User</span>!</p>
                             <div class="flex items-center justify-center sm:justify-end space-x-2">
                                 <div class="relative">
-                                    <button id="profile-dropdown-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">My Profile ▼</button>
+                                    <button id="profile-dropdown-btn" class="hidden sm:inline-flex bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">My Profile ▼</button>
                                     <div id="profile-dropdown" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                                         <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">🚪 Logout</button>
                                     </div>
