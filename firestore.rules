@@ -22,9 +22,9 @@ service cloud.firestore {
       allow create, update, delete: if false; // Cloud Functions only
     }
 
-    // Team assignments - users can read their own assignments
+    // Team assignments - users can read all assignments (to see other players in their lobby)
     match /teamAssignments/{assignmentId} {
-      allow read: if isAuthed() && resource.data.userId == request.auth.uid;
+      allow read: if isAuthed();
       
       // No direct writes - only Cloud Functions
       allow write: if false;
