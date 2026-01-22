@@ -734,17 +734,33 @@
                     return;
                 }
 
+                // Find and disable the clicked button
+                const clickedBtn = event.target;
+                const originalText = clickedBtn.textContent;
+                clickedBtn.disabled = true;
+                clickedBtn.textContent = '⏳ Joining...';
+                clickedBtn.style.opacity = '0.7';
+
                 const result = await window.supersteaks.joinTournament(tournamentId);
                 if (result.success) {
-                    alert(`🎉 Joined! Your team: ${result.assignment.team}`);
-                    // Optionally redirect to lobby view
-                    window.location.href = `lobby.html?tournamentId=${tournamentId}&lobbyId=${result.lobby.id}`;
+                    clickedBtn.textContent = '✓ Got your team!';
+                    setTimeout(() => {
+                        alert(`🎉 Joined! Your team: ${result.assignment.team}`);
+                        window.location.href = `lobby.html?tournamentId=${tournamentId}&lobbyId=${result.lobby.id}`;
+                    }, 500);
                 } else {
                     alert(`Error: ${result.error}`);
+                    clickedBtn.disabled = false;
+                    clickedBtn.textContent = originalText;
+                    clickedBtn.style.opacity = '1';
                 }
             } catch (error) {
-                console.error('Error joining tournament:', error);
+                const clickedBtn = event.target;
+                const originalText = clickedBtn.textContent;
                 alert(`Error: ${error.message}`);
+                clickedBtn.disabled = false;
+                clickedBtn.textContent = originalText;
+                clickedBtn.style.opacity = '1';
             }
         }
 
