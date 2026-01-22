@@ -14,6 +14,22 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script>
+        // Verify CSS loaded
+        console.log('TailwindCSS CSS loading...');
+        setTimeout(() => {
+            const testEl = document.createElement('div');
+            testEl.className = 'bg-red-500';
+            document.body.appendChild(testEl);
+            const styles = getComputedStyle(testEl);
+            if (styles.backgroundColor === 'rgb(239, 68, 68)' || styles.backgroundColor.includes('239')) {
+                console.log('✅ TailwindCSS CSS loaded successfully');
+            } else {
+                console.error('❌ TailwindCSS CSS failed to load');
+            }
+            document.body.removeChild(testEl);
+        }, 1000);
+    </script>
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s",
             authDomain: "supersteaks-240f7.firebaseapp.com",
@@ -75,11 +91,11 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
                 <div class="text-center sm:text-left">
                     <div class="flex flex-row items-center justify-center sm:block">
-                        <a href="index.html" class="hover:opacity-80 transition-opacity">
+                        <a href="index.html" class="hover:opacity-80 transition-opacity relative">
                             <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="h-12 w-auto mr-2 sm:hidden" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
                         </a>
-                        <a href="index.html" class="hover:opacity-80 transition-opacity">
-                            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0">SUPERSTEAKS</h1>
+                        <a href="index.html" class="hover:opacity-80 transition-opacity relative">
+                            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
                         </a>
                     </div>
                 </div>
@@ -89,8 +105,8 @@
                             <div id="auth-skeleton" class="text-right">
                                 <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
                                 <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                    <div class="skeleton h-6 rounded" style="width: 48px;"></div>
-                                    <div class="skeleton h-6 rounded" style="width: 64px;"></div>
+                                    <div class="skeleton h-6 rounded" style="width: 48px; padding: 4px 12px;"></div>
+                                    <div class="skeleton h-6 rounded" style="width: 64px; padding: 4px 8px;"></div>
                                 </div>
                             </div>
                             <div id="auth-buttons" class="sm:block hidden">
@@ -111,6 +127,7 @@
                                 <div class="relative">
                                     <button id="profile-dropdown-btn" class="hidden sm:inline-flex bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">My Profile ▼</button>
                                     <div id="profile-dropdown" class="hidden absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                        <button id="view-profile-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">👤 View My Profile</button>
                                         <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">🚪 Logout</button>
                                     </div>
                                 </div>
