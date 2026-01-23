@@ -1,0 +1,11 @@
+# Cloud Functions
+node_modules/
+.DS_Store
+*.log
+.git/
+.firebase/
+.firebaserc
+firebase-debug.log
+firebase-debug.*.log
+serviceAccountKey.json.json
+trigger-sports-update.js

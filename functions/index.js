@@ -894,8 +894,147 @@ exports.submitContactForm = functions.https.onCall(async (data, context) => {
     }
 });
 
+/**
+ * TheSportsDB API Integration
+ * Fetches fixtures, results, and standings for configured leagues
+ */
+
+const axios = require('axios');
+const SPORTSDB_API_KEY = '123';
+const SPORTSDB_BASE_URL = 'https://www.thesportsdb.com/api/v1/json';
+
+// League configuration
+const LEAGUES = {
+    'premier-league': { id: '4328', name: 'Premier League', season: '2024-2025' },
+    'championship': { id: '4329', name: 'Championship', season: '2024-2025' },
+    'league-one': { id: '4330', name: 'League One', season: '2024-2025' },
+    'league-two': { id: '4331', name: 'League Two', season: '2024-2025' },
+    'champions-league': { id: '4480', name: 'Champions League', season: '2024-2025' }
+};
+
+// Scheduled function to fetch and update sports data
+exports.updateSportsData = functions.pubsub.schedule('every 10 minutes').onRun(async (context) => {
+    console.log('Starting sports data update...');
+    
+    try {
+        for (const [leagueKey, leagueConfig] of Object.entries(LEAGUES)) {
+            console.log(`Fetching data for ${leagueConfig.name}...`);
+            
+            // Fetch fixtures (next 15 events)
+            const fixturesResponse = await axios.get(
+                `${SPORTSDB_BASE_URL}/${SPORTSDB_API_KEY}/eventsnextleague.php?id=${leagueConfig.id}`
+            );
+            
+            // Fetch recent results (last 15 events)
+            const resultsResponse = await axios.get(
+                `${SPORTSDB_BASE_URL}/${SPORTSDB_API_KEY}/eventspastleague.php?id=${leagueConfig.id}`
+            );
+            
+            // Fetch league table/standings
+            const standingsResponse = await axios.get(
+                `${SPORTSDB_BASE_URL}/${SPORTSDB_API_KEY}/lookuptable.php?l=${leagueConfig.id}&s=${leagueConfig.season}`
+            );
+            
+            // Store in Firestore
+            const leagueRef = db.collection('leagues').doc(leagueKey);
+            
+            await leagueRef.set({
+                name: leagueConfig.name,
+                leagueId: leagueConfig.id,
+                season: leagueConfig.season,
+                lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            // Store fixtures
+            if (fixturesResponse.data && fixturesResponse.data.events) {
+                const fixturesBatch = db.batch();
+                fixturesResponse.data.events.forEach((event) => {
+                    const fixtureRef = leagueRef.collection('fixtures').doc(event.idEvent);
+                    fixturesBatch.set(fixtureRef, {
+                        eventId: event.idEvent,
+                        homeTeam: event.strHomeTeam,
+                        awayTeam: event.strAwayTeam,
+                        date: event.dateEvent,
+                        time: event.strTime,
+                        venue: event.strVenue,
+                        timestamp: new Date(event.dateEvent + 'T' + (event.strTime || '00:00:00'))
+                    });
+                });
+                await fixturesBatch.commit();
+            }
+            
+            // Store results
+            if (resultsResponse.data && resultsResponse.data.events) {
+                const resultsBatch = db.batch();
+                resultsResponse.data.events.forEach((event) => {
+                    const resultRef = leagueRef.collection('results').doc(event.idEvent);
+                    resultsBatch.set(resultRef, {
+                        eventId: event.idEvent,
+                        homeTeam: event.strHomeTeam,
+                        awayTeam: event.strAwayTeam,
+                        homeScore: event.intHomeScore,
+                        awayScore: event.intAwayScore,
+                        date: event.dateEvent,
+                        time: event.strTime,
+                        venue: event.strVenue,
+                        timestamp: new Date(event.dateEvent + 'T' + (event.strTime || '00:00:00'))
+                    });
+                });
+                await resultsBatch.commit();
+            }
+            
+            // Store standings
+            if (standingsResponse.data && standingsResponse.data.table) {
+                const standingsBatch = db.batch();
+                standingsResponse.data.table.forEach((team, index) => {
+                    const standingRef = leagueRef.collection('standings').doc(team.idTeam);
+                    standingsBatch.set(standingRef, {
+                        teamId: team.idTeam,
+                        teamName: team.name || team.strTeam,
+                        position: index + 1,
+                        played: parseInt(team.played) || 0,
+                        won: parseInt(team.win) || 0,
+                        drawn: parseInt(team.draw) || 0,
+                        lost: parseInt(team.loss) || 0,
+                        goalsFor: parseInt(team.goalsfor) || 0,
+                        goalsAgainst: parseInt(team.goalsagainst) || 0,
+                        goalDifference: parseInt(team.goalsdifference) || 0,
+                        points: parseInt(team.total) || 0
+                    });
+                });
+                await standingsBatch.commit();
+            }
+            
+            console.log(`✓ Updated ${leagueConfig.name}`);
+        }
+        
+        console.log('Sports data update completed successfully');
+        return null;
+    } catch (error) {
+        console.error('Error updating sports data:', error);
+        return null;
+    }
+});
+
+// HTTP function to manually trigger sports data update (for testing)
+exports.triggerSportsUpdate = functions.https.onCall(async (data, context) => {
+    // Only admins can trigger manual updates
+    if (!context.auth || !context.auth.token.admin) {
+        throw new functions.https.HttpsError('permission-denied', 'Admin access required');
+    }
+    
+    try {
+        await exports.updateSportsData.run();
+        return { success: true, message: 'Sports data updated successfully' };
+    } catch (error) {
+        console.error('Error in manual update:', error);
+        throw new functions.https.HttpsError('internal', 'Failed to update sports data');
+    }
+});
+
 /** * Legacy enterDraw function - kept for backward compatibility
  * Can be removed once all clients migrate to joinTournament
  */
 // TODO: Remove this after full migration to tournament system
+
 

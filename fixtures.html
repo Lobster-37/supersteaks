@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixtures & Results - SuperSteaks</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .tab-active {
+            border-bottom: 3px solid #ef4444;
+            color: #ef4444;
+            font-weight: 600;
+        }
+        .league-tab-active {
+            background-color: #ef4444;
+            color: white;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Mobile welcome message between logo and nav */
+        #mobile-welcome {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+        body.logged-in #mobile-welcome {
+            visibility: visible;
+            opacity: 1;
+        }
+        /* Tighter mobile header spacing */
+        @media (max-width: 639px) {
+            nav[aria-label="Main navigation"] {
+                margin-top: -44px;
+            }
+            .mobile-auth-buttons {
+                display: block;
+            }
+        }
+        @media (min-width: 640px) {
+            .mobile-auth-buttons {
+                display: none;
+            }
+        }
+        /* User info in top right */
+        #user-info {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            transition: opacity 0.2s ease-in-out;
+        }
+        body:not(.auth-ready) #user-info,
+        body:not(.auth-ready) #mobile-welcome,
+        body:not(.auth-ready) .mobile-auth-buttons {
+            visibility: hidden;
+            opacity: 0;
+        }
+        body.auth-ready #user-info,
+        body.auth-ready.logged-in #mobile-welcome,
+        body.auth-ready .mobile-auth-buttons {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-lg relative">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between">
+                <div class="w-full sm:w-auto">
+                    <h1 class="text-3xl sm:text-4xl font-bold">SuperSteaks</h1>
+                    
+                    <!-- Mobile Welcome Message (between logo and nav) -->
+                    <div id="mobile-welcome" class="text-sm mt-2 sm:hidden">
+                        Welcome, <span id="mobile-username-display">Guest</span>!
+                    </div>
+                </div>
+
+                <!-- User Info - Top Right -->
+                <div id="user-info" class="z-10">
+                    <!-- Desktop Welcome -->
+                    <p class="hidden sm:block text-sm mb-2">
+                        Welcome, <span id="username-display">Guest</span>!
+                    </p>
+                    
+                    <!-- Profile Button (visible when logged in) -->
+                    <div class="logged-in hidden">
+                        <button id="profile-button" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 transition">
+                            My Profile ▼
+                        </button>
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
+                            <a href="lobby.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
+                            <a href="tournaments.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Tournaments</a>
+                            <button id="logout-button" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Login/Register Buttons (visible when logged out, desktop only) -->
+                    <div class="logged-out hidden sm:flex space-x-2">
+                        <button id="login-button" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 transition">Login</button>
+                        <button id="register-button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Register</button>
+                    </div>
+                </div>
+
+                <!-- Mobile Auth Buttons (icon when logged out) -->
+                <div class="mobile-auth-buttons logged-out hidden absolute top-4 right-4">
+                    <button id="mobile-login-button" class="bg-white text-blue-600 p-2 rounded-full hover:bg-gray-100 transition w-10 h-10 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="mt-12 sm:mt-4" aria-label="Main navigation">
+                <ul class="flex flex-wrap space-x-4 text-sm sm:text-base">
+                    <li><a href="index.html" class="hover:text-blue-200 transition">Home</a></li>
+                    <li><a href="tournaments.html" class="hover:text-blue-200 transition">Tournaments</a></li>
+                    <li><a href="fixtures.html" class="hover:text-blue-200 transition font-bold underline">Fixtures & Results</a></li>
+                    <li><a href="rules.html" class="hover:text-blue-200 transition">Rules</a></li>
+                    <li><a href="contact.html" class="hover:text-blue-200 transition">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Fixtures & Results</h2>
+            
+            <!-- League Tabs -->
+            <div class="flex flex-wrap gap-2 mb-6 border-b pb-4">
+                <button class="league-tab league-tab-active px-4 py-2 rounded transition" data-league="premier-league">
+                    Premier League
+                </button>
+                <button class="league-tab px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition" data-league="championship">
+                    Championship
+                </button>
+                <button class="league-tab px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition" data-league="league-one">
+                    League One
+                </button>
+                <button class="league-tab px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition" data-league="league-two">
+                    League Two
+                </button>
+                <button class="league-tab px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition" data-league="champions-league">
+                    Champions League
+                </button>
+            </div>
+
+            <!-- View Tabs -->
+            <div class="flex space-x-6 mb-6 border-b">
+                <button class="view-tab tab-active px-4 py-2 transition" data-view="fixtures">
+                    Fixtures
+                </button>
+                <button class="view-tab px-4 py-2 hover:text-red-500 transition" data-view="results">
+                    Results
+                </button>
+                <button class="view-tab px-4 py-2 hover:text-red-500 transition" data-view="table">
+                    Table
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-red-600"></div>
+                <p class="mt-4 text-gray-600">Loading data...</p>
+            </div>
+
+            <!-- Content Container -->
+            <div id="content-container" class="hidden">
+                <!-- Fixtures View -->
+                <div id="fixtures-view" class="fade-in">
+                    <div id="fixtures-list" class="space-y-3">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Results View -->
+                <div id="results-view" class="hidden fade-in">
+                    <div id="results-list" class="space-y-3">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div id="table-view" class="hidden fade-in">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Pos</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Team</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">P</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">W</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">D</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">L</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">GF</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">GA</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">GD</th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Last Updated -->
+            <p id="last-updated" class="text-sm text-gray-500 mt-6 text-right"></p>
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/supersteaks-global.js"></script>
+    <script src="js/fixtures.js"></script>
+</body>
+</html>
