@@ -150,7 +150,7 @@
                         <a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a>
                     </li>
                     <li>
-                        <a href="input-results.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Admin</a>
+                        <a id="admin-link" href="input-results.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base hidden">Admin</a>
                     </li>
                 </ul>
             </nav>
@@ -811,6 +811,29 @@
             document.addEventListener('click', closeIfOutside, true);
             document.addEventListener('keydown', escHandler, true);
         })();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminLink = document.getElementById('admin-link');
+            if (!adminLink || !window.firebase || !firebase.auth) return;
+
+            firebase.auth().onAuthStateChanged(async (user) => {
+                if (!user) {
+                    adminLink.classList.add('hidden');
+                    return;
+                }
+                try {
+                    const token = await user.getIdTokenResult();
+                    if (token.claims && token.claims.admin) {
+                        adminLink.classList.remove('hidden');
+                    } else {
+                        adminLink.classList.add('hidden');
+                    }
+                } catch (error) {
+                    adminLink.classList.add('hidden');
+                }
+            });
+        });
     </script>
 </body>
 </html>

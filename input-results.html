@@ -10,6 +10,21 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-functions-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s",
+            authDomain: "supersteaks-240f7.firebaseapp.com",
+            projectId: "supersteaks-240f7",
+            storageBucket: "supersteaks-240f7.appspot.com",
+            messagingSenderId: "325643072121",
+            appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
+        };
+        try {
+            firebase.initializeApp(firebaseConfig);
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+        }
+    </script>
     <link rel="stylesheet" href="css/supersteaks-global.js">
 </head>
 <body class="bg-gray-50">
