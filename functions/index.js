@@ -5,6 +5,16 @@ admin.initializeApp();
 const db = admin.firestore();
 
 /**
+ * TheSportsDB API Integration (Free)
+ * API Documentation: https://www.thesportsdb.com/api.php
+ * Free API Key: "3" (test key, supports all features)
+ * Endpoints used:
+ * - eventsseason: Get all matches for a season
+ * - eventsround: Get fixtures for specific rounds
+ * - lookuptable: Get current standings
+ */
+
+/**
  * Security & Validation Utilities
  */
 
@@ -897,76 +907,392 @@ exports.submitContactForm = functions.https.onCall(async (data, context) => {
 /**
  * TheSportsDB API Integration
  * Fetches fixtures, results, and standings for configured leagues
+ * Free API with no rate limits
  */
 
 const axios = require('axios');
-const SPORTSDB_API_KEY = '123';
+const SPORTSDB_API_KEY = '3'; // Free test key
 const SPORTSDB_BASE_URL = 'https://www.thesportsdb.com/api/v1/json';
 
-// League configuration
+// League configuration with TheSportsDB IDs
 const LEAGUES = {
-    'premier-league': { id: '4328', name: 'Premier League', season: '2024-2025' },
-    'championship': { id: '4329', name: 'Championship', season: '2024-2025' },
-    'league-one': { id: '4330', name: 'League One', season: '2024-2025' },
-    'league-two': { id: '4331', name: 'League Two', season: '2024-2025' },
-    'champions-league': { id: '4480', name: 'Champions League', season: '2024-2025' }
+    'premier-league': { 
+        id: 4328, 
+        name: 'Premier League', 
+        season: '2025-2026',
+        roundsStart: 28,
+        roundsEnd: 30
+    },
+    'championship': { 
+        id: 4329, 
+        name: 'Championship', 
+        season: '2025-2026',
+        roundsStart: 1,
+        roundsEnd: 46
+    },
+    'league-one': { 
+        id: 4396, 
+        name: 'League One', 
+        season: '2025-2026',
+        roundsStart: 1,
+        roundsEnd: 46
+    },
+    'league-two': { 
+        id: 4397, 
+        name: 'League Two', 
+        season: '2025-2026',
+        roundsStart: 26,
+        roundsEnd: 28
+    },
+    'champions-league': { 
+        id: 4480, 
+        name: 'Champions League', 
+        season: '2025-2026',
+        roundsStart: 1,
+        roundsEnd: 12
+    }
 };
 
+// Optional shared secret for HTTP-triggered backfill (fallback value for convenience)
+const FETCH_MISSING_SECRET = process.env.FETCH_MISSING_SECRET || (functions.config().fetch && functions.config().fetch.secret) || 'temp-secret-123';
+
+// Utility: Query TheSportsDB API with retry and backoff
+async function querySportsDB(endpoint) {
+    const maxRetries = 2;
+    let retryCount = 0;
+    const requestTimeout = 5000; // 5-second timeout per request
+    
+    while (retryCount < maxRetries) {
+        try {
+            const response = await axios.get(`${SPORTSDB_BASE_URL}/${SPORTSDB_API_KEY}${endpoint}`, {
+                timeout: requestTimeout
+            });
+            return response.data;
+        } catch (error) {
+            retryCount++;
+            if (error.response && error.response.status === 429 && retryCount < maxRetries) {
+                // Exponential backoff: 1s, 2s
+                const waitTime = Math.pow(2, retryCount) * 500;
+                    console.warn(`Got 429, retrying in ${waitTime}ms (attempt ${retryCount}/${maxRetries})`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                    continue;
+            } else if (error.code === 'ECONNABORTED' && retryCount < maxRetries) {
+                // Timeout - retry with short delay
+                console.warn(`Request timeout, retrying (attempt ${retryCount}/${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                continue;
+            }
+            console.error(`TheSportsDB API error: ${error.message}`);
+            return null;
+        }
+    }
+    
+    return null;
+}
+
+function buildStandingsFromResults(resultsSnapshot) {
+    const standingsMap = {};
+
+    resultsSnapshot.forEach(doc => {
+        const result = doc.data();
+        const { homeTeam, awayTeam, homeScore, awayScore } = result;
+        if (homeScore === null || awayScore === null) return;
+
+        const homeGoals = parseInt(homeScore) || 0;
+        const awayGoals = parseInt(awayScore) || 0;
+
+        if (!standingsMap[homeTeam]) {
+            standingsMap[homeTeam] = { 
+                team: homeTeam, 
+                played: 0, 
+                won: 0, 
+                drawn: 0, 
+                lost: 0, 
+                goalsFor: 0, 
+                goalsAgainst: 0, 
+                goalDifference: 0, 
+                points: 0 
+            };
+        }
+        if (!standingsMap[awayTeam]) {
+            standingsMap[awayTeam] = { 
+                team: awayTeam, 
+                played: 0, 
+                won: 0, 
+                drawn: 0, 
+                lost: 0, 
+                goalsFor: 0, 
+                goalsAgainst: 0, 
+                goalDifference: 0, 
+                points: 0 
+            };
+        }
+
+        standingsMap[homeTeam].played++;
+        standingsMap[awayTeam].played++;
+        standingsMap[homeTeam].goalsFor += homeGoals;
+        standingsMap[homeTeam].goalsAgainst += awayGoals;
+        standingsMap[awayTeam].goalsFor += awayGoals;
+        standingsMap[awayTeam].goalsAgainst += homeGoals;
+
+        if (homeGoals > awayGoals) {
+            standingsMap[homeTeam].won++;
+            standingsMap[homeTeam].points += 3;
+            standingsMap[awayTeam].lost++;
+        } else if (homeGoals < awayGoals) {
+            standingsMap[awayTeam].won++;
+            standingsMap[awayTeam].points += 3;
+            standingsMap[homeTeam].lost++;
+        } else {
+            standingsMap[homeTeam].drawn++;
+            standingsMap[awayTeam].drawn++;
+            standingsMap[homeTeam].points += 1;
+            standingsMap[awayTeam].points += 1;
+        }
+
+        standingsMap[homeTeam].goalDifference = standingsMap[homeTeam].goalsFor - standingsMap[homeTeam].goalsAgainst;
+        standingsMap[awayTeam].goalDifference = standingsMap[awayTeam].goalsFor - standingsMap[awayTeam].goalsAgainst;
+    });
+
+    const calculatedArray = Object.values(standingsMap);
+    calculatedArray.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+        return a.team.localeCompare(b.team);
+    });
+
+    return calculatedArray.map((team, index) => ({
+        position: index + 1,
+        teamName: team.team,
+        played: team.played,
+        won: team.won,
+        drawn: team.drawn,
+        lost: team.lost,
+        goalsFor: team.goalsFor,
+        goalsAgainst: team.goalsAgainst,
+        goalDifference: team.goalDifference,
+        points: team.points
+    }));
+}
+
+
+// Utility: Determine current round from match data
+function getCurrentRound(matches) {
+    const now = new Date();
+    let maxCompletedRound = 0;
+    let minUpcomingRound = 999;
+    
+    matches.forEach(match => {
+        const round = parseInt(match.intRound) || 0;
+        if (match.intHomeScore !== null && match.intAwayScore !== null) {
+            maxCompletedRound = Math.max(maxCompletedRound, round);
+        } else {
+            minUpcomingRound = Math.min(minUpcomingRound, round);
+        }
+    });
+    
+    return minUpcomingRound < 999 ? minUpcomingRound : maxCompletedRound + 1;
+}
+
+// Utility: clear a subcollection to avoid stale data between seasons
+async function clearSubcollection(parentRef, subcollection) {
+    const snap = await parentRef.collection(subcollection).limit(400).get();
+    if (snap.empty) return;
+    const batch = db.batch();
+    snap.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    if (snap.size === 400) {
+        await clearSubcollection(parentRef, subcollection);
+    }
+}
+
+// Manual result entry (admin-only) + standings rebuild
+exports.submitMatchResult = functions.https.onCall(async (data, context) => {
+    if (!context.auth || !context.auth.token || !context.auth.token.admin) {
+        throw new functions.https.HttpsError('permission-denied', 'Admin access required');
+    }
+
+    const leagueKey = data.league;
+    if (!leagueKey || typeof leagueKey !== 'string' || !LEAGUES[leagueKey]) {
+        throw new functions.https.HttpsError('invalid-argument', 'Unknown league');
+    }
+
+    const homeTeam = validateTeamName(data.homeTeam);
+    const awayTeam = validateTeamName(data.awayTeam);
+    if (homeTeam === awayTeam) {
+        throw new functions.https.HttpsError('invalid-argument', 'Home and away teams must be different');
+    }
+
+    const homeScore = parseInt(data.homeScore, 10);
+    const awayScore = parseInt(data.awayScore, 10);
+    if (Number.isNaN(homeScore) || Number.isNaN(awayScore) || homeScore < 0 || awayScore < 0) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid score values');
+    }
+
+    const matchDate = data.matchDate;
+    if (!matchDate || typeof matchDate !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid match date');
+    }
+    const timeStr = '15:00:00';
+    const ts = new Date(`${matchDate}T${timeStr}`);
+    if (isNaN(ts.getTime())) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid match date');
+    }
+
+    const leagueRef = db.collection('leagues').doc(leagueKey);
+    await leagueRef.set({
+        name: LEAGUES[leagueKey].name,
+        leagueId: LEAGUES[leagueKey].id,
+        season: LEAGUES[leagueKey].season,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    const slugify = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const resultId = `manual_${matchDate}_${slugify(homeTeam)}_${slugify(awayTeam)}`;
+
+    await leagueRef.collection('results').doc(resultId).set({
+        eventId: resultId,
+        homeTeam,
+        awayTeam,
+        homeScore,
+        awayScore,
+        date: matchDate,
+        time: timeStr,
+        venue: data.venue || null,
+        timestamp: ts,
+        source: 'manual',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    await clearSubcollection(leagueRef, 'standings');
+    const resultsSnapshot = await leagueRef.collection('results').get();
+    const standingsArray = buildStandingsFromResults(resultsSnapshot);
+
+    const batch = db.batch();
+    standingsArray.forEach((team, index) => {
+        const position = team.position || index + 1;
+        const standingRef = leagueRef.collection('standings').doc(`${position}`);
+        batch.set(standingRef, {
+            position,
+            teamName: team.teamName,
+            played: team.played,
+            won: team.won,
+            drawn: team.drawn,
+            lost: team.lost,
+            goalsFor: team.goalsFor,
+            goalsAgainst: team.goalsAgainst,
+            goalDifference: team.goalDifference,
+            points: team.points
+        });
+    });
+    await batch.commit();
+
+    return { success: true, league: LEAGUES[leagueKey].name, teams: standingsArray.length };
+});
+
 // Scheduled function to fetch and update sports data
-exports.updateSportsData = functions.pubsub.schedule('every 10 minutes').onRun(async (context) => {
+exports.updateSportsData = functions.pubsub.schedule('every 2 minutes').onRun(async (context) => {
     console.log('Starting sports data update...');
     
     try {
+        // Use start of today (00:00:00) as cutoff for past vs future
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString().split('T')[0];
+        console.log(`Today date cutoff: ${todayStr}`);
+
         for (const [leagueKey, leagueConfig] of Object.entries(LEAGUES)) {
-            console.log(`Fetching data for ${leagueConfig.name}...`);
+            console.log(`Fetching data for ${leagueConfig.name} (season ${leagueConfig.season})...`);
+                const leagueRef = db.collection('leagues').doc(leagueKey);
+
+                await leagueRef.set({
+                    name: leagueConfig.name,
+                    leagueId: leagueConfig.id,
+                    season: leagueConfig.season,
+                    lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                // Do not clear collections; we upsert/dedupe by eventId to avoid wiping earlier rounds
+
+                // Only use eventsround API - eventsseason is broken/incomplete for these leagues
+                const allMatches = [];
+                const startRound = leagueConfig.roundsStart || 1;
+                const endRound = leagueConfig.roundsEnd || startRound + 8;
+
+                for (let round = startRound; round <= endRound; round++) {
+                    const roundData = await querySportsDB(`/eventsround.php?id=${leagueConfig.id}&r=${round}&s=${leagueConfig.season}`);
+                    if (roundData && roundData.events && roundData.events.length > 0) {
+                        allMatches.push(...roundData.events);
+                        console.log(`Round ${round}: ${roundData.events.length} matches`);
+                    } else {
+                        console.warn(`No data for round ${round} (${leagueConfig.name})`);
+                    }
+                }
+
+                console.log(`Fetched ${allMatches.length} total matches for ${leagueConfig.name} from rounds ${startRound}-${endRound}`);
             
-            // Fetch fixtures (next 15 events)
-            const fixturesResponse = await axios.get(
-                `${SPORTSDB_BASE_URL}/${SPORTSDB_API_KEY}/eventsnextleague.php?id=${leagueConfig.id}`
-            );
-            
-            // Fetch recent results (last 15 events)
-            const resultsResponse = await axios.get(
-                `${SPORTSDB_BASE_URL}/${SPORTSDB_API_KEY}/eventspastleague.php?id=${leagueConfig.id}`
-            );
-            
-            // Fetch league table/standings
-            const standingsResponse = await axios.get(
-                `${SPORTSDB_BASE_URL}/${SPORTSDB_API_KEY}/lookuptable.php?l=${leagueConfig.id}&s=${leagueConfig.season}`
-            );
-            
-            // Store in Firestore
-            const leagueRef = db.collection('leagues').doc(leagueKey);
-            
-            await leagueRef.set({
-                name: leagueConfig.name,
-                leagueId: leagueConfig.id,
-                season: leagueConfig.season,
-                lastUpdated: admin.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-            
-            // Store fixtures
-            if (fixturesResponse.data && fixturesResponse.data.events) {
-                const fixturesBatch = db.batch();
-                fixturesResponse.data.events.forEach((event) => {
-                    const fixtureRef = leagueRef.collection('fixtures').doc(event.idEvent);
-                    fixturesBatch.set(fixtureRef, {
-                        eventId: event.idEvent,
-                        homeTeam: event.strHomeTeam,
-                        awayTeam: event.strAwayTeam,
-                        date: event.dateEvent,
-                        time: event.strTime,
-                        venue: event.strVenue,
-                        timestamp: new Date(event.dateEvent + 'T' + (event.strTime || '00:00:00'))
-                    });
+                // Deduplicate by event ID
+                const uniqueMatches = new Map();
+                 allMatches.forEach(match => {
+                    if (match && match.idEvent) {
+                        uniqueMatches.set(match.idEvent, match);
+                    }
                 });
-                await fixturesBatch.commit();
-            }
             
-            // Store results
-            if (resultsResponse.data && resultsResponse.data.events) {
-                const resultsBatch = db.batch();
-                resultsResponse.data.events.forEach((event) => {
+                const allEvents = Array.from(uniqueMatches.values()).map(match => ({
+                    idEvent: match.idEvent,
+                    dateEvent: match.dateEvent,
+                    strTime: match.strTime || match.strTimeLocal || '15:00:00',
+                    strHomeTeam: match.strHomeTeam,
+                    strAwayTeam: match.strAwayTeam,
+                    intHomeScore: match.intHomeScore,
+                    intAwayScore: match.intAwayScore,
+                    strVenue: match.strVenue || null,
+                    status: match.strStatus || 'Unknown'
+                }));
+
+                console.log(`Parsed ${allEvents.length} total events for ${leagueConfig.name}`);
+                if (allEvents.length) {
+                    const sample = allEvents.slice(0, 3).map(ev => ({ id: ev.idEvent, date: ev.dateEvent, time: ev.strTime, home: ev.strHomeTeam, away: ev.strAwayTeam, homeScore: ev.intHomeScore, awayScore: ev.intAwayScore }));
+                    console.log(`Sample events: ${JSON.stringify(sample)}`);
+                }
+
+            // Split events into fixtures (future/today) and results (past)
+            const fixturesBatch = db.batch();
+            const resultsBatch = db.batch();
+            let fixturesCount = 0;
+            let resultsCount = 0;
+
+            allEvents.forEach(event => {
+                if (!event || !event.dateEvent) {
+                    return;
+                }
+                const dateStr = event.dateEvent;
+                const timeStr = event.strTime || '15:00:00';
+                const ts = new Date(`${dateStr}T${timeStr}`);
+                if (isNaN(ts.getTime())) {
+                    console.warn(`Skipping event with invalid timestamp: ${event.idEvent} ${dateStr} ${timeStr}`);
+                    return;
+                }
+                const hasScore = event.intHomeScore !== null && event.intAwayScore !== null;
+                const isFinished = event.status && event.status.toLowerCase().includes('match finished');
+                
+                // Use the timestamp comparison to determine if it's a fixture or result
+                // If it has a score, it's definitely a result
+                // If it has "Match Finished" status, it's definitely a result  
+                // Otherwise, if the match is in the future (timestamp >= now), it's a fixture
+                const now = new Date();
+                const isFuture = ts >= now;
+                const isResult = hasScore || isFinished || !isFuture;
+                
+                // Debug: log some event classification info
+                if (fixturesCount + resultsCount < 5) {
+                    console.log(`Event ${event.idEvent} (${dateStr}): isFuture=${isFuture}, isResult=${isResult}, hasScore=${hasScore}, status=${event.status}`);
+                }
+                
+                // Classify as result or fixture
+                if (isResult) {
                     const resultRef = leagueRef.collection('results').doc(event.idEvent);
                     resultsBatch.set(resultRef, {
                         eventId: event.idEvent,
@@ -974,45 +1300,417 @@ exports.updateSportsData = functions.pubsub.schedule('every 10 minutes').onRun(a
                         awayTeam: event.strAwayTeam,
                         homeScore: event.intHomeScore,
                         awayScore: event.intAwayScore,
-                        date: event.dateEvent,
-                        time: event.strTime,
+                        date: dateStr,
+                        time: timeStr,
                         venue: event.strVenue,
-                        timestamp: new Date(event.dateEvent + 'T' + (event.strTime || '00:00:00'))
+                        timestamp: ts
                     });
-                });
-                await resultsBatch.commit();
+                    resultsCount++;
+                } else {
+                    const fixtureRef = leagueRef.collection('fixtures').doc(event.idEvent);
+                    fixturesBatch.set(fixtureRef, {
+                        eventId: event.idEvent,
+                        homeTeam: event.strHomeTeam,
+                        awayTeam: event.strAwayTeam,
+                        date: dateStr,
+                        time: timeStr,
+                        venue: event.strVenue,
+                        timestamp: ts
+                    });
+                    fixturesCount++;
+                }
+            });
+
+            await fixturesBatch.commit();
+            await resultsBatch.commit();
+            console.log(`Added ${fixturesCount} fixtures and ${resultsCount} results for ${leagueConfig.name}`);
+
+            // Standings priority: API table if fresh → calculate from our results
+            let standingsArray = null;
+
+            try {
+                const standingsData = await querySportsDB(`lookuptable.php?l=${leagueConfig.id}&s=${leagueConfig.season}`);
+                if (standingsData && Array.isArray(standingsData.table)) {
+                    const parsed = standingsData.table.map(item => ({
+                        position: parseInt(item.intRank),
+                        teamName: item.strTeam,
+                        played: parseInt(item.intPlayed),
+                        won: parseInt(item.intWin),
+                        drawn: parseInt(item.intDraw),
+                        lost: parseInt(item.intLoss),
+                        goalsFor: parseInt(item.intGoalsFor),
+                        goalsAgainst: parseInt(item.intGoalsAgainst),
+                        goalDifference: parseInt(item.intGoalDifference),
+                        points: parseInt(item.intPoints)
+                    })).filter(team => !Number.isNaN(team.position) && team.teamName);
+
+                    const maxPlayed = parsed.length ? Math.max(...parsed.map(t => t.played || 0)) : 0;
+                    if (parsed.length >= 20 && maxPlayed >= 20) {
+                        standingsArray = parsed.sort((a, b) => a.position - b.position);
+                        console.log(`Using API standings for ${leagueConfig.name}: ${parsed.length} teams, maxPlayed=${maxPlayed}`);
+                    } else {
+                        console.warn(`API standings appear stale for ${leagueConfig.name}: teams=${parsed.length}, maxPlayed=${maxPlayed}`);
+                    }
+                }
+            } catch (err) {
+                console.warn(`Failed to fetch standings via API for ${leagueConfig.name}: ${err.message}`);
             }
-            
-            // Store standings
-            if (standingsResponse.data && standingsResponse.data.table) {
+
+            if (!standingsArray) {
+                console.log(`Calculating standings from results for ${leagueConfig.name}...`);
+                const resultsSnapshot = await leagueRef.collection('results').get();
+                standingsArray = buildStandingsFromResults(resultsSnapshot);
+                console.log(`Added ${standingsArray.length} teams to standings (calculated) for ${leagueConfig.name}`);
+            }
+
+            if (standingsArray && standingsArray.length > 0) {
                 const standingsBatch = db.batch();
-                standingsResponse.data.table.forEach((team, index) => {
-                    const standingRef = leagueRef.collection('standings').doc(team.idTeam);
+                standingsArray.forEach((team, index) => {
+                    const position = team.position || index + 1;
+                    const standingRef = leagueRef.collection('standings').doc(`${position}`);
                     standingsBatch.set(standingRef, {
-                        teamId: team.idTeam,
-                        teamName: team.name || team.strTeam,
-                        position: index + 1,
-                        played: parseInt(team.played) || 0,
-                        won: parseInt(team.win) || 0,
-                        drawn: parseInt(team.draw) || 0,
-                        lost: parseInt(team.loss) || 0,
-                        goalsFor: parseInt(team.goalsfor) || 0,
-                        goalsAgainst: parseInt(team.goalsagainst) || 0,
-                        goalDifference: parseInt(team.goalsdifference) || 0,
-                        points: parseInt(team.total) || 0
+                        position,
+                        teamName: team.teamName,
+                        played: team.played,
+                        won: team.won,
+                        drawn: team.drawn,
+                        lost: team.lost,
+                        goalsFor: team.goalsFor,
+                        goalsAgainst: team.goalsAgainst,
+                        goalDifference: team.goalDifference,
+                        points: team.points
                     });
                 });
                 await standingsBatch.commit();
+                console.log(`Added ${standingsArray.length} teams to standings for ${leagueConfig.name}`);
+            } else {
+                console.warn(`No standings were written for ${leagueConfig.name}`);
             }
-            
+
             console.log(`✓ Updated ${leagueConfig.name}`);
         }
-        
+
         console.log('Sports data update completed successfully');
         return null;
     } catch (error) {
         console.error('Error updating sports data:', error);
         return null;
+    }
+});
+
+// On-demand: fetch up to N missing Championship fixtures/results without clearing existing data
+exports.fetchChampionshipMissing = functions.https.onCall(async (data, context) => {
+    // Admin-only guard
+    if (!context.auth || !context.auth.token || !context.auth.token.admin) {
+        throw new functions.https.HttpsError('permission-denied', 'Admin authentication required');
+    }
+
+    const leagueKey = 'championship';
+    const leagueConfig = LEAGUES[leagueKey];
+    if (!leagueConfig) {
+        throw new functions.https.HttpsError('failed-precondition', 'Championship config missing');
+    }
+
+    const maxNew = Math.min(parseInt(data?.maxNew) || 30, 50); // hard cap to avoid long runs
+    const startRound = parseInt(data?.startRound) || 1;
+    const endRound = parseInt(data?.endRound) || 30;
+
+    console.log(`Fetching up to ${maxNew} missing events for ${leagueConfig.name} (rounds ${startRound}-${endRound})`);
+
+    const leagueRef = db.collection('leagues').doc(leagueKey);
+
+    // Build a set of existing event IDs from fixtures + results
+    const existingIds = new Set();
+    const [fixturesSnap, resultsSnap] = await Promise.all([
+        leagueRef.collection('fixtures').get(),
+        leagueRef.collection('results').get()
+    ]);
+    fixturesSnap.forEach(doc => existingIds.add(doc.id));
+    resultsSnap.forEach(doc => existingIds.add(doc.id));
+    console.log(`Existing events: fixtures=${fixturesSnap.size}, results=${resultsSnap.size}`);
+
+    const fixturesBatch = db.batch();
+    const resultsBatch = db.batch();
+    let fixturesCount = 0;
+    let resultsCount = 0;
+
+    const now = new Date();
+
+    for (let round = startRound; round <= endRound; round++) {
+        if ((fixturesCount + resultsCount) >= maxNew) break;
+
+        const roundData = await querySportsDB(`/eventsround.php?id=${leagueConfig.id}&r=${round}&s=${leagueConfig.season}`);
+        if (!roundData || !roundData.events || !roundData.events.length) {
+            console.warn(`No data for round ${round} (${leagueConfig.name})`);
+            continue;
+        }
+
+        console.log(`Round ${round}: ${roundData.events.length} events`);
+        for (const event of roundData.events) {
+            if (!event || !event.idEvent) continue;
+            if (existingIds.has(event.idEvent)) continue;
+
+            const dateStr = event.dateEvent;
+            const timeStr = event.strTime || event.strTimeLocal || '15:00:00';
+            const ts = new Date(`${dateStr}T${timeStr}Z`);
+            const hasScore = event.intHomeScore !== null && event.intAwayScore !== null;
+            const isFinished = event.status && event.status.toLowerCase().includes('match finished');
+            const isFuture = ts >= now;
+            const isResult = hasScore || isFinished || !isFuture;
+
+            if (isResult) {
+                const resultRef = leagueRef.collection('results').doc(event.idEvent);
+                resultsBatch.set(resultRef, {
+                    eventId: event.idEvent,
+                    homeTeam: event.strHomeTeam,
+                    awayTeam: event.strAwayTeam,
+                    homeScore: event.intHomeScore,
+                    awayScore: event.intAwayScore,
+                    date: dateStr,
+                    time: timeStr,
+                    venue: event.strVenue,
+                    timestamp: ts
+                });
+                resultsCount++;
+            } else {
+                const fixtureRef = leagueRef.collection('fixtures').doc(event.idEvent);
+                fixturesBatch.set(fixtureRef, {
+                    eventId: event.idEvent,
+                    homeTeam: event.strHomeTeam,
+                    awayTeam: event.strAwayTeam,
+                    date: dateStr,
+                    time: timeStr,
+                    venue: event.strVenue,
+                    timestamp: ts
+                });
+                fixturesCount++;
+            }
+
+            existingIds.add(event.idEvent);
+            if ((fixturesCount + resultsCount) >= maxNew) break;
+        }
+    }
+
+    if (fixturesCount > 0) await fixturesBatch.commit();
+    if (resultsCount > 0) await resultsBatch.commit();
+
+    console.log(`Added ${fixturesCount} fixtures and ${resultsCount} results for ${leagueConfig.name} (one-off missing fetch)`);
+
+    return {
+        fixturesAdded: fixturesCount,
+        resultsAdded: resultsCount,
+        totalAdded: fixturesCount + resultsCount,
+        checkedRounds: `${startRound}-${endRound}`
+    };
+});
+
+// HTTP variant (shared secret) to fetch missing Championship fixtures/results
+exports.fetchChampionshipMissingHttp = functions.https.onRequest(async (req, res) => {
+    try {
+        const suppliedSecret = req.query.secret || req.headers['x-fetch-secret'];
+        if (!FETCH_MISSING_SECRET || suppliedSecret !== FETCH_MISSING_SECRET) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+
+        const leagueKey = 'championship';
+        const leagueConfig = LEAGUES[leagueKey];
+        if (!leagueConfig) {
+            res.status(500).send('Championship config missing');
+            return;
+        }
+
+        const maxNew = Math.min(parseInt(req.query.maxNew || req.body?.maxNew) || 30, 50);
+        const startRound = parseInt(req.query.startRound || req.body?.startRound) || 1;
+        const endRound = parseInt(req.query.endRound || req.body?.endRound) || 46;
+
+        console.log(`HTTP fetch: up to ${maxNew} missing events for ${leagueConfig.name} (rounds ${startRound}-${endRound})`);
+
+        const leagueRef = db.collection('leagues').doc(leagueKey);
+
+        // Build set of existing event IDs from fixtures + results
+        const existingIds = new Set();
+        const [fixturesSnap, resultsSnap] = await Promise.all([
+            leagueRef.collection('fixtures').get(),
+            leagueRef.collection('results').get()
+        ]);
+        fixturesSnap.forEach(doc => existingIds.add(doc.id));
+        resultsSnap.forEach(doc => existingIds.add(doc.id));
+        console.log(`Existing events: fixtures=${fixturesSnap.size}, results=${resultsSnap.size}`);
+
+        const fixturesBatch = db.batch();
+        const resultsBatch = db.batch();
+        let fixturesCount = 0;
+        let resultsCount = 0;
+        const now = new Date();
+
+        for (let round = startRound; round <= endRound; round++) {
+            if ((fixturesCount + resultsCount) >= maxNew) break;
+
+            const roundData = await querySportsDB(`/eventsround.php?id=${leagueConfig.id}&r=${round}&s=${leagueConfig.season}`);
+            if (!roundData || !roundData.events || !roundData.events.length) {
+                console.warn(`No data for round ${round} (${leagueConfig.name})`);
+                continue;
+            }
+
+            console.log(`Round ${round}: ${roundData.events.length} events`);
+            for (const event of roundData.events) {
+                if (!event || !event.idEvent) continue;
+                if (existingIds.has(event.idEvent)) continue;
+
+                const dateStr = event.dateEvent;
+                const timeStr = event.strTime || event.strTimeLocal || '15:00:00';
+                const ts = new Date(`${dateStr}T${timeStr}Z`);
+                const hasScore = event.intHomeScore !== null && event.intAwayScore !== null;
+                const isFinished = event.status && event.status.toLowerCase().includes('match finished');
+                const isFuture = ts >= now;
+                const isResult = hasScore || isFinished || !isFuture;
+
+                if (isResult) {
+                    const resultRef = leagueRef.collection('results').doc(event.idEvent);
+                    resultsBatch.set(resultRef, {
+                        eventId: event.idEvent,
+                        homeTeam: event.strHomeTeam,
+                        awayTeam: event.strAwayTeam,
+                        homeScore: event.intHomeScore,
+                        awayScore: event.intAwayScore,
+                        date: dateStr,
+                        time: timeStr,
+                        venue: event.strVenue,
+                        timestamp: ts
+                    });
+                    resultsCount++;
+                } else {
+                    const fixtureRef = leagueRef.collection('fixtures').doc(event.idEvent);
+                    fixturesBatch.set(fixtureRef, {
+                        eventId: event.idEvent,
+                        homeTeam: event.strHomeTeam,
+                        awayTeam: event.strAwayTeam,
+                        date: dateStr,
+                        time: timeStr,
+                        venue: event.strVenue,
+                        timestamp: ts
+                    });
+                    fixturesCount++;
+                }
+
+                existingIds.add(event.idEvent);
+                if ((fixturesCount + resultsCount) >= maxNew) break;
+            }
+        }
+
+        if (fixturesCount > 0) await fixturesBatch.commit();
+        if (resultsCount > 0) await resultsBatch.commit();
+
+        const payload = {
+            fixturesAdded: fixturesCount,
+            resultsAdded: resultsCount,
+            totalAdded: fixturesCount + resultsCount,
+            checkedRounds: `${startRound}-${endRound}`
+        };
+
+        console.log(`HTTP fetch added ${fixturesCount} fixtures and ${resultsCount} results for ${leagueConfig.name}`);
+        res.json(payload);
+    } catch (err) {
+        console.error('fetchChampionshipMissingHttp error', err);
+        res.status(500).send('Internal error');
+    }
+});
+
+// HTTP endpoint to rebuild standings from existing results (default: Championship)
+exports.rebuildStandingsHttp = functions.https.onRequest(async (req, res) => {
+    try {
+        const suppliedSecret = req.query.secret || req.headers['x-fetch-secret'];
+        if (!FETCH_MISSING_SECRET || suppliedSecret !== FETCH_MISSING_SECRET) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+
+        const leagueKey = req.query.league || req.body?.league || 'championship';
+        const leagueConfig = LEAGUES[leagueKey];
+        if (!leagueConfig) {
+            res.status(400).send('Unknown league');
+            return;
+        }
+
+        const leagueRef = db.collection('leagues').doc(leagueKey);
+        await clearSubcollection(leagueRef, 'standings');
+
+        const resultsSnapshot = await leagueRef.collection('results').get();
+        const standingsMap = {};
+
+        resultsSnapshot.forEach(doc => {
+            const result = doc.data();
+            const { homeTeam, awayTeam, homeScore, awayScore } = result;
+            if (homeScore === null || awayScore === null) return;
+
+            const homeGoals = parseInt(homeScore);
+            const awayGoals = parseInt(awayScore);
+            if (Number.isNaN(homeGoals) || Number.isNaN(awayGoals)) return;
+
+            if (!standingsMap[homeTeam]) {
+                standingsMap[homeTeam] = { team: homeTeam, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0 };
+            }
+            if (!standingsMap[awayTeam]) {
+                standingsMap[awayTeam] = { team: awayTeam, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, goalDifference: 0, points: 0 };
+            }
+
+            standingsMap[homeTeam].played++;
+            standingsMap[awayTeam].played++;
+            standingsMap[homeTeam].goalsFor += homeGoals;
+            standingsMap[homeTeam].goalsAgainst += awayGoals;
+            standingsMap[awayTeam].goalsFor += awayGoals;
+            standingsMap[awayTeam].goalsAgainst += homeGoals;
+
+            if (homeGoals > awayGoals) {
+                standingsMap[homeTeam].won++;
+                standingsMap[homeTeam].points += 3;
+                standingsMap[awayTeam].lost++;
+            } else if (homeGoals < awayGoals) {
+                standingsMap[awayTeam].won++;
+                standingsMap[awayTeam].points += 3;
+                standingsMap[homeTeam].lost++;
+            } else {
+                standingsMap[homeTeam].drawn++;
+                standingsMap[awayTeam].drawn++;
+                standingsMap[homeTeam].points += 1;
+                standingsMap[awayTeam].points += 1;
+            }
+
+            standingsMap[homeTeam].goalDifference = standingsMap[homeTeam].goalsFor - standingsMap[homeTeam].goalsAgainst;
+            standingsMap[awayTeam].goalDifference = standingsMap[awayTeam].goalsFor - standingsMap[awayTeam].goalsAgainst;
+        });
+
+        const standingsArray = Object.values(standingsMap).sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+            if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+            return a.team.localeCompare(b.team);
+        });
+
+        const batch = db.batch();
+        standingsArray.forEach((team, index) => {
+            const standingRef = leagueRef.collection('standings').doc(`${index + 1}`);
+            batch.set(standingRef, {
+                position: index + 1,
+                teamName: team.team,
+                played: team.played,
+                won: team.won,
+                drawn: team.drawn,
+                lost: team.lost,
+                goalsFor: team.goalsFor,
+                goalsAgainst: team.goalsAgainst,
+                goalDifference: team.goalDifference,
+                points: team.points
+            });
+        });
+
+        await batch.commit();
+
+        res.json({ league: leagueConfig.name, teams: standingsArray.length, source: 'results' });
+    } catch (err) {
+        console.error('rebuildStandingsHttp error', err);
+        res.status(500).send('Internal error');
     }
 });
 
@@ -1022,13 +1720,281 @@ exports.triggerSportsUpdate = functions.https.onCall(async (data, context) => {
     if (!context.auth || !context.auth.token.admin) {
         throw new functions.https.HttpsError('permission-denied', 'Admin access required');
     }
-    
+
     try {
         await exports.updateSportsData.run();
         return { success: true, message: 'Sports data updated successfully' };
     } catch (error) {
         console.error('Error in manual update:', error);
         throw new functions.https.HttpsError('internal', 'Failed to update sports data');
+    }
+});
+
+// HTTP endpoint to manually trigger sports data update via shared secret
+exports.triggerSportsUpdateHttp = functions.https.onRequest(async (req, res) => {
+    try {
+        const suppliedSecret = req.query.secret || req.headers['x-fetch-secret'];
+        if (!FETCH_MISSING_SECRET || suppliedSecret !== FETCH_MISSING_SECRET) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+
+        await exports.updateSportsData.run();
+        res.json({ success: true, message: 'Sports data updated successfully' });
+    } catch (error) {
+        console.error('Error in manual update:', error);
+        res.status(500).send('Internal error');
+    }
+});
+
+
+/**
+ * DEMO DATA SECalculate standings from results (Wikidata doesn't provide pre-computed tables)
+            const teamStats = {};
+            allEvents.forEach(event => {
+                if (event.intHomeScore === null || event.intAwayScore === null) return;
+                
+                const homeTeam = event.strHomeTeam;
+                const awayTeam = event.strAwayTeam;
+                const homeScore = event.intHomeScore;
+                const awayScore = event.intAwayScore;
+                
+                if (!teamStats[homeTeam]) {
+                    teamStats[homeTeam] = { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 };
+                }
+                if (!teamStats[awayTeam]) {
+                    teamStats[awayTeam] = { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 };
+                }
+                
+                teamStats[homeTeam].played++;
+                teamStats[awayTeam].played++;
+                teamStats[homeTeam].goalsFor += homeScore;
+                teamStats[homeTeam].goalsAgainst += awayScore;
+                teamStats[awayTeam].goalsFor += awayScore;
+                teamStats[awayTeam].goalsAgainst += homeScore;
+                
+                if (homeScore > awayScore) {
+                    teamStats[homeTeam].won++;
+                    teamStats[homeTeam].points += 3;
+                    teamStats[awayTeam].lost++;
+                } else if (homeScore < awayScore) {
+                    teamStats[awayTeam].won++;
+                    teamStats[awayTeam].points += 3;
+                    teamStats[homeTeam].lost++;
+                } else {
+                    teamStats[homeTeam].drawn++;
+                    teamStats[awayTeam].drawn++;
+                    teamStats[homeTeam].points++;
+                    teamStats[awayTeam].points++;
+                }
+            });
+            
+            // Sort teams by points, then goal difference
+            const sortedTeams = Object.entries(teamStats)
+                .map(([name, stats]) => ({
+                    teamName: name,
+                    ...stats,
+                    goalDifference: stats.goalsFor - stats.goalsAgainst
+                }))
+                .sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                    return b.goalsFor - a.goalsFor;
+                });
+            
+            if (sortedTeams.length) {
+                const standingsBatch = db.batch();
+                sortedTeams.forEach((team, index) => {
+                    const standingRef = leagueRef.collection('standings').doc(`${index}`);
+                    standingsBatch.set(standingRef, {
+                        teamId: `${index}`,
+                        teamName: team.teamName,
+                        position: index + 1,
+                        played: team.played,
+                        won: team.won,
+                        drawn: team.drawn,
+                        lost: team.lost,
+                        goalsFor: team.goalsFor,
+                        goalsAgainst: team.goalsAgainst,
+                        goalDifference: team.goalDifference,
+                        points: team.points
+                    });
+                });
+                await standingsBatch.commit();
+                console.log(`Calculated and stored ${sortedTeams.length} standings` 'Crystal Palace', date: '2026-01-25', time: '15:00:00', venue: 'Portman Road' },
+                    { home: 'Brighton', away: 'West Ham', date: '2026-02-01', time: '15:00:00', venue: 'Amex Stadium' },
+                    { home: 'Tottenham', away: 'Aston Villa', date: '2026-02-01', time: '15:00:00', venue: 'Tottenham Hotspur Stadium' },
+                    { home: 'Chelsea', away: 'Bournemouth', date: '2026-02-02', time: '14:00:00', venue: 'Stamford Bridge' },
+                    { home: 'Manchester United', away: 'Leicester', date: '2026-02-02', time: '16:30:00', venue: 'Old Trafford' },
+                    { home: 'Liverpool', away: 'Brentford', date: '2026-02-03', time: '20:15:00', venue: 'Anfield' },
+                    { home: 'Manchester City', away: 'Nottingham Forest', date: '2026-02-04', time: '19:45:00', venue: 'Etihad Stadium' },
+                    { home: 'Fulham', away: 'Chelsea', date: '2026-02-07', time: '15:00:00', venue: 'Craven Cottage' },
+                    { home: 'Everton', away: 'Brighton', date: '2026-02-07', time: '15:00:00', venue: 'Goodison Park' },
+                    { home: 'Wolverhampton', away: 'Southampton', date: '2026-02-07', time: '15:00:00', venue: 'Molineux Stadium' },
+                    { home: 'Newcastle', away: 'Manchester United', date: '2026-02-08', time: '12:30:00', venue: 'St James Park' },
+                    { home: 'Arsenal', away: 'Brighton', date: '2026-02-14', time: '15:00:00', venue: 'Emirates Stadium' }
+                ],
+                results: [
+                    { home: 'Manchester City', away: 'Manchester United', homeScore: 1, awayScore: 0, date: '2026-01-14', time: '20:00:00', venue: 'Etihad Stadium' },
+                    { home: 'Liverpool', away: 'Chelsea', homeScore: 2, awayScore: 1, date: '2026-01-17', time: '15:00:00', venue: 'Anfield' },
+                    { home: 'Tottenham', away: 'West Ham', homeScore: 3, awayScore: 1, date: '2026-01-18', time: '15:00:00', venue: 'Tottenham Hotspur Stadium' },
+                    { home: 'Newcastle', away: 'Aston Villa', homeScore: 2, awayScore: 2, date: '2026-01-19', time: '15:00:00', venue: 'St James Park' },
+                    { home: 'Arsenal', away: 'Ipswich', homeScore: 2, awayScore: 0, date: '2026-01-20', time: '15:00:00', venue: 'Emirates Stadium' },
+                    { home: 'Brighton', away: 'Fulham', homeScore: 1, awayScore: 1, date: '2026-01-21', time: '15:00:00', venue: 'Amex Stadium' },
+                    { home: 'Bournemouth', away: 'Southampton', homeScore: 3, awayScore: 0, date: '2026-01-22', time: '15:00:00', venue: 'Vitality Stadium' },
+                    { home: 'Nottingham Forest', away: 'Everton', homeScore: 1, awayScore: 1, date: '2026-01-23', time: '15:00:00', venue: 'City Ground' },
+                    { home: 'Leicester', away: 'Crystal Palace', homeScore: 2, awayScore: 0, date: '2026-01-24', time: '15:00:00', venue: 'King Power Stadium' },
+                    { home: 'Brentford', away: 'Wolverhampton', homeScore: 2, awayScore: 1, date: '2026-01-25', time: '12:30:00', venue: 'Gtech Community Stadium' }
+                ]
+            },
+            'championship': {
+                name: 'Championship',
+                teams: ['Leeds United', 'West Bromwich Albion', 'Cardiff City', 'Bristol City', 'Coventry City', 'Derby County', 'Preston North End', 'Middlesbrough', 'Plymouth Argyle', 'Stoke City', 'Hull City', 'Portsmouth', 'Norwich City', 'Watford', 'Luton Town', 'Millwall', 'Reading', 'Sunderland', 'Swansea City', 'Blackburn Rovers'],
+                fixtures: [
+                    { home: 'Leeds United', away: 'West Bromwich Albion', date: '2026-02-01', time: '15:00:00', venue: 'Elland Road' },
+                    { home: 'Cardiff City', away: 'Bristol City', date: '2026-02-02', time: '15:00:00', venue: 'Cardiff City Stadium' },
+                    { home: 'Coventry City', away: 'Derby County', date: '2026-02-03', time: '15:00:00', venue: 'Coventry City Stadium' },
+                    { home: 'Preston North End', away: 'Middlesbrough', date: '2026-02-04', time: '19:45:00', venue: 'Deepdale' },
+                    { home: 'Plymouth Argyle', away: 'Stoke City', date: '2026-02-05', time: '15:00:00', venue: 'Home Park' }
+                ],
+                results: [
+                    { home: 'Leeds United', away: 'West Bromwich Albion', homeScore: 1, awayScore: 0, date: '2026-01-20', time: '15:00:00', venue: 'Elland Road' },
+                    { home: 'Cardiff City', away: 'Bristol City', homeScore: 2, awayScore: 2, date: '2026-01-21', time: '15:00:00', venue: 'Cardiff City Stadium' },
+                    { home: 'Coventry City', away: 'Derby County', homeScore: 3, awayScore: 1, date: '2026-01-22', time: '15:00:00', venue: 'Coventry City Stadium' },
+                    { home: 'Preston North End', away: 'Middlesbrough', homeScore: 0, awayScore: 1, date: '2026-01-23', time: '19:45:00', venue: 'Deepdale' },
+                    { home: 'Plymouth Argyle', away: 'Stoke City', homeScore: 2, awayScore: 1, date: '2026-01-24', time: '15:00:00', venue: 'Home Park' }
+                ]
+            },
+            'league-one': {
+                name: 'League One',
+                teams: ['Wrexham', 'Wycombe Wanderers', 'Stockport County', 'Birmingham City', 'Rotherham United', 'Leyton Orient', 'Lincoln City', 'Bolton Wanderers', 'Port Vale', 'Mansfield Town', 'Peterborough United', 'Ipswich Town', 'Cheltenham Town', 'Northampton Town', 'Shrewsbury Town', 'Crawley Town', 'Burton Albion', 'Salford City', 'MK Dons', 'Charlton Athletic'],
+                fixtures: [
+                    { home: 'Wrexham', away: 'Wycombe Wanderers', date: '2026-02-01', time: '15:00:00', venue: 'Racecourse Ground' },
+                    { home: 'Stockport County', away: 'Birmingham City', date: '2026-02-02', time: '15:00:00', venue: 'Edgeley Park' },
+                    { home: 'Rotherham United', away: 'Leyton Orient', date: '2026-02-03', time: '19:45:00', venue: 'New York Stadium' }
+                ],
+                results: [
+                    { home: 'Wrexham', away: 'Wycombe Wanderers', homeScore: 1, awayScore: 1, date: '2026-01-22', time: '15:00:00', venue: 'Racecourse Ground' },
+                    { home: 'Stockport County', away: 'Birmingham City', homeScore: 2, awayScore: 0, date: '2026-01-23', time: '15:00:00', venue: 'Edgeley Park' },
+                    { home: 'Rotherham United', away: 'Leyton Orient', homeScore: 3, awayScore: 2, date: '2026-01-24', time: '19:45:00', venue: 'New York Stadium' }
+                ]
+            },
+            'league-two': {
+                name: 'League Two',
+                teams: ['Doncaster Rovers', 'Forest Green Rovers', 'Salford City Reserve', 'Swindon Town', 'Grimsby Town', 'Bradford City', 'Harrogate Town', 'Barrow', 'Stevenage', 'Tranmere Rovers', 'Newport County', 'Colchester United', 'Southend United', 'Leyton Orient Reserve', 'Cambridge United', 'Accrington Stanley', 'Hartlepool United', 'Scunthorpe United', 'Crewe Alexandra', 'Exeter City'],
+                fixtures: [
+                    { home: 'Doncaster Rovers', away: 'Forest Green Rovers', date: '2026-02-01', time: '15:00:00', venue: 'Keepmoat Stadium' },
+                    { home: 'Swindon Town', away: 'Grimsby Town', date: '2026-02-02', time: '19:45:00', venue: 'County Ground' }
+                ],
+                results: [
+                    { home: 'Doncaster Rovers', away: 'Forest Green Rovers', homeScore: 2, awayScore: 1, date: '2026-01-24', time: '15:00:00', venue: 'Keepmoat Stadium' },
+                    { home: 'Swindon Town', away: 'Grimsby Town', homeScore: 1, awayScore: 1, date: '2026-01-25', time: '19:45:00', venue: 'County Ground' }
+                ]
+            },
+            'champions-league': {
+                name: 'Champions League',
+                teams: ['Manchester City', 'Real Madrid', 'Bayern Munich', 'PSG', 'Liverpool', 'Barcelona', 'Arsenal', 'AC Milan', 'Inter Milan', 'Juventus', 'Dortmund', 'Atletico Madrid', 'Chelsea', 'Benfica', 'Napoli', 'RB Leipzig', 'Porto', 'Ajax'],
+                fixtures: [
+                    { home: 'Manchester City', away: 'Real Madrid', date: '2026-02-11', time: '20:00:00', venue: 'Etihad Stadium' },
+                    { home: 'Bayern Munich', away: 'PSG', date: '2026-02-12', time: '20:00:00', venue: 'Allianz Arena' },
+                    { home: 'Liverpool', away: 'Barcelona', date: '2026-02-13', time: '20:00:00', venue: 'Anfield' },
+                    { home: 'Arsenal', away: 'AC Milan', date: '2026-02-14', time: '20:00:00', venue: 'Emirates Stadium' },
+                    { home: 'Inter Milan', away: 'Juventus', date: '2026-02-15', time: '20:00:00', venue: 'San Siro' }
+                ],
+                results: [
+                    { home: 'Manchester City', away: 'Real Madrid', homeScore: 1, awayScore: 0, date: '2026-01-15', time: '20:00:00', venue: 'Etihad Stadium' },
+                    { home: 'Bayern Munich', away: 'PSG', homeScore: 3, awayScore: 2, date: '2026-01-16', time: '20:00:00', venue: 'Allianz Arena' },
+                    { home: 'Liverpool', away: 'Barcelona', homeScore: 2, awayScore: 1, date: '2026-01-17', time: '20:00:00', venue: 'Anfield' },
+                    { home: 'Arsenal', away: 'AC Milan', homeScore: 1, awayScore: 1, date: '2026-01-18', time: '20:00:00', venue: 'Emirates Stadium' },
+                    { home: 'Inter Milan', away: 'Juventus', homeScore: 2, awayScore: 0, date: '2026-01-19', time: '20:00:00', venue: 'San Siro' }
+                ]
+            }
+        };
+
+        // Seed data for all leagues
+        for (const [leagueKey, leagueConfig] of Object.entries(demoData)) {
+            console.log(`Seeding ${leagueConfig.name}...`);
+            
+            const leagueRef = db.collection('leagues').doc(leagueKey);
+            
+            // Update league metadata
+            await leagueRef.set({
+                name: leagueConfig.name,
+                leagueId: LEAGUES[leagueKey].id,
+                season: '2025-2026',
+                lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            
+            // Seed fixtures
+            const fixturesBatch = db.batch();
+            leagueConfig.fixtures.forEach((fixture, idx) => {
+                const fixtureRef = leagueRef.collection('fixtures').doc(`fixture_${idx}`);
+                fixturesBatch.set(fixtureRef, {
+                    eventId: `fixture_${leagueKey}_${idx}`,
+                    homeTeam: fixture.home,
+                    awayTeam: fixture.away,
+                    date: fixture.date,
+                    time: fixture.time,
+                    venue: fixture.venue,
+                    timestamp: new Date(fixture.date + 'T' + fixture.time)
+                });
+            });
+            await fixturesBatch.commit();
+            
+            // Seed results
+            const resultsBatch = db.batch();
+            leagueConfig.results.forEach((result, idx) => {
+                const resultRef = leagueRef.collection('results').doc(`result_${idx}`);
+                resultsBatch.set(resultRef, {
+                    eventId: `result_${leagueKey}_${idx}`,
+                    homeTeam: result.home,
+                    awayTeam: result.away,
+                    homeScore: result.homeScore,
+                    awayScore: result.awayScore,
+                    date: result.date,
+                    time: result.time,
+                    venue: result.venue,
+                    timestamp: new Date(result.date + 'T' + result.time)
+                });
+            });
+            await resultsBatch.commit();
+            
+            // Seed standings (all teams with demo stats)
+            const standingsBatch = db.batch();
+            leagueConfig.teams.forEach((teamName, idx) => {
+                const position = idx + 1;
+                const played = 28 + Math.floor(Math.random() * 4);
+                const won = Math.floor(Math.random() * (played - 5));
+                const lost = Math.floor(Math.random() * (played - won - 2));
+                const drawn = played - won - lost;
+                const goalsFor = won * 2 + drawn + Math.floor(Math.random() * 5);
+                const goalsAgainst = lost + drawn + Math.floor(Math.random() * 5);
+                const points = won * 3 + drawn;
+                
+                const standingRef = leagueRef.collection('standings').doc(`team_${idx}`);
+                standingsBatch.set(standingRef, {
+                    teamId: `team_${leagueKey}_${idx}`,
+                    teamName: teamName,
+                    position: position,
+                    played: played,
+                    won: won,
+                    drawn: drawn,
+                    lost: lost,
+                    goalsFor: goalsFor,
+                    goalsAgainst: goalsAgainst,
+                    goalDifference: goalsFor - goalsAgainst,
+                    points: points
+                });
+            });
+            await standingsBatch.commit();
+            
+            console.log(`✓ Seeded ${leagueConfig.name} (${leagueConfig.fixtures.length} fixtures, ${leagueConfig.results.length} results, ${leagueConfig.teams.length} standings)`);
+        }
+        
+        return { success: true, message: 'Demo fixtures seeded successfully' };
+    } catch (error) {
+        console.error('Error seeding demo fixtures:', error);
+        throw new functions.https.HttpsError('internal', 'Failed to seed demo data: ' + error.message);
     }
 });
 
