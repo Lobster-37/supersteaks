@@ -1,7 +1,7 @@
 // Fixtures & Results Page JavaScript
 
 let currentLeague = 'premier-league';
-let currentView = 'fixtures';
+let currentView = 'table';
 
 // Initialize page when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,15 +9,53 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeFixturesPage() {
+    setupAdminRefresh();
     // Set up tab listeners
     setupLeagueTabs();
     setupViewTabs();
+    showView(currentView);
     
     // Load initial data
     loadLeagueData();
     
     // Set up real-time listener for data updates
     setupDataListener();
+}
+
+function setupAdminRefresh() {
+    const adminRefresh = document.getElementById('admin-refresh');
+    const triggerBtn = document.getElementById('trigger-refresh-btn');
+    const statusEl = document.getElementById('refresh-status');
+    if (!adminRefresh || !triggerBtn) return;
+
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (!user) {
+            adminRefresh.classList.add('hidden');
+            return;
+        }
+        const token = await user.getIdTokenResult();
+        const isAdmin = !!token.claims.admin;
+        if (isAdmin) {
+            adminRefresh.classList.remove('hidden');
+        } else {
+            adminRefresh.classList.add('hidden');
+        }
+    });
+
+    triggerBtn.addEventListener('click', async () => {
+        statusEl.textContent = 'Refreshing...';
+        triggerBtn.disabled = true;
+        try {
+            const callable = firebase.functions().httpsCallable('triggerSportsUpdate');
+            await callable();
+            statusEl.textContent = 'Triggered. Data will load in ~1-2 minutes.';
+        } catch (err) {
+            console.error('Manual refresh failed', err);
+            statusEl.textContent = 'Error triggering update (need admin login).';
+        } finally {
+            triggerBtn.disabled = false;
+        }
+    });
 }
 
 function setupLeagueTabs() {
@@ -108,14 +146,14 @@ async function loadFixtures() {
             .doc(currentLeague)
             .collection('fixtures')
             .orderBy('timestamp', 'asc')
-            .limit(20)
+            .limit(200)
             .get();
         
         if (snapshot.empty) {
             fixturesList.innerHTML = `
                 <div class="text-center py-12 text-gray-500">
                     <p>No upcoming fixtures available.</p>
-                    <p class="text-sm mt-2">Data will be updated automatically every 10 minutes.</p>
+                    <p class="text-sm mt-2">Data will be updated automatically every 2 minutes.</p>
                 </div>
             `;
             return;
@@ -161,14 +199,14 @@ async function loadResults() {
             .doc(currentLeague)
             .collection('results')
             .orderBy('timestamp', 'desc')
-            .limit(20)
+            .limit(200)
             .get();
         
         if (snapshot.empty) {
             resultsList.innerHTML = `
                 <div class="text-center py-12 text-gray-500">
                     <p>No recent results available.</p>
-                    <p class="text-sm mt-2">Data will be updated automatically every 10 minutes.</p>
+                    <p class="text-sm mt-2">Data will be updated automatically every 2 minutes.</p>
                 </div>
             `;
             return;

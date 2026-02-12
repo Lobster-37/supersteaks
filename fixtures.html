@@ -1,130 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Firebase SDK - Load before any firebase usage -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-functions-compat.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixtures & Results - SuperSteaks</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>SuperSteaks - Fixtures & Results</title>
+    <meta name="description" content="Live fixtures, results, and league tables for the major competitions on SuperSteaks.">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // Firebase config and initialization (must be after CDN scripts)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJF4VZM-_dJSL9p0Z2G5-Y3_JYa5TI8mw",
+            authDomain: "supersteaks-240f7.firebaseapp.com",
+            projectId: "supersteaks-240f7",
+            storageBucket: "supersteaks-240f7.appspot.com",
+            messagingSenderId: "397886230849",
+            appId: "1:397886230849:web:e17e36fa33e28c26e5e0f5",
+            databaseURL: "https://supersteaks-240f7.firebaseio.com"
+        };
+        try {
+            firebase.initializeApp(firebaseConfig);
+            window.firebaseReady = true;
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+        }
+    </script>
     <style>
-        .tab-active {
-            border-bottom: 3px solid #ef4444;
-            color: #ef4444;
-            font-weight: 600;
-        }
-        .league-tab-active {
-            background-color: #ef4444;
-            color: white;
-        }
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* Mobile welcome message between logo and nav */
-        #mobile-welcome {
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-        }
-        body.logged-in #mobile-welcome {
-            visibility: visible;
-            opacity: 1;
-        }
-        /* Tighter mobile header spacing */
+        .nav-link { background-color: transparent !important; color: inherit !important; }
+        .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
+        .nav-link.enter-now { color: #fbbf24 !important; }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
         @media (max-width: 639px) {
-            nav[aria-label="Main navigation"] {
-                margin-top: -44px;
-            }
-            .mobile-auth-buttons {
-                display: block;
-            }
+            header .container { padding-top: 0 !important; padding-bottom: 0 !important; }
+            header .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
+            nav[aria-label="Main navigation"] { margin-top: -44px !important; }
+            .flex.flex-row.items-center.justify-center.sm\:block { margin-bottom: -8px !important; }
         }
-        @media (min-width: 640px) {
-            .mobile-auth-buttons {
-                display: none;
-            }
+        @media (max-width: 900px) and (orientation: landscape) {
+            .mobile-logo { height: 2.75rem !important; }
+            .mobile-title { font-size: 1.5rem !important; line-height: 2rem !important; }
         }
-        /* User info in top right */
-        #user-info {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            transition: opacity 0.2s ease-in-out;
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+        .logged-out #auth-buttons { display: block !important; }
+        .logged-out #user-info { display: none !important; }
+        .logged-out #auth-skeleton { display: none !important; }
+        .logged-out #mobile-auth-buttons { display: none !important; }
+        .logged-in #mobile-auth-buttons { display: none !important; }
+        @media (max-width: 639px) { .logged-out #mobile-auth-buttons { display: block !important; } }
+        @media (max-width: 639px) { #auth-skeleton { display: none !important; } }
+        .logged-in #auth-buttons { display: none !important; }
+        .logged-in #user-info { display: block !important; }
+        .logged-in #auth-skeleton { display: none !important; }
+        #mobile-welcome { display: none !important; }
+        #user-info { transition: opacity 0.2s ease-in-out; }
+        @media (max-width: 639px) {
+            #mobile-welcome { display: block !important; visibility: hidden; opacity: 0; min-height: 28px; margin-top: 8px !important; margin-bottom: 8px !important; transition: opacity 0.2s ease-in-out; }
+            .logged-in #mobile-welcome { visibility: visible; opacity: 1; }
         }
-        body:not(.auth-ready) #user-info,
-        body:not(.auth-ready) #mobile-welcome,
-        body:not(.auth-ready) .mobile-auth-buttons {
-            visibility: hidden;
-            opacity: 0;
-        }
-        body.auth-ready #user-info,
-        body.auth-ready.logged-in #mobile-welcome,
-        body.auth-ready .mobile-auth-buttons {
-            visibility: visible;
-            opacity: 1;
-        }
+        body:not(.auth-ready) #auth-buttons { display: none !important; }
+        body:not(.auth-ready) #user-info { display: none !important; }
+        body:not(.auth-ready) #auth-skeleton { display: block !important; }
+        body:not(.auth-ready) #mobile-auth-buttons { display: none !important; }
+        #user-account-section { min-height: 52px; width: 176px; flex-shrink: 0; }
+        .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        /* Fixtures tabs and animations */
+        .tab-active { border-bottom: 3px solid #ef4444; color: #ef4444; font-weight: 600; }
+        .league-tab-active { background-color: #ef4444; color: white; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
+    <script src="js/supersteaks-global.js?v=20241118001"></script>
 </head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-blue-600 text-white shadow-lg relative">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between">
-                <div class="w-full sm:w-auto">
-                    <h1 class="text-3xl sm:text-4xl font-bold">SuperSteaks</h1>
-                    
-                    <!-- Mobile Welcome Message (between logo and nav) -->
-                    <div id="mobile-welcome" class="text-sm mt-2 sm:hidden">
-                        Welcome, <span id="mobile-username-display">Guest</span>!
+<body class="min-h-screen flex flex-col">
+    <!-- Draggable Logo (desktop only) -->
+    <a href="index.html" class="hidden sm:block">
+        <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-0 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
+    </a>
+    <!-- Header & Navigation -->
+    <header class="bg-indigo-800 text-white shadow-xl">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                <div class="text-center sm:text-left">
+                    <div class="flex flex-row items-center justify-center sm:block">
+                        <a href="index.html" class="hover:opacity-80 transition-opacity relative">
+                            <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="mobile-logo h-12 w-auto mr-2 sm:hidden" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
+                        </a>
+                        <a href="index.html" class="hover:opacity-80 transition-opacity relative">
+                            <h1 class="mobile-title text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
+                        </a>
                     </div>
                 </div>
-
-                <!-- User Info - Top Right -->
-                <div id="user-info" class="z-10">
-                    <!-- Desktop Welcome -->
-                    <p class="hidden sm:block text-sm mb-2">
-                        Welcome, <span id="username-display">Guest</span>!
-                    </p>
-                    
-                    <!-- Profile Button (visible when logged in) -->
-                    <div class="logged-in hidden">
-                        <button id="profile-button" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 transition">
-                            My Profile ▼
-                        </button>
-                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
-                            <a href="lobby.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
-                            <a href="tournaments.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Tournaments</a>
-                            <button id="logout-button" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</button>
+                <div class="flex flex-col items-end space-y-3">
+                    <div id="user-account-section">
+                        <div class="hidden sm:block">
+                            <div id="auth-skeleton" class="text-right">
+                                <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
+                                <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                    <div class="skeleton h-6 rounded" style="width: 48px; padding: 4px 12px;"></div>
+                                    <div class="skeleton h-6 rounded" style="width: 64px; padding: 4px 8px;"></div>
+                                </div>
+                            </div>
+                            <div id="auth-buttons" class="sm:block hidden">
+                                <p class="text-yellow-400 font-semibold text-sm mb-1">Join SuperSteaks Today!</p>
+                                <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                    <button id="login-btn" class="bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">Login</button>
+                                    <button id="register-btn" class="bg-transparent border border-yellow-400 text-yellow-400 px-2 py-1 rounded text-xs hover:bg-yellow-400 hover:text-indigo-800 transition font-semibold">Sign Up</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="mobile-auth-buttons" class="sm:hidden absolute top-4 right-4 hidden">
+                            <button id="mobile-login-btn" aria-label="Login" class="bg-yellow-500 text-indigo-800 p-2 rounded-full text-xs font-semibold shadow focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.001 9.001 0 0112 15c2.21 0 4.21.805 5.879 2.146M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="user-info" class="hidden absolute top-4 right-4">
+                            <p class="hidden sm:block text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">User</span>!</p>
+                            <div class="relative">
+                                <button id="profile-dropdown-btn" class="hidden sm:inline-flex bg-yellow-500 text-indigo-800 px-3 py-1 rounded text-xs hover:bg-yellow-400 transition font-semibold">My Profile ▼</button>
+                                <button id="mobile-profile-btn" aria-label="Profile" class="sm:hidden bg-yellow-500 text-indigo-800 p-2 rounded-full text-xs font-semibold shadow focus:outline-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.001 9.001 0 0112 15c2.21 0 4.21.805 5.879 2.146M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </button>
+                                <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                    <button id="view-profile-btn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg">👤 View My Profile</button>
+                                    <button id="logout-btn-dropdown" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-b-lg">🚪 Logout</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- Login/Register Buttons (visible when logged out, desktop only) -->
-                    <div class="logged-out hidden sm:flex space-x-2">
-                        <button id="login-button" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 transition">Login</button>
-                        <button id="register-button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Register</button>
-                    </div>
-                </div>
-
-                <!-- Mobile Auth Buttons (icon when logged out) -->
-                <div class="mobile-auth-buttons logged-out hidden absolute top-4 right-4">
-                    <button id="mobile-login-button" class="bg-white text-blue-600 p-2 rounded-full hover:bg-gray-100 transition w-10 h-10 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                    </button>
                 </div>
             </div>
-            
-            <!-- Navigation -->
-            <nav class="mt-12 sm:mt-4" aria-label="Main navigation">
-                <ul class="flex flex-wrap space-x-4 text-sm sm:text-base">
-                    <li><a href="index.html" class="hover:text-blue-200 transition">Home</a></li>
-                    <li><a href="tournaments.html" class="hover:text-blue-200 transition">Tournaments</a></li>
-                    <li><a href="fixtures.html" class="hover:text-blue-200 transition font-bold underline">Fixtures & Results</a></li>
-                    <li><a href="rules.html" class="hover:text-blue-200 transition">Rules</a></li>
-                    <li><a href="contact.html" class="hover:text-blue-200 transition">Contact</a></li>
+            <nav aria-label="Main navigation" class="mt-4">
+                <div id="mobile-welcome" class="hidden text-left mb-2">
+                    <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display-mobile">User</span>!</p>
+                </div>
+                <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
+                    <li><a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a></li>
+                    <li><a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Tournaments</a></li>
+                    <li><a href="fixtures.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base font-semibold">Fixtures &amp; Results</a></li>
+                    <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
+                    <li><a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a></li>
                 </ul>
             </nav>
         </div>
@@ -134,6 +162,12 @@
     <main class="container mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-lg p-6">
             <h2 class="text-3xl font-bold text-gray-800 mb-6">Fixtures & Results</h2>
+
+            <!-- Admin-only manual refresh button (shown when user has admin claim) -->
+            <div id="admin-refresh" class="hidden mb-4">
+                <button id="trigger-refresh-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition text-sm font-semibold">Refresh now (admin)</button>
+                <span id="refresh-status" class="ml-3 text-sm text-gray-600"></span>
+            </div>
             
             <!-- League Tabs -->
             <div class="flex flex-wrap gap-2 mb-6 border-b pb-4">
@@ -156,13 +190,13 @@
 
             <!-- View Tabs -->
             <div class="flex space-x-6 mb-6 border-b">
-                <button class="view-tab tab-active px-4 py-2 transition" data-view="fixtures">
+                <button class="view-tab px-4 py-2 transition" data-view="fixtures">
                     Fixtures
                 </button>
                 <button class="view-tab px-4 py-2 hover:text-red-500 transition" data-view="results">
                     Results
                 </button>
-                <button class="view-tab px-4 py-2 hover:text-red-500 transition" data-view="table">
+                <button class="view-tab tab-active px-4 py-2 hover:text-red-500 transition" data-view="table">
                     Table
                 </button>
             </div>
@@ -176,7 +210,7 @@
             <!-- Content Container -->
             <div id="content-container" class="hidden">
                 <!-- Fixtures View -->
-                <div id="fixtures-view" class="fade-in">
+                <div id="fixtures-view" class="hidden fade-in">
                     <div id="fixtures-list" class="space-y-3">
                         <!-- Will be populated by JavaScript -->
                     </div>
@@ -190,7 +224,7 @@
                 </div>
 
                 <!-- Table View -->
-                <div id="table-view" class="hidden fade-in">
+                <div id="table-view" class="fade-in">
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
                             <thead class="bg-gray-100">
@@ -220,11 +254,6 @@
         </div>
     </main>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="js/supersteaks-global.js"></script>
     <script src="js/fixtures.js"></script>
 </body>
 </html>
