@@ -1192,7 +1192,7 @@ exports.submitMatchResult = functions.https.onCall(async (data, context) => {
 });
 
 // Scheduled function to fetch and update sports data
-exports.updateSportsData = functions.pubsub.schedule('every 2 minutes').onRun(async (context) => {
+exports.updateSportsData = functions.pubsub.schedule('every 10 minutes').onRun(async (context) => {
     console.log('Starting sports data update...');
     
     try {
