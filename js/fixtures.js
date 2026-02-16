@@ -215,6 +215,9 @@ async function loadResults() {
         let html = '';
         snapshot.forEach(doc => {
             const result = doc.data();
+            if (result.homeScore === null || result.homeScore === undefined || result.awayScore === null || result.awayScore === undefined) {
+                return;
+            }
             const date = formatDate(result.date);
             
             html += `
