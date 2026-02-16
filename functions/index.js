@@ -1213,7 +1213,13 @@ exports.updateSportsData = functions.pubsub.schedule('every 10 minutes').onRun(a
                     lastUpdated: admin.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
-                // Do not clear collections; we upsert/dedupe by eventId to avoid wiping earlier rounds
+                // Clear fixtures each run so past matches don't linger in fixtures
+                const existingFixtures = await leagueRef.collection('fixtures').get();
+                if (!existingFixtures.empty) {
+                    const fixturesDeleteBatch = db.batch();
+                    existingFixtures.docs.forEach(doc => fixturesDeleteBatch.delete(doc.ref));
+                    await fixturesDeleteBatch.commit();
+                }
 
                 // Only use eventsround API - eventsseason is broken/incomplete for these leagues
                 const allMatches = [];
@@ -1344,12 +1350,11 @@ exports.updateSportsData = functions.pubsub.schedule('every 10 minutes').onRun(a
                         points: parseInt(item.intPoints)
                     })).filter(team => !Number.isNaN(team.position) && team.teamName);
 
-                    const maxPlayed = parsed.length ? Math.max(...parsed.map(t => t.played || 0)) : 0;
-                    if (parsed.length >= 20 && maxPlayed >= 20) {
+                    if (parsed.length) {
                         standingsArray = parsed.sort((a, b) => a.position - b.position);
-                        console.log(`Using API standings for ${leagueConfig.name}: ${parsed.length} teams, maxPlayed=${maxPlayed}`);
+                        console.log(`Using API standings for ${leagueConfig.name}: ${parsed.length} teams`);
                     } else {
-                        console.warn(`API standings appear stale for ${leagueConfig.name}: teams=${parsed.length}, maxPlayed=${maxPlayed}`);
+                        console.warn(`API standings empty for ${leagueConfig.name}`);
                     }
                 }
             } catch (err) {
