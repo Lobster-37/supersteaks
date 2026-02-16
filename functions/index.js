@@ -1284,17 +1284,15 @@ exports.updateSportsData = functions.pubsub.schedule('every 10 minutes').onRun(a
                 const hasScore = event.intHomeScore !== null && event.intAwayScore !== null;
                 const isFinished = event.status && event.status.toLowerCase().includes('match finished');
                 
-                // Use the timestamp comparison to determine if it's a fixture or result
-                // If it has a score, it's definitely a result
-                // If it has "Match Finished" status, it's definitely a result  
-                // Otherwise, if the match is in the future (timestamp >= now), it's a fixture
-                const now = new Date();
-                const isFuture = ts >= now;
-                const isResult = hasScore || isFinished || !isFuture;
+                // Classify by match date (scores take precedence)
+                // If it has a score or finished status, it's a result
+                // Otherwise, if the match date is today or later, keep as fixture
+                const isFutureOrToday = ts >= today;
+                const isResult = hasScore || isFinished || !isFutureOrToday;
                 
                 // Debug: log some event classification info
                 if (fixturesCount + resultsCount < 5) {
-                    console.log(`Event ${event.idEvent} (${dateStr}): isFuture=${isFuture}, isResult=${isResult}, hasScore=${hasScore}, status=${event.status}`);
+                    console.log(`Event ${event.idEvent} (${dateStr}): isFutureOrToday=${isFutureOrToday}, isResult=${isResult}, hasScore=${hasScore}, status=${event.status}`);
                 }
                 
                 // Classify as result or fixture
