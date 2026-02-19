@@ -160,7 +160,8 @@
             firebase.auth().onAuthStateChanged(user => {
                 if (user) {
                     document.getElementById('loginSection').classList.add('hidden');
-                    document.getElementById('formSection').classList.remove('hidden');
+                    // Manual result input is disabled
+                    document.getElementById('formSection').classList.add('hidden');
                     document.getElementById('logoutBtn').classList.remove('hidden');
                 } else {
                     document.getElementById('loginSection').classList.remove('hidden');
@@ -170,7 +171,9 @@
             });
 
             // Set today's date as default
-            document.getElementById('matchDate').valueAsDate = new Date();
+            if (document.getElementById('matchDate')) {
+                document.getElementById('matchDate').valueAsDate = new Date();
+            }
         });
 
         async function handleLogin() {
