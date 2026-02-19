@@ -549,8 +549,6 @@
                     .doc(currentTournamentId)
                     .collection('matches')
                     .where('teams', 'array-contains', userTeamName)
-                    .orderBy('date', 'desc')
-                    .limit(10)
                     .get();
 
                 if (matchesSnapshot.empty) {
@@ -559,17 +557,22 @@
                     return;
                 }
 
+                // Sort matches by date (descending) in JavaScript
+                const matches = matchesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+                    .map(match => ({
+                        ...match,
+                        date: match.date.toDate ? match.date.toDate() : new Date(match.date)
+                    }))
+                    .sort((a, b) => b.date - a.date);
+
                 let nextGame = null;
                 let previousGame = null;
 
-                matchesSnapshot.docs.forEach(doc => {
-                    const match = doc.data();
-                    const matchDate = match.date.toDate ? match.date.toDate() : new Date(match.date);
-                    
-                    if (matchDate > now && !nextGame) {
-                        nextGame = { ...match, id: doc.id, date: matchDate };
-                    } else if (matchDate <= now && !previousGame) {
-                        previousGame = { ...match, id: doc.id, date: matchDate };
+                matches.forEach(match => {
+                    if (match.date > now && !nextGame) {
+                        nextGame = match;
+                    } else if (match.date <= now && !previousGame) {
+                        previousGame = match;
                     }
                 });
 
