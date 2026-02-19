@@ -21,6 +21,13 @@
       "**/.*",
       "**/node_modules/**",
       "functions/**"
+    ],
+    "cleanUrls": true,
+    "rewrites": [
+      {
+        "source": "/fixtures",
+        "destination": "/fixtures.html"
+      }
     ]
   }
 }

@@ -43,6 +43,12 @@ service cloud.firestore {
       allow write: if false; // Cloud Functions only
     }
 
+    // Signup notifications - admin read only, Cloud Functions write
+    match /signupNotifications/{notificationId} {
+      allow read: if isAdmin();
+      allow write: if false; // Cloud Functions only
+    }
+
     // Backups - admin only
     match /backups/{backupId} {
       allow read: if isAdmin();

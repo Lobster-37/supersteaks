@@ -160,8 +160,16 @@ async function loadFixtures() {
         }
         
         let html = '';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
         snapshot.forEach(doc => {
             const fixture = doc.data();
+            // Hide past-dated no-score fixtures (postponed/cancelled matches)
+            const fixtureDate = new Date(fixture.date);
+            if (fixtureDate < today) {
+                return; // Skip this fixture
+            }
             const date = formatDate(fixture.date);
             const time = fixture.time || 'TBD';
             

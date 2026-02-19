@@ -8,6 +8,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-functions-compat.js"></script>
 </head>
 <body class="bg-gray-100">
@@ -40,6 +41,13 @@
                 <div id="status" class="mt-4"></div>
             </div>
 
+            <div class="mt-6 bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold mb-2">New User Signups</h2>
+                <p class="mb-4 text-gray-600">Live feed of the most recent account registrations.</p>
+                <div id="signupSummary" class="text-sm text-gray-600 mb-3">Loading signup activity...</div>
+                <div id="signupList" class="space-y-2"></div>
+            </div>
+
             <div class="mt-6">
                 <button onclick="logout()" class="bg-red-600 text-white px-6 py-2 rounded font-bold">Logout</button>
             </div>
@@ -59,6 +67,8 @@
         };
 
         firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        let signupUnsubscribe = null;
 
         const tournamentData = [
             {
@@ -129,9 +139,17 @@
             const errorDiv = document.getElementById('loginError');
 
             try {
-                await firebase.auth().signInWithEmailAndPassword(email, password);
+                const { user } = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const tokenResult = await user.getIdTokenResult(true);
+
+                if (!tokenResult.claims.admin) {
+                    await firebase.auth().signOut();
+                    throw new Error('Admin access required.');
+                }
+
                 document.getElementById('loginForm').classList.add('hidden');
                 document.getElementById('adminPanel').classList.remove('hidden');
+                startSignupFeed();
                 errorDiv.classList.add('hidden');
             } catch (error) {
                 errorDiv.textContent = 'Login failed: ' + error.message;
@@ -161,6 +179,10 @@
         }
 
         async function logout() {
+            if (signupUnsubscribe) {
+                signupUnsubscribe();
+                signupUnsubscribe = null;
+            }
             await firebase.auth().signOut();
             document.getElementById('loginForm').classList.remove('hidden');
             document.getElementById('adminPanel').classList.add('hidden');
@@ -168,11 +190,72 @@
             document.getElementById('password').value = '';
         }
 
+        function startSignupFeed() {
+            const summary = document.getElementById('signupSummary');
+            const list = document.getElementById('signupList');
+
+            if (signupUnsubscribe) {
+                signupUnsubscribe();
+                signupUnsubscribe = null;
+            }
+
+            signupUnsubscribe = db.collection('signupNotifications')
+                .orderBy('createdAt', 'desc')
+                .limit(20)
+                .onSnapshot((snapshot) => {
+                    summary.textContent = `${snapshot.size} recent signup${snapshot.size === 1 ? '' : 's'}`;
+
+                    if (snapshot.empty) {
+                        list.innerHTML = '<p class="text-sm text-gray-500">No signups yet.</p>';
+                        return;
+                    }
+
+                    const items = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc.data() || {};
+                        const when = data.createdAt && data.createdAt.toDate
+                            ? data.createdAt.toDate().toLocaleString()
+                            : 'Pending timestamp';
+                        const name = data.displayName || data.email || data.uid || 'Unknown user';
+                        const email = data.email ? ` · ${data.email}` : '';
+
+                        items.push(`
+                            <div class="border border-gray-200 rounded p-3 text-sm">
+                                <div class="font-semibold text-gray-800">${name}</div>
+                                <div class="text-gray-600">${when}${email}</div>
+                            </div>
+                        `);
+                    });
+
+                    list.innerHTML = items.join('');
+                }, (error) => {
+                    summary.textContent = 'Unable to load signup activity';
+                    list.innerHTML = `<p class="text-sm text-red-600">${error.message}</p>`;
+                });
+        }
+
         // Check if already logged in
-        firebase.auth().onAuthStateChanged(user => {
+        firebase.auth().onAuthStateChanged(async user => {
             if (user) {
-                document.getElementById('loginForm').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
+                try {
+                    const tokenResult = await user.getIdTokenResult();
+                    if (!tokenResult.claims.admin) {
+                        document.getElementById('loginError').textContent = 'Admin access required.';
+                        document.getElementById('loginError').classList.remove('hidden');
+                        await logout();
+                        return;
+                    }
+
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    startSignupFeed();
+                } catch (error) {
+                    document.getElementById('loginError').textContent = 'Admin verification failed: ' + error.message;
+                    document.getElementById('loginError').classList.remove('hidden');
+                }
+            } else if (signupUnsubscribe) {
+                signupUnsubscribe();
+                signupUnsubscribe = null;
             }
         });
     </script>

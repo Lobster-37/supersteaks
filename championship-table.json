@@ -1,0 +1,29 @@
+﻿
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"table":[{"idStanding":"8234076","intRank":"1","idTeam":"1
+                    33625","strTeam":"Coventry City","strBadge":"https:\/\/r2.t
+                    hesportsdb.com\/images\/media\/team\/badge\/uxyqys142403379
+                    8.png\/tiny","idLeague"...
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Connection: keep-alive
+                    Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[
+                    {"url":"https://a.nel.cloudflare.com/report/v4?s=TNjOIcaUdT
+                    lrjFLh7cKXIrS...
+Forms             : 
+Headers           : {[Transfer-Encoding, chunked], [Connection, keep-alive], 
+                    [Report-To, {"group":"cf-nel","max_age":604800,"endpoints":
+                    [{"url":"https://a.nel.cloudflare.com/report/v4?s=TNjOIcaUd
+                    TlrjFLh7cKXIrSXsDSgixQZsNv7iMOG8ZayLhdJPtzwPguExOm%2FoqqfyG
+                    9XiOabhoXqi01ObE9RYfKNQgP7Yf0VHJHGdrwTpV%2B22g%3D%3D"}]}], 
+                    [Vary, Accept-Encoding]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : 
+RawContentLength  : 2482
+
+
+
