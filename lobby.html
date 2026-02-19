@@ -544,34 +544,70 @@
                     assignmentsByTeam[data.team].push(data.username);
                 });
 
-                // Query for matches involving the user's team
-                const matchesSnapshot = await db.collection('tournaments')
-                    .doc(currentTournamentId)
-                    .collection('matches')
-                    .where('teams', 'array-contains', userTeamName)
-                    .get();
+                // Search all leagues for fixtures and results containing this team
+                const leagueIds = ['premier-league', 'championship', 'league-one', 'league-two', 'champions-league'];
+                let allMatches = [];
 
-                if (matchesSnapshot.empty) {
-                    document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">No upcoming games scheduled</p>';
+                for (const leagueId of leagueIds) {
+                    // Get fixtures (upcoming games)
+                    const fixturesSnapshot = await db.collection('leagues')
+                        .doc(leagueId)
+                        .collection('fixtures')
+                        .get();
+
+                    fixturesSnapshot.docs.forEach(doc => {
+                        const fixture = doc.data();
+                        if (fixture.homeTeam === userTeamName || fixture.awayTeam === userTeamName) {
+                            allMatches.push({
+                                homeTeam: fixture.homeTeam,
+                                awayTeam: fixture.awayTeam,
+                                teams: [fixture.homeTeam, fixture.awayTeam],
+                                date: new Date(fixture.date + 'T' + (fixture.time || '00:00:00')),
+                                venue: fixture.venue,
+                                isCompleted: false
+                            });
+                        }
+                    });
+
+                    // Get results (completed games)
+                    const resultsSnapshot = await db.collection('leagues')
+                        .doc(leagueId)
+                        .collection('results')
+                        .get();
+
+                    resultsSnapshot.docs.forEach(doc => {
+                        const result = doc.data();
+                        if (result.homeTeam === userTeamName || result.awayTeam === userTeamName) {
+                            allMatches.push({
+                                homeTeam: result.homeTeam,
+                                awayTeam: result.awayTeam,
+                                teams: [result.homeTeam, result.awayTeam],
+                                homeScore: result.homeScore,
+                                awayScore: result.awayScore,
+                                date: new Date(result.date + 'T' + (result.time || '00:00:00')),
+                                venue: result.venue,
+                                isCompleted: true
+                            });
+                        }
+                    });
+                }
+
+                if (allMatches.length === 0) {
+                    document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">No games scheduled</p>';
                     document.getElementById('previous-game-card').style.display = 'none';
                     return;
                 }
 
-                // Sort matches by date (descending) in JavaScript
-                const matches = matchesSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }))
-                    .map(match => ({
-                        ...match,
-                        date: match.date.toDate ? match.date.toDate() : new Date(match.date)
-                    }))
-                    .sort((a, b) => b.date - a.date);
+                // Sort by date (descending)
+                allMatches.sort((a, b) => b.date - a.date);
 
                 let nextGame = null;
                 let previousGame = null;
 
-                matches.forEach(match => {
-                    if (match.date > now && !nextGame) {
+                allMatches.forEach(match => {
+                    if (match.date > now && !nextGame && !match.isCompleted) {
                         nextGame = match;
-                    } else if (match.date <= now && !previousGame) {
+                    } else if (match.date <= now && !previousGame && match.isCompleted) {
                         previousGame = match;
                     }
                 });
