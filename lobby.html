@@ -214,6 +214,27 @@
             </div>
         </div>
 
+        <!-- Your Team's Fixtures -->
+        <div id="fixtures-section" class="bg-white rounded-xl shadow-lg p-6 mb-12">
+            <h3 class="text-2xl font-bold text-indigo-800 mb-6">Your Team's Fixtures</h3>
+            <div id="fixtures-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Next Game -->
+                <div id="next-game-card" class="border-2 border-green-300 rounded-lg p-6 bg-green-50">
+                    <h4 class="text-lg font-bold text-green-800 mb-4">Next Game</h4>
+                    <div id="next-game-content" class="text-center text-gray-600">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                    </div>
+                </div>
+                <!-- Previous Game -->
+                <div id="previous-game-card" class="border-2 border-gray-300 rounded-lg p-6 bg-gray-50">
+                    <h4 class="text-lg font-bold text-gray-800 mb-4">Previous Game</h4>
+                    <div id="previous-game-content" class="text-center text-gray-600">
+                        No previous games yet
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Players in Lobby -->
         <div class="bg-white rounded-xl shadow-lg p-6">
             <h3 class="text-2xl font-bold text-indigo-800 mb-6">Players in This Lobby</h3>
@@ -387,6 +408,11 @@
 
                     // Load players in lobby
                     await loadLobbyPlayers(lobby);
+
+                    // Load team fixtures
+                    if (userAssignment) {
+                        await loadTeamFixtures(userAssignment.team);
+                    }
                 } catch (cloudFunctionError) {
                     // Fallback: Load data directly from Firestore (non-filtered) if Cloud Function is not available
                     console.warn('Cloud Function getTournamentTeamVisibility not available, using fallback:', cloudFunctionError.message);
@@ -427,6 +453,11 @@
 
                     // Load players in lobby
                     await loadLobbyPlayers(lobby);
+
+                    // Load team fixtures
+                    if (userAssignment) {
+                        await loadTeamFixtures(userAssignment.team);
+                    }
                 }
             } catch (error) {
                 console.error('Error loading lobby data:', error);
@@ -492,6 +523,138 @@
                 console.error('Error loading players:', error);
                 document.getElementById('players-list').innerHTML = '<div class="text-red-600">Error loading players</div>';
             }
+        }
+
+        async function loadTeamFixtures(userTeamName) {
+            try {
+                const now = new Date();
+                
+                // Get assignments for this lobby to have player info readily available
+                const allAssignments = await db.collection('teamAssignments')
+                    .where('tournamentId', '==', currentTournamentId)
+                    .where('lobbyId', '==', currentLobbyId)
+                    .get();
+
+                const assignmentsByTeam = {};
+                allAssignments.docs.forEach(doc => {
+                    const data = doc.data();
+                    if (!assignmentsByTeam[data.team]) {
+                        assignmentsByTeam[data.team] = [];
+                    }
+                    assignmentsByTeam[data.team].push(data.username);
+                });
+
+                // Query for matches involving the user's team
+                const matchesSnapshot = await db.collection('tournaments')
+                    .doc(currentTournamentId)
+                    .collection('matches')
+                    .where('teams', 'array-contains', userTeamName)
+                    .orderBy('date', 'desc')
+                    .limit(10)
+                    .get();
+
+                if (matchesSnapshot.empty) {
+                    document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">No upcoming games scheduled</p>';
+                    document.getElementById('previous-game-card').style.display = 'none';
+                    return;
+                }
+
+                let nextGame = null;
+                let previousGame = null;
+
+                matchesSnapshot.docs.forEach(doc => {
+                    const match = doc.data();
+                    const matchDate = match.date.toDate ? match.date.toDate() : new Date(match.date);
+                    
+                    if (matchDate > now && !nextGame) {
+                        nextGame = { ...match, id: doc.id, date: matchDate };
+                    } else if (matchDate <= now && !previousGame) {
+                        previousGame = { ...match, id: doc.id, date: matchDate };
+                    }
+                });
+
+                // Display next game
+                if (nextGame) {
+                    displayGameCard('next-game-content', nextGame, userTeamName, assignmentsByTeam, false);
+                } else {
+                    document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">No upcoming games</p>';
+                }
+
+                // Display previous game
+                if (previousGame) {
+                    document.getElementById('previous-game-card').style.display = 'block';
+                    displayGameCard('previous-game-content', previousGame, userTeamName, assignmentsByTeam, true);
+                } else {
+                    document.getElementById('previous-game-card').style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Error loading team fixtures:', error);
+                document.getElementById('next-game-content').innerHTML = '<p class="text-red-600">Error loading fixtures</p>';
+            }
+        }
+
+        function displayGameCard(containerId, match, userTeamName, assignmentsByTeam, showScore) {
+            // Find opponent team
+            const opponentTeam = match.teams.find(t => t !== userTeamName);
+            
+            // Get player lists for each team from the assignments
+            const yourTeamPlayers = assignmentsByTeam[userTeamName] || [];
+            const opponentTeamPlayers = assignmentsByTeam[opponentTeam] || [];
+
+            // Format date
+            const dateStr = match.date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            });
+
+            // Score display
+            let scoreHtml = '';
+            if (showScore && match.homeScore !== undefined && match.awayScore !== undefined) {
+                const homeTeam = match.homeTeam || match.teams[0];
+                const isUserTeamHome = homeTeam === userTeamName;
+                const userTeamScore = isUserTeamHome ? match.homeScore : match.awayScore;
+                const opponentScore = isUserTeamHome ? match.awayScore : match.homeScore;
+                scoreHtml = `<div class="text-center my-4"><span class="text-3xl font-bold text-indigo-600">${userTeamScore} - ${opponentScore}</span></div>`;
+            }
+
+            const html = `
+                <div class="space-y-4">
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600 mb-2">${dateStr}</p>
+                        <p class="text-xl font-bold text-indigo-800">${userTeamName} vs ${opponentTeam}</p>
+                        ${scoreHtml}
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Your Team -->
+                        <div class="border border-green-200 rounded p-3 bg-white">
+                            <p class="font-semibold text-green-700 text-sm mb-2">${userTeamName}</p>
+                            <div class="space-y-1 text-sm">
+                                ${yourTeamPlayers.length > 0 
+                                    ? yourTeamPlayers.map(player => `<p class="text-gray-700">• ${player}</p>`).join('')
+                                    : '<p class="text-gray-500 italic">No players</p>'
+                                }
+                            </div>
+                        </div>
+                        
+                        <!-- Opponent Team -->
+                        <div class="border border-orange-200 rounded p-3 bg-white">
+                            <p class="font-semibold text-orange-700 text-sm mb-2">${opponentTeam}</p>
+                            <div class="space-y-1 text-sm">
+                                ${opponentTeamPlayers.length > 0 
+                                    ? opponentTeamPlayers.map(player => `<p class="text-gray-700">• ${player}</p>`).join('')
+                                    : '<p class="text-gray-500 italic">No players</p>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById(containerId).innerHTML = html;
         }
     </script>
 </body>
