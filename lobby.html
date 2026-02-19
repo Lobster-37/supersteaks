@@ -527,6 +527,7 @@
 
         async function loadTeamFixtures(userTeamName) {
             try {
+                console.log('Loading fixtures for team:', userTeamName);
                 const now = new Date();
                 
                 // Get assignments for this lobby to have player info readily available
@@ -593,10 +594,13 @@
                 }
 
                 if (allMatches.length === 0) {
+                    console.log('No matches found for team:', userTeamName);
                     document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">No games scheduled</p>';
                     document.getElementById('previous-game-card').style.display = 'none';
                     return;
                 }
+
+                console.log('Found matches:', allMatches.length);
 
                 // Sort by date (descending)
                 allMatches.sort((a, b) => b.date - a.date);
@@ -611,6 +615,9 @@
                         previousGame = match;
                     }
                 });
+
+                console.log('Next game:', nextGame);
+                console.log('Previous game:', previousGame);
 
                 // Display next game
                 if (nextGame) {
