@@ -527,7 +527,6 @@
 
         async function loadTeamFixtures(userTeamName) {
             try {
-                console.log('Loading fixtures for team:', userTeamName);
                 const now = new Date();
                 
                 // Get assignments for this lobby to have player info readily available
@@ -594,30 +593,21 @@
                 }
 
                 if (allMatches.length === 0) {
-                    console.log('No matches found for team:', userTeamName);
                     document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">No games scheduled</p>';
                     document.getElementById('previous-game-card').style.display = 'none';
                     return;
                 }
 
-                console.log('Found matches:', allMatches.length);
+                const upcomingMatches = allMatches
+                    .filter(match => !match.isCompleted && match.date > now)
+                    .sort((a, b) => a.date - b.date);
 
-                // Sort by date (descending)
-                allMatches.sort((a, b) => b.date - a.date);
+                const completedMatches = allMatches
+                    .filter(match => match.isCompleted && match.date <= now)
+                    .sort((a, b) => b.date - a.date);
 
-                let nextGame = null;
-                let previousGame = null;
-
-                allMatches.forEach(match => {
-                    if (match.date > now && !nextGame && !match.isCompleted) {
-                        nextGame = match;
-                    } else if (match.date <= now && !previousGame && match.isCompleted) {
-                        previousGame = match;
-                    }
-                });
-
-                console.log('Next game:', nextGame);
-                console.log('Previous game:', previousGame);
+                const nextGame = upcomingMatches[0] || null;
+                const previousGame = completedMatches[0] || null;
 
                 // Display next game
                 if (nextGame) {
