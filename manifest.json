@@ -14,5 +14,21 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/screenshots/desktop-wide.svg",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "SuperSteaks lobby and fixture overview"
+    },
+    {
+      "src": "/images/screenshots/mobile-narrow.svg",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "SuperSteaks mobile lobby view"
+    }
   ]
 }
