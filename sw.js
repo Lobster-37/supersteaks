@@ -1,4 +1,4 @@
-const CACHE_NAME = 'supersteaks-v2';
+const CACHE_NAME = 'supersteaks-v3';
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -37,6 +37,27 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cachedPage = await caches.match(request);
+          if (cachedPage) {
+            return cachedPage;
+          }
+          return caches.match('/offline.html');
+        })
+    );
     return;
   }
 
