@@ -25,7 +25,7 @@ async function seedWithServiceAccount() {
 
         // Exchange custom token for ID token
         const response = await axios.post(
-            'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyAJF4VZM-_dJSL9p0Z2G5-Y3_JYa5TI8mw',
+            'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s',
             {
                 token: customToken,
                 returnSecureToken: true
