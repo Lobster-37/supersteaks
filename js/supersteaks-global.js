@@ -450,6 +450,8 @@ class SuperSteaksGlobal {
                 usernameDisplay.textContent = username;
             }
         }
+
+        maybePromptForPushNotifications(user);
     }
     
     showUnauthenticatedUI() {
@@ -495,6 +497,11 @@ class SuperSteaksGlobal {
 // Initialize global SuperSteaks system
 let superSteaksGlobal = null;
 let installPromptEvent = null;
+let pushPromptShown = false;
+let messagingScriptPromise = null;
+let pushTokenSyncInFlight = false;
+
+const WEB_PUSH_VAPID_KEY = window.SUPERSTEAKS_VAPID_KEY || '';
 
 function createPwaNotice({ message, buttonLabel, onButtonClick, dismissible = true }) {
     const existing = document.getElementById('pwa-notice');
@@ -580,6 +587,125 @@ function setupInstallPrompt() {
                 }
             }
         });
+    });
+}
+
+function loadMessagingSdk() {
+    if (firebase.messaging) {
+        return Promise.resolve(true);
+    }
+
+    if (messagingScriptPromise) {
+        return messagingScriptPromise;
+    }
+
+    messagingScriptPromise = new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://www.gstatic.com/firebasejs/9.15.0/firebase-messaging-compat.js';
+        script.onload = () => resolve(!!firebase.messaging);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+    });
+
+    return messagingScriptPromise;
+}
+
+async function registerPushTokenForCurrentUser() {
+    if (pushTokenSyncInFlight) {
+        return false;
+    }
+
+    if (!window.superSteaksGlobal || !window.superSteaksGlobal.currentUser) {
+        return false;
+    }
+
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return false;
+    }
+
+    if (!('serviceWorker' in navigator)) {
+        return false;
+    }
+
+    pushTokenSyncInFlight = true;
+
+    try {
+        const messagingReady = await loadMessagingSdk();
+        if (!messagingReady || !firebase.messaging) {
+            return false;
+        }
+
+        const registration = await navigator.serviceWorker.getRegistration('/sw.js') || await navigator.serviceWorker.register('/sw.js');
+        const messaging = firebase.messaging();
+
+        const getTokenOptions = {
+            serviceWorkerRegistration: registration
+        };
+
+        if (WEB_PUSH_VAPID_KEY) {
+            getTokenOptions.vapidKey = WEB_PUSH_VAPID_KEY;
+        }
+
+        const token = await messaging.getToken(getTokenOptions);
+        if (!token) {
+            return false;
+        }
+
+        const savePushToken = firebase.functions().httpsCallable('savePushToken');
+        await savePushToken({
+            token,
+            platform: 'web',
+            userAgent: navigator.userAgent
+        });
+
+        return true;
+    } catch (error) {
+        console.warn('Push token registration failed:', error.message || error);
+        return false;
+    } finally {
+        pushTokenSyncInFlight = false;
+    }
+}
+
+function maybePromptForPushNotifications(user) {
+    if (!user || pushPromptShown) {
+        return;
+    }
+
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+        return;
+    }
+
+    if (Notification.permission === 'granted') {
+        registerPushTokenForCurrentUser();
+        return;
+    }
+
+    if (Notification.permission !== 'default') {
+        return;
+    }
+
+    pushPromptShown = true;
+
+    createPwaNotice({
+        message: 'Enable notifications for your team\'s fixtures and results.',
+        buttonLabel: 'Enable Alerts',
+        onButtonClick: async () => {
+            try {
+                const permission = await Notification.requestPermission();
+                const notice = document.getElementById('pwa-notice');
+                if (notice) {
+                    notice.remove();
+                }
+
+                if (permission === 'granted') {
+                    await registerPushTokenForCurrentUser();
+                }
+            } catch (error) {
+                console.warn('Notification permission flow failed:', error.message || error);
+            }
+        },
+        dismissible: true
     });
 }
 

@@ -2175,4 +2175,224 @@ exports.triggerSportsUpdateHttp = functions.https.onRequest(async (req, res) => 
  */
 // TODO: Remove this after full migration to tournament system
 
+function isValidPushToken(token) {
+    return typeof token === 'string' && token.length >= 100 && token.length <= 4096;
+}
+
+async function getUsersWithPushTokensByTeams(teamNames) {
+    const uniqueTeams = [...new Set((teamNames || []).filter(Boolean))];
+    if (uniqueTeams.length === 0) {
+        return { userIds: [], tokenToUserId: {}, tokens: [] };
+    }
+
+    const assignmentsSnap = await db.collection('teamAssignments')
+        .where('status', '==', 'active')
+        .where('team', 'in', uniqueTeams.slice(0, 10))
+        .get();
+
+    const userIds = [...new Set(assignmentsSnap.docs.map((doc) => doc.data().userId).filter(Boolean))];
+    if (userIds.length === 0) {
+        return { userIds: [], tokenToUserId: {}, tokens: [] };
+    }
+
+    const tokenToUserId = {};
+    const allTokens = [];
+
+    const userDocs = await Promise.all(userIds.map((userId) => db.collection('users').doc(userId).get()));
+    userDocs.forEach((userDoc) => {
+        if (!userDoc.exists) {
+            return;
+        }
+
+        const userData = userDoc.data() || {};
+        const pushTokens = Array.isArray(userData.pushTokens) ? userData.pushTokens.filter(isValidPushToken) : [];
+        pushTokens.forEach((token) => {
+            tokenToUserId[token] = userDoc.id;
+            allTokens.push(token);
+        });
+    });
+
+    return {
+        userIds,
+        tokenToUserId,
+        tokens: [...new Set(allTokens)]
+    };
+}
+
+async function removeInvalidPushTokens(tokenToUserId, invalidTokens) {
+    if (!invalidTokens || invalidTokens.length === 0) {
+        return;
+    }
+
+    const updatesByUser = {};
+    invalidTokens.forEach((token) => {
+        const userId = tokenToUserId[token];
+        if (!userId) {
+            return;
+        }
+
+        if (!updatesByUser[userId]) {
+            updatesByUser[userId] = [];
+        }
+        updatesByUser[userId].push(token);
+    });
+
+    const updatePromises = Object.entries(updatesByUser).map(([userId, tokens]) => {
+        const update = {
+            pushTokens: admin.firestore.FieldValue.arrayRemove(...tokens)
+        };
+
+        return db.collection('users').doc(userId).set(update, { merge: true });
+    });
+
+    await Promise.all(updatePromises);
+}
+
+async function sendTeamNotification({
+    teams,
+    title,
+    body,
+    link,
+    data = {}
+}) {
+    const { tokenToUserId, tokens } = await getUsersWithPushTokensByTeams(teams);
+    if (tokens.length === 0) {
+        return { sentCount: 0 };
+    }
+
+    const response = await admin.messaging().sendEachForMulticast({
+        tokens,
+        notification: {
+            title,
+            body
+        },
+        data: {
+            ...Object.entries(data).reduce((acc, [key, value]) => {
+                if (value !== undefined && value !== null) {
+                    acc[key] = String(value);
+                }
+                return acc;
+            }, {}),
+            link: link || '/fixtures.html'
+        },
+        webpush: {
+            fcmOptions: {
+                link: link || '/fixtures.html'
+            }
+        }
+    });
+
+    const invalidTokens = [];
+    response.responses.forEach((result, index) => {
+        if (result.success) {
+            return;
+        }
+
+        const errorCode = result.error && result.error.code;
+        if (errorCode === 'messaging/registration-token-not-registered' || errorCode === 'messaging/invalid-registration-token') {
+            invalidTokens.push(tokens[index]);
+        }
+    });
+
+    await removeInvalidPushTokens(tokenToUserId, invalidTokens);
+    return { sentCount: response.successCount };
+}
+
+exports.savePushToken = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
+    }
+
+    const token = data && data.token;
+    if (!isValidPushToken(token)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid push token format');
+    }
+
+    const userId = context.auth.uid;
+    const update = {
+        pushTokens: admin.firestore.FieldValue.arrayUnion(token),
+        pushTokenUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        pushTokenMeta: {
+            platform: (data && data.platform) || 'web',
+            userAgent: (data && data.userAgent) || 'unknown'
+        }
+    };
+
+    await db.collection('users').doc(userId).set(update, { merge: true });
+    return { success: true };
+});
+
+exports.notifyFixtureCreated = functions.firestore
+    .document('leagues/{leagueId}/fixtures/{fixtureId}')
+    .onCreate(async (snapshot, context) => {
+        const fixture = snapshot.data() || {};
+        const homeTeam = fixture.homeTeam;
+        const awayTeam = fixture.awayTeam;
+
+        if (!homeTeam || !awayTeam) {
+            return null;
+        }
+
+        const datePart = fixture.date ? ` · ${fixture.date}` : '';
+        const timePart = fixture.time ? ` ${fixture.time}` : '';
+
+        await sendTeamNotification({
+            teams: [homeTeam, awayTeam],
+            title: `Upcoming: ${homeTeam} vs ${awayTeam}`,
+            body: `New fixture added${datePart}${timePart}`,
+            link: '/fixtures.html',
+            data: {
+                type: 'fixture',
+                leagueId: context.params.leagueId,
+                fixtureId: context.params.fixtureId,
+                homeTeam,
+                awayTeam
+            }
+        });
+
+        return null;
+    });
+
+exports.notifyResultUpdated = functions.firestore
+    .document('leagues/{leagueId}/results/{resultId}')
+    .onWrite(async (change, context) => {
+        if (!change.after.exists) {
+            return null;
+        }
+
+        const after = change.after.data() || {};
+        const before = change.before.exists ? (change.before.data() || {}) : null;
+
+        const homeTeam = after.homeTeam;
+        const awayTeam = after.awayTeam;
+        const hasScore = Number.isFinite(after.homeScore) && Number.isFinite(after.awayScore);
+
+        if (!homeTeam || !awayTeam || !hasScore) {
+            return null;
+        }
+
+        const scoreChanged = !before || before.homeScore !== after.homeScore || before.awayScore !== after.awayScore;
+        if (!scoreChanged) {
+            return null;
+        }
+
+        await sendTeamNotification({
+            teams: [homeTeam, awayTeam],
+            title: `Result: ${homeTeam} ${after.homeScore}-${after.awayScore} ${awayTeam}`,
+            body: 'Your team match result is in.',
+            link: '/fixtures.html',
+            data: {
+                type: 'result',
+                leagueId: context.params.leagueId,
+                resultId: context.params.resultId,
+                homeTeam,
+                awayTeam,
+                homeScore: after.homeScore,
+                awayScore: after.awayScore
+            }
+        });
+
+        return null;
+    });
+
 
