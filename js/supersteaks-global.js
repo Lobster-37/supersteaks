@@ -494,6 +494,94 @@ class SuperSteaksGlobal {
 
 // Initialize global SuperSteaks system
 let superSteaksGlobal = null;
+let installPromptEvent = null;
+
+function createPwaNotice({ message, buttonLabel, onButtonClick, dismissible = true }) {
+    const existing = document.getElementById('pwa-notice');
+    if (existing) {
+        existing.remove();
+    }
+
+    const notice = document.createElement('div');
+    notice.id = 'pwa-notice';
+    notice.style.position = 'fixed';
+    notice.style.left = '16px';
+    notice.style.right = '16px';
+    notice.style.bottom = '16px';
+    notice.style.zIndex = '9999';
+    notice.style.background = '#1f2937';
+    notice.style.color = '#ffffff';
+    notice.style.borderRadius = '12px';
+    notice.style.padding = '12px 14px';
+    notice.style.display = 'flex';
+    notice.style.alignItems = 'center';
+    notice.style.justifyContent = 'space-between';
+    notice.style.gap = '12px';
+    notice.style.boxShadow = '0 10px 24px rgba(0,0,0,0.28)';
+
+    const text = document.createElement('span');
+    text.textContent = message;
+    text.style.fontSize = '14px';
+    text.style.lineHeight = '1.4';
+
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.gap = '8px';
+
+    const actionButton = document.createElement('button');
+    actionButton.textContent = buttonLabel;
+    actionButton.style.background = '#fbbf24';
+    actionButton.style.color = '#111827';
+    actionButton.style.border = 'none';
+    actionButton.style.borderRadius = '8px';
+    actionButton.style.padding = '8px 10px';
+    actionButton.style.fontWeight = '700';
+    actionButton.style.cursor = 'pointer';
+    actionButton.addEventListener('click', onButtonClick);
+    actions.appendChild(actionButton);
+
+    if (dismissible) {
+        const dismiss = document.createElement('button');
+        dismiss.textContent = 'Dismiss';
+        dismiss.style.background = 'transparent';
+        dismiss.style.color = '#ffffff';
+        dismiss.style.border = '1px solid rgba(255,255,255,0.35)';
+        dismiss.style.borderRadius = '8px';
+        dismiss.style.padding = '8px 10px';
+        dismiss.style.cursor = 'pointer';
+        dismiss.addEventListener('click', () => notice.remove());
+        actions.appendChild(dismiss);
+    }
+
+    notice.appendChild(text);
+    notice.appendChild(actions);
+    document.body.appendChild(notice);
+}
+
+function setupInstallPrompt() {
+    window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        installPromptEvent = event;
+
+        createPwaNotice({
+            message: 'Install SuperSteaks for quicker access.',
+            buttonLabel: 'Install',
+            onButtonClick: async () => {
+                if (!installPromptEvent) {
+                    return;
+                }
+
+                installPromptEvent.prompt();
+                await installPromptEvent.userChoice;
+                installPromptEvent = null;
+                const activeNotice = document.getElementById('pwa-notice');
+                if (activeNotice) {
+                    activeNotice.remove();
+                }
+            }
+        });
+    });
+}
 
 function ensurePwaHeadTags() {
     if (!document.head) {
@@ -528,7 +616,49 @@ function registerServiceWorker() {
     }
 
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch((error) => {
+        navigator.serviceWorker.register('/sw.js').then((registration) => {
+            let refreshing = false;
+
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) {
+                    return;
+                }
+                refreshing = true;
+                window.location.reload();
+            });
+
+            function showUpdateNotice(worker) {
+                if (!worker || !navigator.serviceWorker.controller) {
+                    return;
+                }
+
+                createPwaNotice({
+                    message: 'A new version of SuperSteaks is ready.',
+                    buttonLabel: 'Refresh',
+                    onButtonClick: () => {
+                        worker.postMessage({ type: 'SKIP_WAITING' });
+                    },
+                    dismissible: false
+                });
+            }
+
+            if (registration.waiting) {
+                showUpdateNotice(registration.waiting);
+            }
+
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (!newWorker) {
+                    return;
+                }
+
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed') {
+                        showUpdateNotice(newWorker);
+                    }
+                });
+            });
+        }).catch((error) => {
             console.warn('Service worker registration failed:', error);
         });
     });
@@ -541,6 +671,7 @@ window.SuperSteaks = SuperSteaksGlobal;
 document.addEventListener('DOMContentLoaded', () => {
     ensurePwaHeadTags();
     registerServiceWorker();
+    setupInstallPrompt();
 
     if (window.firebaseReady) {
         superSteaksGlobal = new SuperSteaksGlobal();
