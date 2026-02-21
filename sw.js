@@ -1,4 +1,4 @@
-const CACHE_NAME = 'supersteaks-v3';
+const CACHE_NAME = 'supersteaks-v4';
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -8,6 +8,7 @@ const CORE_ASSETS = [
   '/rules.html',
   '/contact.html',
   '/offline.html',
+  '/css/tailwind-2.2.19.min.css',
   '/js/supersteaks-global.js',
   '/images/supersteaks-logo.png',
   '/manifest.json'
