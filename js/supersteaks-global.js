@@ -503,14 +503,14 @@ let pushTokenSyncInFlight = false;
 
 const WEB_PUSH_VAPID_KEY = window.SUPERSTEAKS_VAPID_KEY || '';
 
-function createPwaNotice({ message, buttonLabel, onButtonClick, dismissible = true }) {
-    const existing = document.getElementById('pwa-notice');
+function createPwaNotice({ id = 'pwa-notice', message, buttonLabel, onButtonClick, dismissible = true }) {
+    const existing = document.getElementById(id);
     if (existing) {
         existing.remove();
     }
 
     const notice = document.createElement('div');
-    notice.id = 'pwa-notice';
+    notice.id = id;
     notice.style.position = 'fixed';
     notice.style.left = '16px';
     notice.style.right = '16px';
@@ -571,6 +571,7 @@ function setupInstallPrompt() {
         installPromptEvent = event;
 
         createPwaNotice({
+            id: 'install-notice',
             message: 'Install SuperSteaks for quicker access.',
             buttonLabel: 'Install',
             onButtonClick: async () => {
@@ -581,7 +582,7 @@ function setupInstallPrompt() {
                 installPromptEvent.prompt();
                 await installPromptEvent.userChoice;
                 installPromptEvent = null;
-                const activeNotice = document.getElementById('pwa-notice');
+                const activeNotice = document.getElementById('install-notice');
                 if (activeNotice) {
                     activeNotice.remove();
                 }
@@ -688,12 +689,13 @@ function maybePromptForPushNotifications(user) {
     pushPromptShown = true;
 
     createPwaNotice({
+        id: 'push-notice',
         message: 'Enable notifications for your team\'s fixtures and results.',
         buttonLabel: 'Enable Alerts',
         onButtonClick: async () => {
             try {
                 const permission = await Notification.requestPermission();
-                const notice = document.getElementById('pwa-notice');
+                const notice = document.getElementById('push-notice');
                 if (notice) {
                     notice.remove();
                 }
@@ -759,6 +761,7 @@ function registerServiceWorker() {
                 }
 
                 createPwaNotice({
+                    id: 'update-notice',
                     message: 'A new version of SuperSteaks is ready.',
                     buttonLabel: 'Refresh',
                     onButtonClick: () => {
