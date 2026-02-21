@@ -1,0 +1,18 @@
+{
+  "name": "SuperSteaks",
+  "short_name": "SuperSteaks",
+  "description": "Free random team assignment draws and tournament lobbies.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#3730a3",
+  "icons": [
+    {
+      "src": "/images/supersteaks-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

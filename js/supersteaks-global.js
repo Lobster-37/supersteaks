@@ -495,11 +495,53 @@ class SuperSteaksGlobal {
 // Initialize global SuperSteaks system
 let superSteaksGlobal = null;
 
+function ensurePwaHeadTags() {
+    if (!document.head) {
+        return;
+    }
+
+    if (!document.querySelector('link[rel="manifest"]')) {
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = '/manifest.json';
+        document.head.appendChild(manifestLink);
+    }
+
+    if (!document.querySelector('meta[name="theme-color"]')) {
+        const themeMeta = document.createElement('meta');
+        themeMeta.name = 'theme-color';
+        themeMeta.content = '#3730a3';
+        document.head.appendChild(themeMeta);
+    }
+
+    if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+        const appleTouchIcon = document.createElement('link');
+        appleTouchIcon.rel = 'apple-touch-icon';
+        appleTouchIcon.href = '/images/supersteaks-logo.png';
+        document.head.appendChild(appleTouchIcon);
+    }
+}
+
+function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) {
+        return;
+    }
+
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((error) => {
+            console.warn('Service worker registration failed:', error);
+        });
+    });
+}
+
 // Export the class for compatibility
 window.SuperSteaks = SuperSteaksGlobal;
 
 // Initialize when Firebase is ready
 document.addEventListener('DOMContentLoaded', () => {
+    ensurePwaHeadTags();
+    registerServiceWorker();
+
     if (window.firebaseReady) {
         superSteaksGlobal = new SuperSteaksGlobal();
         window.superSteaksGlobal = superSteaksGlobal;
