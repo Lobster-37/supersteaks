@@ -781,10 +781,6 @@
         </div>
     </div>
 
-    <button id="enable-alerts-fallback" class="hidden fixed right-4 bottom-4 z-[10001] bg-yellow-400 text-gray-900 font-bold px-4 py-2 rounded-full shadow-lg">
-        Enable Alerts
-    </button>
-
     <script>
         (function() {
             function closeIfOutside(e) {
@@ -837,56 +833,6 @@
                     adminLink.classList.add('hidden');
                 }
             });
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const fallbackButton = document.getElementById('enable-alerts-fallback');
-            if (!fallbackButton || !window.firebase || !firebase.auth) {
-                return;
-            }
-
-            const updateButtonVisibility = () => {
-                const user = firebase.auth().currentUser;
-                const notificationSupported = 'Notification' in window;
-                const permissionGranted = notificationSupported && Notification.permission === 'granted';
-
-                if (user && !permissionGranted) {
-                    fallbackButton.classList.remove('hidden');
-                } else {
-                    fallbackButton.classList.add('hidden');
-                }
-            };
-
-            firebase.auth().onAuthStateChanged(() => {
-                updateButtonVisibility();
-            });
-
-            fallbackButton.addEventListener('click', async () => {
-                if (!('Notification' in window)) {
-                    alert('This browser view does not support notifications. Please open SuperSteaks from your Home Screen app.');
-                    return;
-                }
-
-                if (Notification.permission === 'denied') {
-                    alert('Notifications are blocked. Enable them in iPhone Settings > Notifications > SuperSteaks.');
-                    return;
-                }
-
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        if (typeof registerPushTokenForCurrentUser === 'function') {
-                            await registerPushTokenForCurrentUser();
-                        }
-                        updateButtonVisibility();
-                    }
-                } catch (error) {
-                    console.warn('Fallback alerts button failed:', error);
-                }
-            });
-
-            updateButtonVisibility();
         });
     </script>
 </body>

@@ -453,7 +453,6 @@ class SuperSteaksGlobal {
         }
 
         maybePromptForPushNotifications(user);
-        ensurePushCtaButton(user);
     }
     
     showUnauthenticatedUI() {
@@ -474,7 +473,6 @@ class SuperSteaksGlobal {
             authSkeleton.classList.add('hidden');
             authSkeleton.style.display = 'none';
         }
-        ensurePushCtaButton(null);
     }
     
     // Utility Methods
@@ -712,69 +710,6 @@ function maybePromptForPushNotifications(user) {
         },
         dismissible: true
     });
-}
-
-function ensurePushCtaButton(user) {
-    const existingButton = document.getElementById('push-cta-btn');
-
-    const notificationsSupported = 'Notification' in window;
-    const serviceWorkerSupported = 'serviceWorker' in navigator;
-    const permissionGranted = notificationsSupported && Notification.permission === 'granted';
-
-    if (!user || permissionGranted) {
-        if (existingButton) {
-            existingButton.remove();
-        }
-        return;
-    }
-
-    if (existingButton) {
-        return;
-    }
-
-    const button = document.createElement('button');
-    button.id = 'push-cta-btn';
-    button.textContent = 'Enable Alerts';
-    button.style.position = 'fixed';
-    button.style.right = '16px';
-    button.style.bottom = '16px';
-    button.style.zIndex = '10000';
-    button.style.background = '#fbbf24';
-    button.style.color = '#111827';
-    button.style.border = 'none';
-    button.style.borderRadius = '9999px';
-    button.style.padding = '10px 14px';
-    button.style.fontWeight = '700';
-    button.style.boxShadow = '0 10px 24px rgba(0,0,0,0.28)';
-    button.style.cursor = 'pointer';
-
-    button.addEventListener('click', async () => {
-        if (!notificationsSupported || !serviceWorkerSupported) {
-            alert('This device/browser does not currently support web push notifications for this app view. Please open the Home Screen app and try again.');
-            return;
-        }
-
-        if (Notification.permission === 'denied') {
-            alert('Notifications are currently blocked. Please enable them in iPhone Settings > Notifications > SuperSteaks.');
-            return;
-        }
-
-        try {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-                await registerPushTokenForCurrentUser();
-                button.remove();
-                const notice = document.getElementById('push-notice');
-                if (notice) {
-                    notice.remove();
-                }
-            }
-        } catch (error) {
-            console.warn('Manual push enable failed:', error.message || error);
-        }
-    });
-
-    document.body.appendChild(button);
 }
 
 function ensurePwaHeadTags() {
