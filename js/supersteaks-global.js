@@ -13,27 +13,32 @@ if (typeof window !== 'undefined') {
             style.textContent = `
                 @media (min-width: 640px) {
                     #user-account-section { position: relative; }
+                    #user-account-section > div:first-child {
+                        position: absolute !important;
+                        top: 1rem !important;
+                        right: 1rem !important;
+                        width: 176px;
+                    }
                     #user-account-section #user-info {
-                        position: static !important;
-                        top: auto !important;
-                        right: auto !important;
+                        position: absolute !important;
+                        top: 1rem !important;
+                        right: 1rem !important;
                     }
                     #user-account-section #auth-skeleton .flex {
                         justify-content: flex-end !important;
                     }
+                    #user-account-section #auth-buttons .flex {
+                        justify-content: flex-end !important;
+                    }
                 }
             `;
-            document.head.appendChild(style);
+            (document.head || document.documentElement).appendChild(style);
         } catch (error) {
             console.warn('Could not inject desktop auth layout fix:', error);
         }
     };
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', injectDesktopAuthLayoutFix, { once: true });
-    } else {
-        injectDesktopAuthLayoutFix();
-    }
+    injectDesktopAuthLayoutFix();
 
     window.addEventListener('error', function(e) {
         if (e.message && (e.message.includes('Cannot destructure property') || (e.filename && e.filename.includes('auth.ts')))) {
