@@ -409,7 +409,7 @@
 
                     // Load team fixtures
                     if (userAssignment) {
-                        await loadTeamFixtures(userAssignment.team);
+                        await loadTeamFixtures(userAssignment.team, tournament);
                     }
                 } catch (cloudFunctionError) {
                     // Fallback: Load data directly from Firestore (non-filtered) if Cloud Function is not available
@@ -454,7 +454,7 @@
 
                     // Load team fixtures
                     if (userAssignment) {
-                        await loadTeamFixtures(userAssignment.team);
+                        await loadTeamFixtures(userAssignment.team, tournament);
                     }
                 }
             } catch (error) {
@@ -523,9 +523,47 @@
             }
         }
 
-        async function loadTeamFixtures(userTeamName) {
+        function resolveLeagueIdForTournament(tournament) {
+            const knownLeagueIds = new Set(['premier-league', 'championship', 'league-one', 'league-two', 'champions-league']);
+
+            if (tournament?.leagueId && knownLeagueIds.has(tournament.leagueId)) {
+                return tournament.leagueId;
+            }
+
+            const searchText = [tournament?.name, tournament?.description, tournament?.rules]
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase();
+
+            if (searchText.includes('champions league') || searchText.includes('uefa champions')) {
+                return 'champions-league';
+            }
+            if (searchText.includes('premier league')) {
+                return 'premier-league';
+            }
+            if (searchText.includes('championship')) {
+                return 'championship';
+            }
+            if (searchText.includes('league one') || searchText.includes('league 1')) {
+                return 'league-one';
+            }
+            if (searchText.includes('league two') || searchText.includes('league 2')) {
+                return 'league-two';
+            }
+
+            return null;
+        }
+
+        async function loadTeamFixtures(userTeamName, tournament) {
             try {
                 const now = new Date();
+                const leagueId = resolveLeagueIdForTournament(tournament);
+
+                if (!leagueId) {
+                    document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">Fixtures unavailable for this competition</p>';
+                    document.getElementById('previous-game-card').style.display = 'none';
+                    return;
+                }
                 
                 // Get assignments for this lobby to have player info readily available
                 const allAssignments = await db.collection('teamAssignments')
@@ -542,53 +580,49 @@
                     assignmentsByTeam[data.team].push(data.username);
                 });
 
-                // Search all leagues for fixtures and results containing this team
-                const leagueIds = ['premier-league', 'championship', 'league-one', 'league-two', 'champions-league'];
                 let allMatches = [];
 
-                for (const leagueId of leagueIds) {
-                    // Get fixtures (upcoming games)
-                    const fixturesSnapshot = await db.collection('leagues')
-                        .doc(leagueId)
-                        .collection('fixtures')
-                        .get();
+                // Get fixtures (upcoming games) for this tournament's league only
+                const fixturesSnapshot = await db.collection('leagues')
+                    .doc(leagueId)
+                    .collection('fixtures')
+                    .get();
 
-                    fixturesSnapshot.docs.forEach(doc => {
-                        const fixture = doc.data();
-                        if (fixture.homeTeam === userTeamName || fixture.awayTeam === userTeamName) {
-                            allMatches.push({
-                                homeTeam: fixture.homeTeam,
-                                awayTeam: fixture.awayTeam,
-                                teams: [fixture.homeTeam, fixture.awayTeam],
-                                date: new Date(fixture.date + 'T' + (fixture.time || '00:00:00')),
-                                venue: fixture.venue,
-                                isCompleted: false
-                            });
-                        }
-                    });
+                fixturesSnapshot.docs.forEach(doc => {
+                    const fixture = doc.data();
+                    if (fixture.homeTeam === userTeamName || fixture.awayTeam === userTeamName) {
+                        allMatches.push({
+                            homeTeam: fixture.homeTeam,
+                            awayTeam: fixture.awayTeam,
+                            teams: [fixture.homeTeam, fixture.awayTeam],
+                            date: new Date(fixture.date + 'T' + (fixture.time || '00:00:00')),
+                            venue: fixture.venue,
+                            isCompleted: false
+                        });
+                    }
+                });
 
-                    // Get results (completed games)
-                    const resultsSnapshot = await db.collection('leagues')
-                        .doc(leagueId)
-                        .collection('results')
-                        .get();
+                // Get results (completed games) for this tournament's league only
+                const resultsSnapshot = await db.collection('leagues')
+                    .doc(leagueId)
+                    .collection('results')
+                    .get();
 
-                    resultsSnapshot.docs.forEach(doc => {
-                        const result = doc.data();
-                        if (result.homeTeam === userTeamName || result.awayTeam === userTeamName) {
-                            allMatches.push({
-                                homeTeam: result.homeTeam,
-                                awayTeam: result.awayTeam,
-                                teams: [result.homeTeam, result.awayTeam],
-                                homeScore: result.homeScore,
-                                awayScore: result.awayScore,
-                                date: new Date(result.date + 'T' + (result.time || '00:00:00')),
-                                venue: result.venue,
-                                isCompleted: true
-                            });
-                        }
-                    });
-                }
+                resultsSnapshot.docs.forEach(doc => {
+                    const result = doc.data();
+                    if (result.homeTeam === userTeamName || result.awayTeam === userTeamName) {
+                        allMatches.push({
+                            homeTeam: result.homeTeam,
+                            awayTeam: result.awayTeam,
+                            teams: [result.homeTeam, result.awayTeam],
+                            homeScore: result.homeScore,
+                            awayScore: result.awayScore,
+                            date: new Date(result.date + 'T' + (result.time || '00:00:00')),
+                            venue: result.venue,
+                            isCompleted: true
+                        });
+                    }
+                });
 
                 if (allMatches.length === 0) {
                     document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">No games scheduled</p>';
