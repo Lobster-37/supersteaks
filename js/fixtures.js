@@ -2,6 +2,8 @@
 
 let currentLeague = 'premier-league';
 let currentView = 'table';
+const FIXTURES_LEAGUE_STORAGE_KEY = 'fixtures:selectedLeague';
+const FIXTURES_VIEW_STORAGE_KEY = 'fixtures:selectedView';
 
 // Initialize page when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,9 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeFixturesPage() {
+    restoreSavedState();
     // Set up tab listeners
     setupLeagueTabs();
     setupViewTabs();
+    setActiveLeagueTab(currentLeague);
+    setActiveViewTab(currentView);
     showView(currentView);
     
     // Load initial data
@@ -25,16 +30,9 @@ function setupLeagueTabs() {
     const leagueTabs = document.querySelectorAll('.league-tab');
     leagueTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            // Update active state
-            leagueTabs.forEach(t => {
-                t.classList.remove('league-tab-active', 'bg-red-600', 'text-white');
-                t.classList.add('bg-gray-200', 'hover:bg-gray-300');
-            });
-            tab.classList.remove('bg-gray-200', 'hover:bg-gray-300');
-            tab.classList.add('league-tab-active');
-            
-            // Load new league data
             currentLeague = tab.dataset.league;
+            setActiveLeagueTab(currentLeague);
+            localStorage.setItem(FIXTURES_LEAGUE_STORAGE_KEY, currentLeague);
             loadLeagueData();
         });
     });
@@ -44,14 +42,52 @@ function setupViewTabs() {
     const viewTabs = document.querySelectorAll('.view-tab');
     viewTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            // Update active state
-            viewTabs.forEach(t => t.classList.remove('tab-active'));
-            tab.classList.add('tab-active');
-            
-            // Show corresponding view
             currentView = tab.dataset.view;
+            setActiveViewTab(currentView);
+            localStorage.setItem(FIXTURES_VIEW_STORAGE_KEY, currentView);
             showView(currentView);
         });
+    });
+}
+
+function restoreSavedState() {
+    const savedLeague = localStorage.getItem(FIXTURES_LEAGUE_STORAGE_KEY);
+    const savedView = localStorage.getItem(FIXTURES_VIEW_STORAGE_KEY);
+
+    const validLeague = !!document.querySelector(`.league-tab[data-league="${savedLeague}"]`);
+    const validView = !!document.querySelector(`.view-tab[data-view="${savedView}"]`);
+
+    if (savedLeague && validLeague) {
+        currentLeague = savedLeague;
+    }
+
+    if (savedView && validView) {
+        currentView = savedView;
+    }
+}
+
+function setActiveLeagueTab(league) {
+    const leagueTabs = document.querySelectorAll('.league-tab');
+    leagueTabs.forEach(tab => {
+        const isActive = tab.dataset.league === league;
+        tab.classList.remove('league-tab-active', 'bg-red-600', 'text-white');
+        tab.classList.add('bg-gray-200', 'hover:bg-gray-300');
+
+        if (isActive) {
+            tab.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+            tab.classList.add('league-tab-active');
+        }
+    });
+}
+
+function setActiveViewTab(view) {
+    const viewTabs = document.querySelectorAll('.view-tab');
+    viewTabs.forEach(tab => {
+        if (tab.dataset.view === view) {
+            tab.classList.add('tab-active');
+        } else {
+            tab.classList.remove('tab-active');
+        }
     });
 }
 
