@@ -717,7 +717,11 @@ function maybePromptForPushNotifications(user) {
 function ensurePushCtaButton(user) {
     const existingButton = document.getElementById('push-cta-btn');
 
-    if (!user || !('Notification' in window) || !('serviceWorker' in navigator) || Notification.permission === 'granted') {
+    const notificationsSupported = 'Notification' in window;
+    const serviceWorkerSupported = 'serviceWorker' in navigator;
+    const permissionGranted = notificationsSupported && Notification.permission === 'granted';
+
+    if (!user || permissionGranted) {
         if (existingButton) {
             existingButton.remove();
         }
@@ -745,6 +749,11 @@ function ensurePushCtaButton(user) {
     button.style.cursor = 'pointer';
 
     button.addEventListener('click', async () => {
+        if (!notificationsSupported || !serviceWorkerSupported) {
+            alert('This device/browser does not currently support web push notifications for this app view. Please open the Home Screen app and try again.');
+            return;
+        }
+
         if (Notification.permission === 'denied') {
             alert('Notifications are currently blocked. Please enable them in iPhone Settings > Notifications > SuperSteaks.');
             return;
