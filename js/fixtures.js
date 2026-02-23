@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeFixturesPage() {
-    setupAdminRefresh();
     // Set up tab listeners
     setupLeagueTabs();
     setupViewTabs();
@@ -20,42 +19,6 @@ function initializeFixturesPage() {
     
     // Set up real-time listener for data updates
     setupDataListener();
-}
-
-function setupAdminRefresh() {
-    const adminRefresh = document.getElementById('admin-refresh');
-    const triggerBtn = document.getElementById('trigger-refresh-btn');
-    const statusEl = document.getElementById('refresh-status');
-    if (!adminRefresh || !triggerBtn) return;
-
-    firebase.auth().onAuthStateChanged(async (user) => {
-        if (!user) {
-            adminRefresh.classList.add('hidden');
-            return;
-        }
-        const token = await user.getIdTokenResult();
-        const isAdmin = !!token.claims.admin;
-        if (isAdmin) {
-            adminRefresh.classList.remove('hidden');
-        } else {
-            adminRefresh.classList.add('hidden');
-        }
-    });
-
-    triggerBtn.addEventListener('click', async () => {
-        statusEl.textContent = 'Refreshing...';
-        triggerBtn.disabled = true;
-        try {
-            const callable = firebase.functions().httpsCallable('triggerSportsUpdate');
-            await callable();
-            statusEl.textContent = 'Triggered. Data will load in ~1-2 minutes.';
-        } catch (err) {
-            console.error('Manual refresh failed', err);
-            statusEl.textContent = 'Error triggering update (need admin login).';
-        } finally {
-            triggerBtn.disabled = false;
-        }
-    });
 }
 
 function setupLeagueTabs() {

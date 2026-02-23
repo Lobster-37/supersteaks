@@ -2056,11 +2056,17 @@ exports.triggerSportsUpdateHttp = functions.https.onRequest(async (req, res) => 
                 teams: ['Doncaster Rovers', 'Forest Green Rovers', 'Salford City Reserve', 'Swindon Town', 'Grimsby Town', 'Bradford City', 'Harrogate Town', 'Barrow', 'Stevenage', 'Tranmere Rovers', 'Newport County', 'Colchester United', 'Southend United', 'Leyton Orient Reserve', 'Cambridge United', 'Accrington Stanley', 'Hartlepool United', 'Scunthorpe United', 'Crewe Alexandra', 'Exeter City'],
                 fixtures: [
                     { home: 'Doncaster Rovers', away: 'Forest Green Rovers', date: '2026-02-01', time: '15:00:00', venue: 'Keepmoat Stadium' },
-                    { home: 'Swindon Town', away: 'Grimsby Town', date: '2026-02-02', time: '19:45:00', venue: 'County Ground' }
+                    { home: 'Swindon Town', away: 'Grimsby Town', date: '2026-02-02', time: '19:45:00', venue: 'County Ground' },
+                    { home: 'Bradford City', away: 'Harrogate Town', date: '2026-02-03', time: '15:00:00', venue: 'Valley Parade' },
+                    { home: 'Barrow', away: 'Stevenage', date: '2026-02-04', time: '19:45:00', venue: 'SO Legal Stadium' },
+                    { home: 'Tranmere Rovers', away: 'Newport County', date: '2026-02-05', time: '15:00:00', venue: 'Prenton Park' }
                 ],
                 results: [
                     { home: 'Doncaster Rovers', away: 'Forest Green Rovers', homeScore: 2, awayScore: 1, date: '2026-01-24', time: '15:00:00', venue: 'Keepmoat Stadium' },
-                    { home: 'Swindon Town', away: 'Grimsby Town', homeScore: 1, awayScore: 1, date: '2026-01-25', time: '19:45:00', venue: 'County Ground' }
+                    { home: 'Swindon Town', away: 'Grimsby Town', homeScore: 1, awayScore: 1, date: '2026-01-25', time: '19:45:00', venue: 'County Ground' },
+                    { home: 'Bradford City', away: 'Harrogate Town', homeScore: 2, awayScore: 0, date: '2026-01-21', time: '15:00:00', venue: 'Valley Parade' },
+                    { home: 'Barrow', away: 'Stevenage', homeScore: 1, awayScore: 2, date: '2026-01-22', time: '19:45:00', venue: 'SO Legal Stadium' },
+                    { home: 'Tranmere Rovers', away: 'Newport County', homeScore: 3, awayScore: 1, date: '2026-01-23', time: '15:00:00', venue: 'Prenton Park' }
                 ]
             },
             'champions-league': {
