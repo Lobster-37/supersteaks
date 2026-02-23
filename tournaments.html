@@ -386,6 +386,33 @@
 
     <script>
         let tournamentFunctions = null;
+        let cardHeightRaf = null;
+
+        function normalizeTournamentCardHeights() {
+            const cards = Array.from(document.querySelectorAll('#tournaments-container .tournament-card'));
+            if (!cards.length) return;
+
+            cards.forEach((card) => {
+                card.style.minHeight = '';
+            });
+
+            const maxHeight = Math.max(...cards.map((card) => card.offsetHeight));
+            cards.forEach((card) => {
+                card.style.minHeight = `${maxHeight}px`;
+            });
+        }
+
+        function scheduleNormalizeTournamentCardHeights() {
+            if (cardHeightRaf) {
+                cancelAnimationFrame(cardHeightRaf);
+            }
+            cardHeightRaf = requestAnimationFrame(() => {
+                normalizeTournamentCardHeights();
+                cardHeightRaf = null;
+            });
+        }
+
+        window.addEventListener('resize', scheduleNormalizeTournamentCardHeights);
 
         document.addEventListener('DOMContentLoaded', async () => {
             initializeAuthentication();
@@ -781,6 +808,7 @@
                 }));
 
                 container.innerHTML = tournamentsHtml.join('');
+                scheduleNormalizeTournamentCardHeights();
             } catch (error) {
                 console.error('Error loading tournaments:', error);
                 document.getElementById('tournaments-container').innerHTML = '<div class="col-span-full text-center text-red-600 py-12">Error loading tournaments</div>';
