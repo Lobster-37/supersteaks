@@ -809,28 +809,5 @@
             document.addEventListener('keydown', escHandler, true);
         })();
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const adminLink = document.getElementById('admin-link');
-            if (!adminLink || !window.firebase || !firebase.auth) return;
-
-            firebase.auth().onAuthStateChanged(async (user) => {
-                if (!user) {
-                    adminLink.classList.add('hidden');
-                    return;
-                }
-                try {
-                    const token = await user.getIdTokenResult();
-                    if (token.claims && token.claims.admin) {
-                        adminLink.classList.remove('hidden');
-                    } else {
-                        adminLink.classList.add('hidden');
-                    }
-                } catch (error) {
-                    adminLink.classList.add('hidden');
-                }
-            });
-        });
-    </script>
 </body>
 </html>
