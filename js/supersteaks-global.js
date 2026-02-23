@@ -429,7 +429,6 @@ class SuperSteaksGlobal {
         const userInfo = document.getElementById('user-info');
         const usernameDisplay = document.getElementById('username-display');
         const authSkeleton = document.getElementById('auth-skeleton');
-        const adminLink = document.getElementById('admin-link');
 
         if (authButtons) {
             authButtons.classList.add('hidden');
@@ -453,18 +452,6 @@ class SuperSteaksGlobal {
             }
         }
 
-        if (adminLink && user && user.getIdTokenResult) {
-            user.getIdTokenResult().then((tokenResult) => {
-                if (tokenResult.claims && tokenResult.claims.admin) {
-                    adminLink.classList.remove('hidden');
-                } else {
-                    adminLink.classList.add('hidden');
-                }
-            }).catch(() => {
-                adminLink.classList.add('hidden');
-            });
-        }
-
         maybePromptForPushNotifications(user);
     }
     
@@ -473,7 +460,6 @@ class SuperSteaksGlobal {
         const authButtons = document.getElementById('auth-buttons');
         const userInfo = document.getElementById('user-info');
         const authSkeleton = document.getElementById('auth-skeleton');
-        const adminLink = document.getElementById('admin-link');
 
         if (authButtons) {
             authButtons.classList.remove('hidden');
@@ -486,9 +472,6 @@ class SuperSteaksGlobal {
         if (authSkeleton) {
             authSkeleton.classList.add('hidden');
             authSkeleton.style.display = 'none';
-        }
-        if (adminLink) {
-            adminLink.classList.add('hidden');
         }
     }
     
