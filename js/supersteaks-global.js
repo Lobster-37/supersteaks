@@ -497,7 +497,6 @@ class SuperSteaksGlobal {
 
 // Initialize global SuperSteaks system
 let superSteaksGlobal = null;
-let installPromptEvent = null;
 let pushPromptShown = false;
 let messagingScriptPromise = null;
 let pushTokenSyncInFlight = false;
@@ -564,32 +563,6 @@ function createPwaNotice({ id = 'pwa-notice', message, buttonLabel, onButtonClic
     notice.appendChild(text);
     notice.appendChild(actions);
     document.body.appendChild(notice);
-}
-
-function setupInstallPrompt() {
-    window.addEventListener('beforeinstallprompt', (event) => {
-        event.preventDefault();
-        installPromptEvent = event;
-
-        createPwaNotice({
-            id: 'install-notice',
-            message: 'Install SuperSteaks for quicker access.',
-            buttonLabel: 'Install',
-            onButtonClick: async () => {
-                if (!installPromptEvent) {
-                    return;
-                }
-
-                installPromptEvent.prompt();
-                await installPromptEvent.userChoice;
-                installPromptEvent = null;
-                const activeNotice = document.getElementById('install-notice');
-                if (activeNotice) {
-                    activeNotice.remove();
-                }
-            }
-        });
-    });
 }
 
 function loadMessagingSdk() {
@@ -755,42 +728,18 @@ function registerServiceWorker() {
                 refreshing = true;
                 window.location.reload();
             });
-
-            function showUpdateNotice(worker) {
-                if (!worker || !navigator.serviceWorker.controller) {
-                    return;
-                }
-
-                createPwaNotice({
-                    id: 'update-notice',
-                    message: 'A new version of SuperSteaks is ready.',
-                    buttonLabel: 'Refresh',
-                    onButtonClick: () => {
-                        worker.postMessage({ type: 'SKIP_WAITING' });
-                    },
-                    dismissible: false
-                });
-            }
-
-            if (registration.waiting) {
-                showUpdateNotice(registration.waiting);
-            }
-
-            registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                if (!newWorker) {
-                    return;
-                }
-
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed') {
-                        showUpdateNotice(newWorker);
-                    }
-                });
-            });
         }).catch((error) => {
             console.warn('Service worker registration failed:', error);
         });
+    });
+}
+
+function clearLegacyPwaNotices() {
+    ['install-notice', 'update-notice', 'push-cta-btn', 'enable-alerts-fallback'].forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.remove();
+        }
     });
 }
 
@@ -799,9 +748,9 @@ window.SuperSteaks = SuperSteaksGlobal;
 
 // Initialize when Firebase is ready
 document.addEventListener('DOMContentLoaded', () => {
+    clearLegacyPwaNotices();
     ensurePwaHeadTags();
     registerServiceWorker();
-    setupInstallPrompt();
 
     if (window.firebaseReady) {
         superSteaksGlobal = new SuperSteaksGlobal();
