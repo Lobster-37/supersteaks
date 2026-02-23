@@ -1566,28 +1566,21 @@ exports.updateSportsDataChampionsLeague = functions.pubsub.schedule('4,14,24,34,
     return null;
 });
 
-// On-demand: fetch up to N missing Championship fixtures/results without clearing existing data
-exports.fetchChampionshipMissing = functions.https.onCall(async (data, context) => {
-    // Admin-only guard
-    if (!context.auth || !context.auth.token || !context.auth.token.admin) {
-        throw new functions.https.HttpsError('permission-denied', 'Admin authentication required');
-    }
-
-    const leagueKey = 'championship';
+async function fetchMissingLeagueRounds(leagueKey, maxNew = 50, startRound = 1, endRound = 46) {
     const leagueConfig = LEAGUES[leagueKey];
     if (!leagueConfig) {
-        throw new functions.https.HttpsError('failed-precondition', 'Championship config missing');
+        throw new Error(`Unknown league: ${leagueKey}`);
     }
 
-    const maxNew = Math.min(parseInt(data?.maxNew) || 30, 50); // hard cap to avoid long runs
-    const startRound = parseInt(data?.startRound) || 1;
-    const endRound = parseInt(data?.endRound) || 30;
+    const safeMaxNew = Math.min(parseInt(maxNew, 10) || 50, 400);
+    const safeStartRound = Math.max(1, parseInt(startRound, 10) || 1);
+    const defaultEndRound = leagueKey === 'champions-league' ? 12 : 46;
+    const safeEndRound = Math.min(parseInt(endRound, 10) || defaultEndRound, defaultEndRound);
 
-    console.log(`Fetching up to ${maxNew} missing events for ${leagueConfig.name} (rounds ${startRound}-${endRound})`);
+    console.log(`Fetching up to ${safeMaxNew} missing events for ${leagueConfig.name} (rounds ${safeStartRound}-${safeEndRound})`);
 
     const leagueRef = db.collection('leagues').doc(leagueKey);
 
-    // Build a set of existing event IDs from fixtures + results
     const existingIds = new Set();
     const [fixturesSnap, resultsSnap] = await Promise.all([
         leagueRef.collection('fixtures').get(),
@@ -1595,17 +1588,15 @@ exports.fetchChampionshipMissing = functions.https.onCall(async (data, context) 
     ]);
     fixturesSnap.forEach(doc => existingIds.add(doc.id));
     resultsSnap.forEach(doc => existingIds.add(doc.id));
-    console.log(`Existing events: fixtures=${fixturesSnap.size}, results=${resultsSnap.size}`);
+    console.log(`Existing events (${leagueConfig.name}): fixtures=${fixturesSnap.size}, results=${resultsSnap.size}`);
 
     const fixturesBatch = db.batch();
     const resultsBatch = db.batch();
     let fixturesCount = 0;
     let resultsCount = 0;
 
-    const now = new Date();
-
-    for (let round = startRound; round <= endRound; round++) {
-        if ((fixturesCount + resultsCount) >= maxNew) break;
+    for (let round = safeStartRound; round <= safeEndRound; round++) {
+        if ((fixturesCount + resultsCount) >= safeMaxNew) break;
 
         const roundData = await querySportsDB(`/eventsround.php?id=${leagueConfig.id}&r=${round}&s=${leagueConfig.season}`);
         if (!roundData || !roundData.events || !roundData.events.length) {
@@ -1622,8 +1613,8 @@ exports.fetchChampionshipMissing = functions.https.onCall(async (data, context) 
             const timeStr = event.strTime || event.strTimeLocal || '15:00:00';
             const ts = new Date(`${dateStr}T${timeStr}Z`);
             const hasScore = event.intHomeScore !== null && event.intAwayScore !== null;
-            const isFinished = event.status && event.status.toLowerCase().includes('match finished');
-            const isFuture = ts >= now;
+            const status = event.strStatus || event.status || '';
+            const isFinished = status.toLowerCase().includes('match finished');
             const isResult = hasScore || isFinished;
 
             if (isResult) {
@@ -1655,21 +1646,50 @@ exports.fetchChampionshipMissing = functions.https.onCall(async (data, context) 
             }
 
             existingIds.add(event.idEvent);
-            if ((fixturesCount + resultsCount) >= maxNew) break;
+            if ((fixturesCount + resultsCount) >= safeMaxNew) break;
         }
     }
 
     if (fixturesCount > 0) await fixturesBatch.commit();
     if (resultsCount > 0) await resultsBatch.commit();
 
-    console.log(`Added ${fixturesCount} fixtures and ${resultsCount} results for ${leagueConfig.name} (one-off missing fetch)`);
+    console.log(`Added ${fixturesCount} fixtures and ${resultsCount} results for ${leagueConfig.name} (missing fetch)`);
 
     return {
+        league: leagueKey,
         fixturesAdded: fixturesCount,
         resultsAdded: resultsCount,
         totalAdded: fixturesCount + resultsCount,
-        checkedRounds: `${startRound}-${endRound}`
+        checkedRounds: `${safeStartRound}-${safeEndRound}`
     };
+}
+
+// On-demand: fetch up to N missing Championship fixtures/results without clearing existing data
+exports.fetchChampionshipMissing = functions.https.onCall(async (data, context) => {
+    // Admin-only guard
+    if (!context.auth || !context.auth.token || !context.auth.token.admin) {
+        throw new functions.https.HttpsError('permission-denied', 'Admin authentication required');
+    }
+    return await fetchMissingLeagueRounds('championship', data?.maxNew || 50, data?.startRound || 1, data?.endRound || 46);
+});
+
+// Generic callable to fetch missing fixtures/results for any configured league
+exports.fetchLeagueMissing = functions.https.onCall(async (data, context) => {
+    if (!context.auth || !context.auth.token || !context.auth.token.admin) {
+        throw new functions.https.HttpsError('permission-denied', 'Admin authentication required');
+    }
+
+    const leagueKey = data?.league;
+    if (!leagueKey || !LEAGUES[leagueKey]) {
+        throw new functions.https.HttpsError('invalid-argument', 'Unknown league');
+    }
+
+    return await fetchMissingLeagueRounds(
+        leagueKey,
+        data?.maxNew || 100,
+        data?.startRound || 1,
+        data?.endRound || (leagueKey === 'champions-league' ? 12 : 46)
+    );
 });
 
 // HTTP variant (shared secret) to fetch missing Championship fixtures/results
@@ -1681,106 +1701,43 @@ exports.fetchChampionshipMissingHttp = functions.https.onRequest(async (req, res
             return;
         }
 
-        const leagueKey = 'championship';
-        const leagueConfig = LEAGUES[leagueKey];
-        if (!leagueConfig) {
-            res.status(500).send('Championship config missing');
-            return;
-        }
-
-        const maxNew = Math.min(parseInt(req.query.maxNew || req.body?.maxNew) || 30, 50);
-        const startRound = parseInt(req.query.startRound || req.body?.startRound) || 1;
-        const endRound = parseInt(req.query.endRound || req.body?.endRound) || 46;
-
-        console.log(`HTTP fetch: up to ${maxNew} missing events for ${leagueConfig.name} (rounds ${startRound}-${endRound})`);
-
-        const leagueRef = db.collection('leagues').doc(leagueKey);
-
-        // Build set of existing event IDs from fixtures + results
-        const existingIds = new Set();
-        const [fixturesSnap, resultsSnap] = await Promise.all([
-            leagueRef.collection('fixtures').get(),
-            leagueRef.collection('results').get()
-        ]);
-        fixturesSnap.forEach(doc => existingIds.add(doc.id));
-        resultsSnap.forEach(doc => existingIds.add(doc.id));
-        console.log(`Existing events: fixtures=${fixturesSnap.size}, results=${resultsSnap.size}`);
-
-        const fixturesBatch = db.batch();
-        const resultsBatch = db.batch();
-        let fixturesCount = 0;
-        let resultsCount = 0;
-        const now = new Date();
-
-        for (let round = startRound; round <= endRound; round++) {
-            if ((fixturesCount + resultsCount) >= maxNew) break;
-
-            const roundData = await querySportsDB(`/eventsround.php?id=${leagueConfig.id}&r=${round}&s=${leagueConfig.season}`);
-            if (!roundData || !roundData.events || !roundData.events.length) {
-                console.warn(`No data for round ${round} (${leagueConfig.name})`);
-                continue;
-            }
-
-            console.log(`Round ${round}: ${roundData.events.length} events`);
-            for (const event of roundData.events) {
-                if (!event || !event.idEvent) continue;
-                if (existingIds.has(event.idEvent)) continue;
-
-                const dateStr = event.dateEvent;
-                const timeStr = event.strTime || event.strTimeLocal || '15:00:00';
-                const ts = new Date(`${dateStr}T${timeStr}Z`);
-                const hasScore = event.intHomeScore !== null && event.intAwayScore !== null;
-                const isFinished = event.status && event.status.toLowerCase().includes('match finished');
-                const isFuture = ts >= now;
-                const isResult = hasScore || isFinished;
-
-                if (isResult) {
-                    const resultRef = leagueRef.collection('results').doc(event.idEvent);
-                    resultsBatch.set(resultRef, {
-                        eventId: event.idEvent,
-                        homeTeam: event.strHomeTeam,
-                        awayTeam: event.strAwayTeam,
-                        homeScore: event.intHomeScore,
-                        awayScore: event.intAwayScore,
-                        date: dateStr,
-                        time: timeStr,
-                        venue: event.strVenue,
-                        timestamp: ts
-                    });
-                    resultsCount++;
-                } else {
-                    const fixtureRef = leagueRef.collection('fixtures').doc(event.idEvent);
-                    fixturesBatch.set(fixtureRef, {
-                        eventId: event.idEvent,
-                        homeTeam: event.strHomeTeam,
-                        awayTeam: event.strAwayTeam,
-                        date: dateStr,
-                        time: timeStr,
-                        venue: event.strVenue,
-                        timestamp: ts
-                    });
-                    fixturesCount++;
-                }
-
-                existingIds.add(event.idEvent);
-                if ((fixturesCount + resultsCount) >= maxNew) break;
-            }
-        }
-
-        if (fixturesCount > 0) await fixturesBatch.commit();
-        if (resultsCount > 0) await resultsBatch.commit();
-
-        const payload = {
-            fixturesAdded: fixturesCount,
-            resultsAdded: resultsCount,
-            totalAdded: fixturesCount + resultsCount,
-            checkedRounds: `${startRound}-${endRound}`
-        };
-
-        console.log(`HTTP fetch added ${fixturesCount} fixtures and ${resultsCount} results for ${leagueConfig.name}`);
+        const payload = await fetchMissingLeagueRounds(
+            'championship',
+            req.query.maxNew || req.body?.maxNew || 50,
+            req.query.startRound || req.body?.startRound || 1,
+            req.query.endRound || req.body?.endRound || 46
+        );
         res.json(payload);
     } catch (err) {
         console.error('fetchChampionshipMissingHttp error', err);
+        res.status(500).send('Internal error');
+    }
+});
+
+// HTTP variant (shared secret) to fetch missing fixtures/results for any league
+exports.fetchLeagueMissingHttp = functions.https.onRequest(async (req, res) => {
+    try {
+        const suppliedSecret = req.query.secret || req.headers['x-fetch-secret'];
+        if (!FETCH_MISSING_SECRET || suppliedSecret !== FETCH_MISSING_SECRET) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+
+        const leagueKey = req.query.league || req.body?.league;
+        if (!leagueKey || !LEAGUES[leagueKey]) {
+            res.status(400).send('Unknown league');
+            return;
+        }
+
+        const payload = await fetchMissingLeagueRounds(
+            leagueKey,
+            req.query.maxNew || req.body?.maxNew || 100,
+            req.query.startRound || req.body?.startRound || 1,
+            req.query.endRound || req.body?.endRound || (leagueKey === 'champions-league' ? 12 : 46)
+        );
+        res.json(payload);
+    } catch (err) {
+        console.error('fetchLeagueMissingHttp error', err);
         res.status(500).send('Internal error');
     }
 });
