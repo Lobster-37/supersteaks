@@ -5,6 +5,36 @@
 
 // Global error handler for catching Firebase auth.ts errors
 if (typeof window !== 'undefined') {
+    const injectDesktopAuthLayoutFix = () => {
+        try {
+            if (document.getElementById('supersteaks-auth-layout-fix')) return;
+            const style = document.createElement('style');
+            style.id = 'supersteaks-auth-layout-fix';
+            style.textContent = `
+                @media (min-width: 640px) {
+                    #user-account-section { position: relative; }
+                    #user-account-section #user-info {
+                        position: static !important;
+                        top: auto !important;
+                        right: auto !important;
+                    }
+                    #user-account-section #auth-skeleton .flex {
+                        justify-content: flex-end !important;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        } catch (error) {
+            console.warn('Could not inject desktop auth layout fix:', error);
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectDesktopAuthLayoutFix, { once: true });
+    } else {
+        injectDesktopAuthLayoutFix();
+    }
+
     window.addEventListener('error', function(e) {
         if (e.message && (e.message.includes('Cannot destructure property') || (e.filename && e.filename.includes('auth.ts')))) {
             console.warn('Caught Firebase/destructuring error in SuperSteaks Global:', e.message, 'at', e.filename, ':', e.lineno);
