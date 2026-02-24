@@ -1566,6 +1566,82 @@ exports.updateSportsDataChampionsLeague = functions.pubsub.schedule('4,14,24,34,
     return null;
 });
 
+async function rebuildStandingsForLeague(leagueKey) {
+    const leagueConfig = LEAGUES[leagueKey];
+    if (!leagueConfig) {
+        throw new Error(`Unknown league: ${leagueKey}`);
+    }
+
+    const leagueRef = db.collection('leagues').doc(leagueKey);
+    await clearSubcollection(leagueRef, 'standings');
+
+    const resultsSnapshot = await leagueRef.collection('results').get();
+    const standingsArray = buildStandingsFromResults(resultsSnapshot, leagueKey);
+
+    if (!standingsArray.length) {
+        return 0;
+    }
+
+    const batch = db.batch();
+    standingsArray.forEach((team, index) => {
+        const position = team.position || index + 1;
+        const standingRef = leagueRef.collection('standings').doc(`${position}`);
+        batch.set(standingRef, {
+            position,
+            teamName: team.teamName,
+            played: team.played,
+            won: team.won,
+            drawn: team.drawn,
+            lost: team.lost,
+            goalsFor: team.goalsFor,
+            goalsAgainst: team.goalsAgainst,
+            goalDifference: team.goalDifference,
+            points: team.points
+        });
+    });
+
+    await batch.commit();
+    return standingsArray.length;
+}
+
+async function runDailyMissingBackfill(leagueKey, endRound) {
+    const safeEndRound = endRound || (leagueKey === 'champions-league' ? 12 : 46);
+    const backfill = await fetchMissingLeagueRounds(leagueKey, 120, 1, safeEndRound);
+    const standingsTeams = await rebuildStandingsForLeague(leagueKey);
+
+    console.log(`Daily backfill complete for ${leagueKey}: added=${backfill.totalAdded}, standingsTeams=${standingsTeams}`);
+    return {
+        league: leagueKey,
+        added: backfill.totalAdded,
+        standingsTeams
+    };
+}
+
+exports.dailyBackfillPremierLeague = functions.pubsub.schedule('5 3 * * *').timeZone('UTC').onRun(async () => {
+    await runDailyMissingBackfill('premier-league', 38);
+    return null;
+});
+
+exports.dailyBackfillChampionship = functions.pubsub.schedule('10 3 * * *').timeZone('UTC').onRun(async () => {
+    await runDailyMissingBackfill('championship', 46);
+    return null;
+});
+
+exports.dailyBackfillLeagueOne = functions.pubsub.schedule('15 3 * * *').timeZone('UTC').onRun(async () => {
+    await runDailyMissingBackfill('league-one', 46);
+    return null;
+});
+
+exports.dailyBackfillLeagueTwo = functions.pubsub.schedule('20 3 * * *').timeZone('UTC').onRun(async () => {
+    await runDailyMissingBackfill('league-two', 46);
+    return null;
+});
+
+exports.dailyBackfillChampionsLeague = functions.pubsub.schedule('25 3 * * *').timeZone('UTC').onRun(async () => {
+    await runDailyMissingBackfill('champions-league', 12);
+    return null;
+});
+
 async function fetchMissingLeagueRounds(leagueKey, maxNew = 50, startRound = 1, endRound = 46) {
     const leagueConfig = LEAGUES[leagueKey];
     if (!leagueConfig) {
