@@ -836,6 +836,19 @@ function maybePromptForAppVersion() {
         return;
     }
 
+    const isStandaloneApp =
+        (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+        window.navigator.standalone === true ||
+        (typeof document.referrer === 'string' && document.referrer.startsWith('android-app://'));
+
+    if (isStandaloneApp) {
+        const existingNotice = document.getElementById('app-version-notice');
+        if (existingNotice) {
+            existingNotice.remove();
+        }
+        return;
+    }
+
     let lastSeenAt = null;
     try {
         const saved = window.localStorage.getItem(APP_VERSION_NOTICE_STORAGE_KEY);
