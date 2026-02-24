@@ -12,45 +12,60 @@
     <meta http-equiv="Expires" content="0">
     <link href="css/tailwind-2.2.19.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // Verify CSS loaded
+        console.log('TailwindCSS CSS loading...');
+        setTimeout(() => {
+            const testEl = document.createElement('div');
+            testEl.className = 'bg-red-500';
+            document.body.appendChild(testEl);
+            const styles = getComputedStyle(testEl);
+            if (styles.backgroundColor === 'rgb(239, 68, 68)' || styles.backgroundColor.includes('239')) {
+                console.log('✅ TailwindCSS CSS loaded successfully');
+            } else {
+                console.error('❌ TailwindCSS CSS failed to load');
+            }
+            document.body.removeChild(testEl);
+        }, 1000);
+    </script>
+    <script>
+        // Firebase config and initialization (must be after CDN scripts)
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s",
+            authDomain: "supersteaks-240f7.firebaseapp.com",
+            projectId: "supersteaks-240f7",
+            storageBucket: "supersteaks-240f7.appspot.com",
+            messagingSenderId: "325643072121",
+            appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
+        };
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully in head');
+            window.firebaseReady = true;
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+        }
+    </script>
     <style>
         .nav-link { background-color: transparent !important; color: inherit !important; }
         .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
         .nav-link.enter-now { color: #fbbf24 !important; }
         summary.nav-link { list-style: none; }
         summary.nav-link::-webkit-details-marker { display: none; }
-        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-        .download-card {
-            background: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            border-bottom: 4px solid #fbbf24;
-            padding: 2rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .download-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.15);
-        }
-        .download-btn {
-            display: inline-block;
-            background-color: #4f46e5;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-        .download-btn:hover {
-            background-color: #4338ca;
-        }
     </style>
+    <script src="js/supersteaks-global.js?v=20260224008"></script>
 </head>
 <body class="min-h-screen flex flex-col">
+    <!-- Draggable Logo (desktop only) -->
+    <a href="index.html" class="hidden sm:block">
+        <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-0 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
+    </a>
+    <!-- Header & Navigation -->
     <header class="bg-indigo-800 text-white shadow-xl">
         <div class="container mx-auto px-4 py-4">
-            <div class="text-center sm:text-left">
-                <div class="flex flex-row items-center justify-center sm:block">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                <div class="text-center sm:text-left">
+                    <div class="flex flex-row items-center justify-center sm:block">
                     <a href="index.html" class="hover:opacity-80 transition-opacity relative">
                         <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="h-12 w-auto mr-2 sm:hidden" draggable="false">
                     </a>
@@ -80,6 +95,344 @@
             </nav>
         </div>
     </header>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        @media (max-width: 639px) {
+            header .container {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            header .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 0 !important;
+            }
+            nav[aria-label="Main navigation"] {
+                margin-top: -44px !important;
+            }
+            .flex.flex-row.items-center.justify-center.sm\:block {
+                margin-bottom: -8px !important;
+            }
+        }
+        @media (max-width: 900px) and (orientation: landscape) {
+            .mobile-logo { height: 2.75rem !important; }
+            .mobile-title { font-size: 1.5rem !important; line-height: 2rem !important; }
+        }
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+        /* Authentication state management with skeleton loading */
+        .logged-out #auth-buttons { display: block !important; }
+        .logged-out #user-info { display: none !important; }
+        .logged-out #auth-skeleton { display: none !important; }
+        .logged-out #mobile-auth-buttons { display: none !important; }
+        .logged-in #mobile-auth-buttons { display: none !important; }
+        @media (max-width: 639px) {
+            .logged-out #mobile-auth-buttons { display: block !important; }
+        }
+        @media (max-width: 639px) {
+            #auth-skeleton {
+                display: none !important;
+            }
+        }
+        .logged-in #auth-buttons { display: none !important; }
+        .logged-in #user-info { display: block !important; }
+        .logged-in #auth-skeleton { display: none !important; }
+        /* Mobile welcome message visibility */
+        #mobile-welcome { display: none !important; }
+        #user-info { transition: opacity 0.2s ease-in-out; }
+        @media (max-width: 639px) {
+            #mobile-welcome { display: block !important; visibility: hidden; opacity: 0; min-height: 28px; margin-top: 8px !important; margin-bottom: 8px !important; transition: opacity 0.2s ease-in-out; }
+            .logged-in #mobile-welcome { visibility: visible; opacity: 1; }
+        }
+        /* Force skeleton loading state initially - override everything */
+        body:not(.auth-ready) #auth-buttons { display: none !important; }
+        body:not(.auth-ready) #user-info { display: none !important; }
+        body:not(.auth-ready) #auth-skeleton { display: block !important; }
+        body:not(.auth-ready) #mobile-auth-buttons { display: none !important; }
+        /* Reserve exact space to prevent layout shift */
+        #user-account-section {
+            min-height: 52px; /* Reserve space for 2 lines + spacing */
+            width: 176px; /* Fixed width to match content */
+            flex-shrink: 0;
+        }
+        /* Skeleton loading animation */
+        .skeleton { 
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .download-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border-bottom: 4px solid #fbbf24;
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .download-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.15);
+        }
+        .download-btn {
+            display: inline-block;
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .download-btn:hover {
+            background-color: #4338ca;
+        }
+        /* Mobile banner typography/layout to match contests page */
+        @media (max-width: 639px) {
+            /* Tighten top banner spacing */
+            main .text-center { margin-top: 2rem !important; margin-bottom: 2rem !important; }
+            /* h2 sizing and weight to mirror contests banner */
+            main h2:first-of-type { font-size: 1.875rem !important; line-height: 2.25rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; color: #1f2937 !important; }
+            /* paragraph under banner */
+            main h2:first-of-type + p { font-size: 1.125rem !important; line-height: 1.75rem !important; color: #4b5563 !important; }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAuthentication();
+        });
+
+        function initializeAuthentication() {
+            console.log('Starting Firebase authentication...');
+            if (window.superSteaksGlobal) {
+                window.supersteaks = window.superSteaksGlobal;
+                console.log('Using existing superSteaksGlobal instance');
+                checkCurrentAuthState();
+            } else if (typeof SuperSteaks !== 'undefined') {
+                window.supersteaks = new SuperSteaks();
+                console.log('Created new SuperSteaks instance');
+                checkCurrentAuthState();
+            } else {
+                console.log('Waiting for SuperSteaks system to initialize...');
+                const checkSystem = setInterval(() => {
+                    if (window.superSteaksGlobal) {
+                        window.supersteaks = window.superSteaksGlobal;
+                        console.log('SuperSteaks global system now available');
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
+                    } else if (typeof SuperSteaks !== 'undefined') {
+                        window.supersteaks = new SuperSteaks();
+                        console.log('SuperSteaks class now available');
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
+                    }
+                }, 100);
+                setTimeout(() => {
+                    if (!window.supersteaks) {
+                        console.log('SuperSteaks not available after timeout, showing login buttons');
+                        showLoggedOutState();
+                        clearInterval(checkSystem);
+                    }
+                }, 200);
+            }
+            setupEventListeners();
+        }
+
+        function checkCurrentAuthState() {
+            try {
+                firebase.auth().onAuthStateChanged((user) => {
+                    try {
+                        if (user) {
+                            console.log('Auth state determined - User logged in:', user.email);
+                            showLoggedInState(user);
+                        } else {
+                            console.log('Auth state determined - User logged out');
+                            showLoggedOutState();
+                        }
+                    } catch (error) {
+                        console.error('Error in auth state change handler:', error);
+                        showLoggedOutState();
+                    }
+                }, (error) => {
+                    console.error('Firebase auth state listener error:', error);
+                    showLoggedOutState();
+                });
+            } catch (error) {
+                console.error('Error setting up auth state listener:', error);
+                showLoggedOutState();
+            }
+        }
+
+        function showLoggedInState(user) {
+            console.log('Setting logged-in state for user:', user.email);
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-in');
+                document.body.classList.remove('logged-out');
+                const usernameDisplay = document.getElementById('username-display');
+                const usernameDisplayMobile = document.getElementById('username-display-mobile');
+                if ((usernameDisplay || usernameDisplayMobile) && user) {
+                    let username = user.displayName;
+                    if (!username && user.email) {
+                        username = user.email.split('@')[0];
+                    }
+                    if (username) {
+                        if (usernameDisplay) usernameDisplay.textContent = username;
+                        if (usernameDisplayMobile) usernameDisplayMobile.textContent = username;
+                        console.log('Username display updated to:', username);
+                    }
+                }
+            }, 100);
+        }
+
+        function showLoggedOutState() {
+            console.log('Setting logged-out state');
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-out');
+                document.body.classList.remove('logged-in');
+            }, 100);
+        }
+
+        function setupEventListeners() {
+            const registerBtn = document.getElementById('register-btn');
+            if (registerBtn) {
+                registerBtn.addEventListener('click', () => {
+                    if (document.getElementById('auth-modal')) {
+                        document.getElementById('auth-modal').classList.remove('hidden');
+                        document.getElementById('register-form').classList.remove('hidden');
+                        document.getElementById('login-form').classList.add('hidden');
+                    }
+                });
+            }
+            setupModalControls();
+        }
+
+        function setupModalControls() {
+            const closeModalBtns = document.querySelectorAll('#close-modal, #close-reset-modal');
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    var authModal = document.getElementById('auth-modal');
+                    var resetModal = document.getElementById('reset-password-modal');
+                    if (authModal) authModal.classList.add('hidden');
+                    if (resetModal) resetModal.classList.add('hidden');
+                });
+            });
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            console.log('Attempting login for:', email);
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
+            }
+            window.supersteaks.login(email, password)
+                .then(result => {
+                    if (result.success) {
+                        console.log('Login successful:', result.user);
+                        if (document.getElementById('auth-modal')) {
+                            document.getElementById('auth-modal').classList.add('hidden');
+                        }
+                        if (document.getElementById('login-form-element')) {
+                            document.getElementById('login-form-element').reset();
+                        }
+                    } else {
+                        console.error('Login failed:', result.error);
+                        alert('Login failed: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Login failed:', error);
+                    alert('Login failed: ' + error.message);
+                });
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            console.log('Attempting registration for:', email, 'with username:', username);
+            if (!username) {
+                alert('Username is required. Please enter a username.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters long.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (username.length > 20) {
+                alert('Username must be 20 characters or less.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
+                alert('Username can only contain letters, numbers, dots, underscores, and hyphens.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (!email) {
+                alert('Email is required.');
+                document.getElementById('register-email').focus();
+                return;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                document.getElementById('register-email').focus();
+                return;
+            }
+            if (!password) {
+                alert('Password is required.');
+                document.getElementById('register-password').focus();
+                return;
+            }
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters long.');
+                document.getElementById('register-password').focus();
+                return;
+            }
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
+            }
+            window.supersteaks.register(email, password, username)
+                .then(result => {
+                    if (result.success) {
+                        console.log('Registration successful:', result.user);
+                        if (document.getElementById('auth-modal')) {
+                            document.getElementById('auth-modal').classList.add('hidden');
+                        }
+                        if (document.getElementById('register-form-element')) {
+                            document.getElementById('register-form-element').reset();
+                        }
+                    } else {
+                        console.error('Registration failed:', result.error);
+                        alert('Registration failed: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Registration failed:', error);
+                    alert('Registration failed: ' + error.message);
+                });
+        }
+
+        async function logoutUser() {
+            if (window.superSteaksGlobal) {
+                const result = await window.superSteaksGlobal.signOut();
+                if (result.success) {
+                    console.log('User logged out successfully');
+                } else {
+                    console.error('Logout failed:', result.error);
+                }
+            }
+        }
+    </script>
 
     <main class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
         <!-- Hero Section -->
