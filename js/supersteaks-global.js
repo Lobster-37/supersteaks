@@ -636,12 +636,15 @@ class SuperSteaksGlobal {
 // Initialize global SuperSteaks system
 let superSteaksGlobal = null;
 let pushPromptShown = false;
+let appVersionPromptShown = false;
 let messagingScriptPromise = null;
 let pushTokenSyncInFlight = false;
 
 const WEB_PUSH_VAPID_KEY = window.SUPERSTEAKS_VAPID_KEY || '';
+const APP_VERSION_NOTICE_STORAGE_KEY = 'supersteaks:appVersionNoticeSeenAt';
+const APP_VERSION_NOTICE_COOLDOWN_MS = 1000 * 60 * 60 * 24 * 14;
 
-function createPwaNotice({ id = 'pwa-notice', message, buttonLabel, onButtonClick, dismissible = true }) {
+function createPwaNotice({ id = 'pwa-notice', message, buttonLabel, onButtonClick, dismissible = true, dismissLabel = 'Dismiss', onDismiss }) {
     const existing = document.getElementById(id);
     if (existing) {
         existing.remove();
@@ -687,14 +690,19 @@ function createPwaNotice({ id = 'pwa-notice', message, buttonLabel, onButtonClic
 
     if (dismissible) {
         const dismiss = document.createElement('button');
-        dismiss.textContent = 'Dismiss';
+        dismiss.textContent = dismissLabel;
         dismiss.style.background = 'transparent';
         dismiss.style.color = '#ffffff';
         dismiss.style.border = '1px solid rgba(255,255,255,0.35)';
         dismiss.style.borderRadius = '8px';
         dismiss.style.padding = '8px 10px';
         dismiss.style.cursor = 'pointer';
-        dismiss.addEventListener('click', () => notice.remove());
+        dismiss.addEventListener('click', () => {
+            if (typeof onDismiss === 'function') {
+                onDismiss();
+            }
+            notice.remove();
+        });
         actions.appendChild(dismiss);
     }
 
@@ -823,6 +831,61 @@ function maybePromptForPushNotifications(user) {
     });
 }
 
+function maybePromptForAppVersion() {
+    if (appVersionPromptShown) {
+        return;
+    }
+
+    let lastSeenAt = null;
+    try {
+        const saved = window.localStorage.getItem(APP_VERSION_NOTICE_STORAGE_KEY);
+        if (saved !== null) {
+            const parsed = parseInt(saved, 10);
+            if (!Number.isNaN(parsed)) {
+                lastSeenAt = parsed;
+            }
+        }
+    } catch (error) {
+        console.warn('Could not read app version notice state:', error.message || error);
+    }
+
+    if (lastSeenAt && (Date.now() - lastSeenAt) < APP_VERSION_NOTICE_COOLDOWN_MS) {
+        return;
+    }
+
+    if (document.getElementById('push-notice')) {
+        window.setTimeout(maybePromptForAppVersion, 2500);
+        return;
+    }
+
+    const markSeen = () => {
+        try {
+            window.localStorage.setItem(APP_VERSION_NOTICE_STORAGE_KEY, String(Date.now()));
+        } catch (error) {
+            console.warn('Could not persist app version notice state:', error.message || error);
+        }
+    };
+
+    appVersionPromptShown = true;
+
+    createPwaNotice({
+        id: 'app-version-notice',
+        message: 'SuperSteaks is available in an app-style experience on mobile and desktop.',
+        buttonLabel: 'Further Info',
+        onButtonClick: () => {
+            markSeen();
+            const notice = document.getElementById('app-version-notice');
+            if (notice) {
+                notice.remove();
+            }
+            window.location.href = '/how-to-play.html#app-version';
+        },
+        dismissible: true,
+        dismissLabel: 'Close',
+        onDismiss: markSeen
+    });
+}
+
 function ensurePwaHeadTags() {
     if (!document.head) {
         return;
@@ -889,6 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearLegacyPwaNotices();
     ensurePwaHeadTags();
     registerServiceWorker();
+    window.setTimeout(maybePromptForAppVersion, 3000);
 
     if (window.firebaseReady) {
         superSteaksGlobal = new SuperSteaksGlobal();
