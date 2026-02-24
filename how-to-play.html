@@ -16,6 +16,8 @@
         .nav-link { background-color: transparent !important; color: inherit !important; }
         .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
         .nav-link.enter-now { color: #fbbf24 !important; }
+        summary.nav-link { list-style: none; }
+        summary.nav-link::-webkit-details-marker { display: none; }
         body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
         .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
         .step-number {
@@ -52,10 +54,18 @@
                     <li><a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a></li>
                     <li><a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a></li>
                     <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
-                    <li><a href="how-to-play.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How to Play</a></li>
-                    <li><a href="faq.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">FAQ</a></li>
-                    <li><a href="about.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">About</a></li>
-                    <li><a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a></li>
+                    <li>
+                        <details class="relative">
+                            <summary class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base cursor-pointer">More</summary>
+                            <div class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-xl z-50 border border-gray-200">
+                                <a href="how-to-play.html" aria-current="page" class="block px-4 py-2 text-sm bg-indigo-50 text-indigo-700 font-semibold">How to Play</a>
+                                <a href="faq.html" class="block px-4 py-2 text-sm hover:bg-gray-100">FAQ</a>
+                                <a href="about.html" class="block px-4 py-2 text-sm hover:bg-gray-100">About</a>
+                                <a href="contact.html" class="block px-4 py-2 text-sm hover:bg-gray-100">Contact</a>
+                                <a href="how-to-play.html#app-version" class="block px-4 py-2 text-sm hover:bg-gray-100 rounded-b-lg">App Info</a>
+                            </div>
+                        </details>
+                    </li>
                 </ul>
             </nav>
         </div>
