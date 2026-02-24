@@ -155,7 +155,7 @@
                             </div>
                         </details>
                     </li>
-            </ul>
+                </ul>
             </nav>
         </div>
     </header>
@@ -601,7 +601,84 @@
         }
     </script>
 
-    <main class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div id="auth-modal-content" class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]" role="dialog" aria-modal="true">
+            <!-- Modal Close X Button -->
+            <button id="close-modal" aria-label="Close modal" type="button"
+                class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2 z-[1000002]"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email or Username</label>
+                        <input type="text" id="login-username" class="border rounded w-full py-2 px-3" placeholder="Enter your email or username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="login-password" class="border rounded w-full py-2 px-3" placeholder="Enter your password" required />
+                        <div class="text-right mt-2">
+                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:underline">Forgot Password?</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Login</button>
+                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">Need an account?</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="hidden">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Create an Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="register-email" class="border rounded w-full py-2 px-3" placeholder="Enter your email" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="register-username" class="border rounded w-full py-2 px-3" placeholder="Choose a username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="register-password" class="border rounded w-full py-2 px-3" placeholder="Create a password" required />
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Register</button>
+                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">Already have an account?</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]">
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6">Reset Password</h2>
+            <form id="reset-password-form-element">
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="reset-email" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="Enter your email address" required>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Send Reset Email</button>
+                    <button type="button" id="cancel-reset" class="text-indigo-600 hover:underline text-sm">Cancel</button>
+                </div>
+            </form>
+            <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
+            <button id="close-reset-modal" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
+        </div>
+    </div>
+
+    <script>
         <div class="bg-white rounded-3xl shadow-2xl border-b-4 border-yellow-400 p-6 sm:p-8 md:p-12 max-w-4xl mx-auto">
             <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-8">Frequently Asked Questions</h2>
             
