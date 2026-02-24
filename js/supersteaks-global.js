@@ -465,6 +465,9 @@ class SuperSteaksGlobal {
         const usernameDisplay = document.getElementById('username-display');
         const authSkeleton = document.getElementById('auth-skeleton');
 
+        document.body.classList.add('auth-ready', 'logged-in');
+        document.body.classList.remove('logged-out');
+
         if (authButtons) {
             authButtons.classList.add('hidden');
             authButtons.style.display = 'none';
@@ -495,6 +498,9 @@ class SuperSteaksGlobal {
         const authButtons = document.getElementById('auth-buttons');
         const userInfo = document.getElementById('user-info');
         const authSkeleton = document.getElementById('auth-skeleton');
+
+        document.body.classList.add('auth-ready', 'logged-out');
+        document.body.classList.remove('logged-in');
 
         if (authButtons) {
             authButtons.classList.remove('hidden');
