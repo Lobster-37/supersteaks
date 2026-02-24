@@ -35,6 +35,7 @@
         }
     </script>
     <style>
+        html { overflow-y: scroll; scrollbar-gutter: stable; }
         .nav-link { background-color: transparent !important; color: inherit !important; }
         .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
         .nav-link.enter-now { color: #fbbf24 !important; }
@@ -77,6 +78,7 @@
         .tab-active { border-bottom: 3px solid #ef4444; color: #ef4444; font-weight: 600; }
         .league-tab-active { background-color: #ef4444; color: white; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
+        #loading-state, #content-container { min-height: 520px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
     <script src="js/supersteaks-global.js?v=20260223003"></script>
