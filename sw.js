@@ -1,4 +1,4 @@
-const CACHE_NAME = 'supersteaks-v6';
+const CACHE_NAME = 'supersteaks-v7';
 const CORE_ASSETS = [
   '/',
   '/index.html',

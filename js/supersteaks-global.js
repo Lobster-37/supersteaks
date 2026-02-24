@@ -886,6 +886,41 @@ function maybePromptForAppVersion() {
     });
 }
 
+function ensureAppInfoNavLink() {
+    try {
+        const navList = document.querySelector('nav[aria-label="Main navigation"] ul');
+        if (!navList) {
+            return;
+        }
+
+        const hasLink = Array.from(navList.querySelectorAll('a')).some((link) => {
+            const href = (link.getAttribute('href') || '').toLowerCase();
+            return href.includes('how-to-play.html') || href.includes('#app-version');
+        });
+
+        if (hasLink) {
+            return;
+        }
+
+        const listItem = document.createElement('li');
+        const anchor = document.createElement('a');
+        anchor.href = 'how-to-play.html#app-version';
+        anchor.textContent = 'App Info';
+
+        const templateLink = navList.querySelector('a.nav-link');
+        if (templateLink) {
+            anchor.className = templateLink.className;
+        } else {
+            anchor.className = 'nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base';
+        }
+
+        listItem.appendChild(anchor);
+        navList.appendChild(listItem);
+    } catch (error) {
+        console.warn('Could not ensure App Info nav link:', error.message || error);
+    }
+}
+
 function ensurePwaHeadTags() {
     if (!document.head) {
         return;
@@ -951,6 +986,7 @@ window.SuperSteaks = SuperSteaksGlobal;
 document.addEventListener('DOMContentLoaded', () => {
     clearLegacyPwaNotices();
     ensurePwaHeadTags();
+    ensureAppInfoNavLink();
     registerServiceWorker();
     window.setTimeout(maybePromptForAppVersion, 3000);
 
