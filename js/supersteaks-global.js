@@ -68,6 +68,7 @@ class SuperSteaksGlobal {
         // Initialize Firebase services
         this.init();
         this.initNavScrollPersistence();
+        this.initProfileDropdownCloseBehavior();
     }
     
 
@@ -144,6 +145,45 @@ class SuperSteaksGlobal {
                 });
             } catch (error) {
                 console.warn('Nav scroll persistence setup failed:', error);
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setup, { once: true });
+        } else {
+            setup();
+        }
+    }
+
+    initProfileDropdownCloseBehavior() {
+        const setup = () => {
+            try {
+                document.addEventListener('click', (event) => {
+                    const dropdown = document.getElementById('profile-dropdown');
+                    if (!dropdown || dropdown.classList.contains('hidden')) return;
+
+                    const mobileProfileBtn = document.getElementById('mobile-profile-btn');
+                    const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
+
+                    const clickedInsideDropdown = dropdown.contains(event.target);
+                    const clickedToggle =
+                        (mobileProfileBtn && mobileProfileBtn.contains(event.target)) ||
+                        (profileDropdownBtn && profileDropdownBtn.contains(event.target));
+
+                    if (!clickedInsideDropdown && !clickedToggle) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key !== 'Escape') return;
+                    const dropdown = document.getElementById('profile-dropdown');
+                    if (dropdown) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            } catch (error) {
+                console.warn('Profile dropdown close behavior setup failed:', error);
             }
         };
 

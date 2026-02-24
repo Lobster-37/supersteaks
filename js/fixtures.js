@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeFixturesPage() {
+    setupProfileDropdownHandlers();
     restoreSavedState();
     // Set up tab listeners
     setupLeagueTabs();
@@ -24,6 +25,42 @@ function initializeFixturesPage() {
     
     // Set up real-time listener for data updates
     setupDataListener();
+}
+
+function setupProfileDropdownHandlers() {
+    const mobileProfileBtn = document.getElementById('mobile-profile-btn');
+    const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
+    const profileDropdown = document.getElementById('profile-dropdown');
+    const logoutBtn = document.getElementById('logout-btn-dropdown');
+
+    const toggleDropdown = (event) => {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        if (profileDropdown) {
+            profileDropdown.classList.toggle('hidden');
+        }
+    };
+
+    if (mobileProfileBtn) {
+        mobileProfileBtn.addEventListener('click', toggleDropdown);
+    }
+
+    if (profileDropdownBtn) {
+        profileDropdownBtn.addEventListener('click', toggleDropdown);
+    }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
+            try {
+                await firebase.auth().signOut();
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        });
+    }
 }
 
 function setupLeagueTabs() {
