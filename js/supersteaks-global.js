@@ -109,7 +109,7 @@ class SuperSteaksGlobal {
                 const navList = document.querySelector('nav[aria-label="Main navigation"] ul');
                 if (!navList) return;
 
-                const storageKey = `supersteaks:navScroll:${window.location.pathname}`;
+                const storageKey = 'supersteaks:navScroll';
                 const saved = window.localStorage.getItem(storageKey);
                 if (saved !== null) {
                     const savedScroll = parseInt(saved, 10);
