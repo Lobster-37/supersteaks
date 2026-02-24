@@ -67,6 +67,7 @@ class SuperSteaksGlobal {
         
         // Initialize Firebase services
         this.init();
+        this.initNavScrollPersistence();
     }
     
 
@@ -99,6 +100,38 @@ class SuperSteaksGlobal {
             console.log('SuperSteaks Global system initialized successfully');
         } catch (error) {
             console.error('Error initializing SuperSteaks Global:', error);
+        }
+    }
+
+    initNavScrollPersistence() {
+        const setup = () => {
+            try {
+                const navList = document.querySelector('nav[aria-label="Main navigation"] ul');
+                if (!navList) return;
+
+                const storageKey = `supersteaks:navScroll:${window.location.pathname}`;
+                const saved = window.localStorage.getItem(storageKey);
+                if (saved !== null) {
+                    const savedScroll = parseInt(saved, 10);
+                    if (!Number.isNaN(savedScroll)) {
+                        requestAnimationFrame(() => {
+                            navList.scrollLeft = savedScroll;
+                        });
+                    }
+                }
+
+                navList.addEventListener('scroll', () => {
+                    window.localStorage.setItem(storageKey, String(navList.scrollLeft));
+                }, { passive: true });
+            } catch (error) {
+                console.warn('Nav scroll persistence setup failed:', error);
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setup, { once: true });
+        } else {
+            setup();
         }
     }
     
@@ -463,6 +496,7 @@ class SuperSteaksGlobal {
         const authButtons = document.getElementById('auth-buttons');
         const userInfo = document.getElementById('user-info');
         const usernameDisplay = document.getElementById('username-display');
+        const usernameDisplayMobile = document.getElementById('username-display-mobile');
         const authSkeleton = document.getElementById('auth-skeleton');
 
         document.body.classList.add('auth-ready', 'logged-in');
@@ -480,13 +514,17 @@ class SuperSteaksGlobal {
             authSkeleton.classList.add('hidden');
             authSkeleton.style.display = 'none';
         }
-        if (usernameDisplay) {
-            let username = user.displayName;
-            if (!username && user.email) {
-                username = user.email.split('@')[0];
-            }
-            if (username) {
+        let username = user.displayName;
+        if (!username && user.email) {
+            username = user.email.split('@')[0];
+        }
+
+        if (username) {
+            if (usernameDisplay) {
                 usernameDisplay.textContent = username;
+            }
+            if (usernameDisplayMobile) {
+                usernameDisplayMobile.textContent = username;
             }
         }
 
