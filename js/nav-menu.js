@@ -9,26 +9,32 @@
         const style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = `
-            .more-menu-backdrop {
-                position: fixed;
-                inset: 0;
-                background: rgba(15, 23, 42, 0.35);
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 140ms ease;
-                z-index: 40;
-            }
-
-            .more-menu-backdrop.is-visible {
-                opacity: 1;
-                pointer-events: auto;
+            details.more-nav-menu {
+                position: static;
             }
 
             details.more-nav-menu > div {
-                transform: translate(-50%, -6px) scale(0.98);
+                position: fixed !important;
+                left: 0 !important;
+                right: 0 !important;
+                top: var(--more-menu-top, 64px) !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                border-radius: 0 !important;
+                border-left: 0 !important;
+                border-right: 0 !important;
+                padding: 0.75rem 1rem !important;
+                display: flex !important;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 0.5rem;
+                box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16) !important;
+                transform: translateY(-8px);
                 opacity: 0;
                 pointer-events: none;
-                transition: opacity 140ms ease, transform 140ms ease;
+                transition: opacity 150ms ease, transform 150ms ease;
+                z-index: 60 !important;
             }
 
             details.more-nav-menu[open] > div {
@@ -36,8 +42,23 @@
             }
 
             details.more-nav-menu > div.more-menu-visible {
-                transform: translate(-50%, 0) scale(1);
+                transform: translateY(0);
                 opacity: 1;
+            }
+
+            details.more-nav-menu > div a {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: 0.45rem 0.85rem !important;
+                border-radius: 9999px;
+                white-space: nowrap;
+            }
+
+            @media (max-width: 639px) {
+                details.more-nav-menu > div {
+                    justify-content: flex-start;
+                }
             }
         `;
 
@@ -52,12 +73,6 @@
 
         injectStyles();
 
-        const backdrop = document.createElement('button');
-        backdrop.type = 'button';
-        backdrop.className = 'more-menu-backdrop';
-        backdrop.setAttribute('aria-label', 'Close menu');
-        document.body.appendChild(backdrop);
-
         const closeMenu = (menu) => {
             const summary = menu.querySelector('summary');
             const panel = menu.querySelector(':scope > div');
@@ -70,14 +85,11 @@
                 panel.classList.remove('more-menu-visible');
             }
 
-            window.setTimeout(() => {
-                menu.removeAttribute('open');
-            }, 140);
+            menu.removeAttribute('open');
         };
 
         const closeAll = () => {
             menus.forEach((menu) => closeMenu(menu));
-            backdrop.classList.remove('is-visible');
         };
 
         const openMenu = (menu) => {
@@ -85,6 +97,7 @@
 
             const summary = menu.querySelector('summary');
             const panel = menu.querySelector(':scope > div');
+            const triggerRect = summary ? summary.getBoundingClientRect() : null;
 
             menu.setAttribute('open', 'open');
 
@@ -93,12 +106,12 @@
             }
 
             if (panel) {
+                const topOffset = triggerRect ? Math.round(triggerRect.bottom + 8) : 64;
+                panel.style.setProperty('--more-menu-top', `${topOffset}px`);
                 requestAnimationFrame(() => {
                     panel.classList.add('more-menu-visible');
                 });
             }
-
-            backdrop.classList.add('is-visible');
         };
 
         menus.forEach((menu) => {
@@ -117,15 +130,17 @@
                 const isOpen = menu.hasAttribute('open');
                 if (isOpen) {
                     closeMenu(menu);
-                    backdrop.classList.remove('is-visible');
                 } else {
                     openMenu(menu);
                 }
             });
-        });
 
-        backdrop.addEventListener('click', () => {
-            closeAll();
+            const panelLinks = menu.querySelectorAll(':scope > div a');
+            panelLinks.forEach((link) => {
+                link.addEventListener('click', () => {
+                    closeAll();
+                });
+            });
         });
 
         document.addEventListener('click', (event) => {
@@ -144,6 +159,10 @@
         window.addEventListener('resize', () => {
             closeAll();
         });
+
+        window.addEventListener('scroll', () => {
+            closeAll();
+        }, { passive: true });
     }
 
     if (document.readyState === 'loading') {
