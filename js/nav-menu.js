@@ -11,6 +11,19 @@
         style.textContent = `
             details.more-nav-menu {
                 position: static;
+                display: inline-flex;
+                align-items: center;
+                vertical-align: middle;
+            }
+
+            details.more-nav-menu > summary.nav-link {
+                margin: 0 !important;
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                font: inherit !important;
+                font-size: inherit !important;
+                line-height: inherit !important;
             }
 
             details.more-nav-menu > div {
