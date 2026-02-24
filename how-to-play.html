@@ -4,196 +4,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-7338242306259977">
-    <title>How to Play - Supersteaks</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>SuperSteaks - How to Play</title>
+    <meta name="description" content="Learn how to join tournaments, get your random team assignment, and compete on SuperSteaks.">
+    <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="css/tailwind-2.2.19.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        }
+        .nav-link { background-color: transparent !important; color: inherit !important; }
+        .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
+        .nav-link.enter-now { color: #fbbf24 !important; }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
         .step-number {
-            background: #2a5298;
+            background: #4f46e5;
             color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 9999px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 1.2em;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 0.125rem;
         }
     </style>
 </head>
-<body class="gradient-bg min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-indigo-800 text-white py-4 shadow-lg">
-        <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center mb-3">
-                <div class="text-2xl font-bold">🥩 SuperSteaks</div>
-                <div class="space-x-2 text-sm"><a href="index.html" class="text-white hover:text-indigo-300">Home</a> • <a href="tournaments.html" class="text-white hover:text-indigo-300">Tournaments</a> • <a href="rules.html" class="text-white hover:text-indigo-300">How It Works</a> • <a href="contact.html" class="text-white hover:text-indigo-300">Contact</a></div>
-            </div>
-            <div class="space-x-2 text-sm"><a href="how-to-play.html" class="text-indigo-300 font-bold">How to Play</a> • <a href="faq.html" class="hover:text-indigo-300">FAQ</a> • <a href="about.html" class="hover:text-indigo-300">About</a></div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container mx-auto px-4 py-12">
-        <div class="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
-            <h1 class="text-4xl font-bold text-indigo-900 mb-8">How to Play SuperSteaks</h1>
-            
-            <div class="space-y-8">
-                <!-- Step 1 -->
-                <div class="flex gap-6">
-                    <div class="step-number">1</div>
-                    <div>
-                        <h2 class="text-2xl font-bold text-indigo-900 mb-3">Create Your Account</h2>
-                        <p class="text-gray-700 mb-2">Start by creating a free SuperSteaks account using your email address. This is your gateway to the exciting world of competitive sports contests.</p>
-                        <ul class="list-disc list-inside text-gray-700 space-y-1">
-                            <li>Provide a valid email address</li>
-                            <li>Choose a unique username</li>
-                            <li>Create a secure password</li>
-                            <li>Verify your email to activate your account</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Step 2 -->
-                <div class="flex gap-6">
-                    <div class="step-number">2</div>
-                    <div>
-                        <h2 class="text-2xl font-bold text-indigo-900 mb-3">Browse Tournaments</h2>
-                        <p class="text-gray-700 mb-2">Visit our Tournaments page to see all available competitions. We feature major football tournaments throughout the year including international competitions and top league tournaments.</p>
-                        <ul class="list-disc list-inside text-gray-700 space-y-1">
-                            <li>View tournament name and description</li>
-                            <li>Check player count and status</li>
-                            <li>See the scoring system</li>
-                            <li>Review the tournament schedule</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Step 3 -->
-                <div class="flex gap-6">
-                    <div class="step-number">3</div>
-                    <div>
-                        <h2 class="text-2xl font-bold text-indigo-900 mb-3">Join a Tournament</h2>
-                        <p class="text-gray-700 mb-2">Select a tournament that interests you and click "Join" to enter the competition. You'll be automatically assigned a team from the tournament's roster.</p>
-                        <ul class="list-disc list-inside text-gray-700 space-y-1">
-                            <li>Click the "Join Tournament" button</li>
-                            <li>System randomly assigns you a team</li>
-                            <li>You'll be notified of your team assignment</li>
-                            <li>Enter the tournament lobby</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Step 4 -->
-                <div class="flex gap-6">
-                    <div class="step-number">4</div>
-                    <div>
-                        <h2 class="text-2xl font-bold text-indigo-900 mb-3">Enter the Lobby</h2>
-                        <p class="text-gray-700 mb-2">After joining, you'll enter a lobby where you can see other players and real-time tournament information. The lobby is your hub for tournament interaction.</p>
-                        <ul class="list-disc list-inside text-gray-700 space-y-1">
-                            <li>View your assigned team</li>
-                            <li>See other players in the tournament</li>
-                            <li>Check the tournament status</li>
-                            <li>Monitor live tournament updates</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Step 5 -->
-                <div class="flex gap-6">
-                    <div class="step-number">5</div>
-                    <div>
-                        <h2 class="text-2xl font-bold text-indigo-900 mb-3">Follow Your Team</h2>
-                        <p class="text-gray-700 mb-2">Once assigned a team, you'll follow their performance throughout the tournament. Your team's results will determine your score and ranking, and tournament winners receive <strong>£5</strong>.</p>
-                        <ul class="list-disc list-inside text-gray-700 space-y-1">
-                            <li>Track match results and scores</li>
-                            <li>Monitor your team's progression</li>
-                            <li>See how you rank against other players</li>
-                            <li>Earn points based on team performance</li>
-                            <li>Win <strong>£5</strong> if your team wins the tournament</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Step 6 -->
-                <div class="flex gap-6">
-                    <div class="step-number">6</div>
-                    <div>
-                        <h2 class="text-2xl font-bold text-indigo-900 mb-3">Compete & Win</h2>
-                        <p class="text-gray-700 mb-2">Compete against other players throughout the tournament and aim for the top of the leaderboard. The player whose team performs best wins the tournament!</p>
-                        <ul class="list-disc list-inside text-gray-700 space-y-1">
-                            <li>Earn points from team victories</li>
-                            <li>Climb the leaderboard</li>
-                            <li>Compete for tournament bragging rights</li>
-                            <li>Join multiple tournaments simultaneously</li>
-                        </ul>
-                    </div>
+<body class="min-h-screen flex flex-col">
+    <header class="bg-indigo-800 text-white shadow-xl">
+        <div class="container mx-auto px-4 py-4">
+            <div class="text-center sm:text-left">
+                <div class="flex flex-row items-center justify-center sm:block">
+                    <a href="index.html" class="hover:opacity-80 transition-opacity relative">
+                        <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="h-12 w-auto mr-2 sm:hidden" draggable="false">
+                    </a>
+                    <a href="index.html" class="hover:opacity-80 transition-opacity relative">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0">SUPERSTEAKS</h1>
+                    </a>
                 </div>
             </div>
-
-            <!-- Scoring Section -->
-            <div class="mt-12 pt-8 border-t-2 border-gray-300">
-                <h2 class="text-3xl font-bold text-indigo-900 mb-6">Scoring System</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-indigo-50 p-6 rounded-lg">
-                        <h3 class="text-xl font-bold text-indigo-900 mb-3">Win</h3>
-                        <p class="text-gray-700"><strong>+3 points</strong> - Your team wins their match</p>
-                    </div>
-                    <div class="bg-indigo-50 p-6 rounded-lg">
-                        <h3 class="text-xl font-bold text-indigo-900 mb-3">Draw</h3>
-                        <p class="text-gray-700"><strong>+1 point</strong> - Your team draws their match</p>
-                    </div>
-                    <div class="bg-indigo-50 p-6 rounded-lg">
-                        <h3 class="text-xl font-bold text-indigo-900 mb-3">Loss</h3>
-                        <p class="text-gray-700"><strong>0 points</strong> - Your team loses their match</p>
-                    </div>
-                    <div class="bg-indigo-50 p-6 rounded-lg">
-                        <h3 class="text-xl font-bold text-indigo-900 mb-3">Advancement</h3>
-                        <p class="text-gray-700"><strong>+5 bonus points</strong> - Your team advances in tournament</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tips Section -->
-            <div class="mt-12 pt-8 border-t-2 border-gray-300">
-                <h2 class="text-3xl font-bold text-indigo-900 mb-6">Pro Tips</h2>
-                <ul class="space-y-4">
-                    <li class="flex items-start gap-4">
-                        <span class="text-2xl">💡</span>
-                        <span class="text-gray-700"><strong>Join Early:</strong> Join tournaments early to secure your spot and start following your team's preparation.</span>
-                    </li>
-                    <li class="flex items-start gap-4">
-                        <span class="text-2xl">📊</span>
-                        <span class="text-gray-700"><strong>Know Your Team:</strong> Learn about your assigned team's strengths, recent form, and key players to make informed predictions.</span>
-                    </li>
-                    <li class="flex items-start gap-4">
-                        <span class="text-2xl">🏆</span>
-                        <span class="text-gray-700"><strong>Multiple Tournaments:</strong> Join several tournaments to increase your chances of winning and maximize excitement.</span>
-                    </li>
-                    <li class="flex items-start gap-4">
-                        <span class="text-2xl">👥</span>
-                        <span class="text-gray-700"><strong>Follow the Lobby:</strong> Check the lobby regularly to see your standings against other players.</span>
-                    </li>
-                    <li class="flex items-start gap-4">
-                        <span class="text-2xl">⚽</span>
-                        <span class="text-gray-700"><strong>Stay Informed:</strong> Keep up with sports news to understand your team's current status and upcoming matches.</span>
-                    </li>
+            <nav aria-label="Main navigation" class="mt-4">
+                <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
+                    <li><a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a></li>
+                    <li><a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a></li>
+                    <li><a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a></li>
+                    <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
+                    <li><a href="how-to-play.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How to Play</a></li>
+                    <li><a href="faq.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">FAQ</a></li>
+                    <li><a href="about.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">About</a></li>
+                    <li><a href="contact.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Contact</a></li>
                 </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
+        <div class="bg-white rounded-3xl shadow-2xl border-b-4 border-yellow-400 p-6 sm:p-8 md:p-12 max-w-4xl mx-auto">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-8">How to Play SuperSteaks</h2>
+
+            <div class="space-y-8">
+                <div class="flex items-start gap-4">
+                    <span class="step-number">1</span>
+                    <div>
+                        <h3 class="text-2xl font-bold text-indigo-900 mb-2">Create Your Account</h3>
+                        <p class="text-gray-700">Sign up with your email, choose a username, and you are ready to enter tournaments.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <span class="step-number">2</span>
+                    <div>
+                        <h3 class="text-2xl font-bold text-indigo-900 mb-2">Browse Tournaments</h3>
+                        <p class="text-gray-700">Go to Tournaments, pick one that is open, and check how many spots are left.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <span class="step-number">3</span>
+                    <div>
+                        <h3 class="text-2xl font-bold text-indigo-900 mb-2">Join and Get a Team</h3>
+                        <p class="text-gray-700">When you join, your team is assigned at random for fair play.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <span class="step-number">4</span>
+                    <div>
+                        <h3 class="text-2xl font-bold text-indigo-900 mb-2">Use the Lobby</h3>
+                        <p class="text-gray-700">In your lobby you can see your team, upcoming matches, and other players in the same tournament.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <span class="step-number">5</span>
+                    <div>
+                        <h3 class="text-2xl font-bold text-indigo-900 mb-2">Follow Results</h3>
+                        <p class="text-gray-700">Track fixtures and results as matches are played and watch the leaderboard update.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <span class="step-number">6</span>
+                    <div>
+                        <h3 class="text-2xl font-bold text-indigo-900 mb-2">Compete to Win</h3>
+                        <p class="text-gray-700">Tournament winners receive <strong>£5</strong>.</p>
+                    </div>
+                </div>
             </div>
 
             <div id="app-version" class="mt-12 pt-8 border-t-2 border-gray-300">
-                <h2 class="text-3xl font-bold text-indigo-900 mb-4">App Version</h2>
-                <p class="text-gray-700 mb-3">SuperSteaks is available in an app-style experience on both mobile and desktop, so you can launch it directly from your home screen or desktop.</p>
-                <p class="text-gray-700 mb-3"><strong>Mobile:</strong> Open SuperSteaks in your browser and use <strong>Add to Home Screen</strong> (or <strong>Install app</strong>) from the browser menu.</p>
+                <h3 class="text-3xl font-bold text-indigo-900 mb-4">App Version</h3>
+                <p class="text-gray-700 mb-3">SuperSteaks can be installed as an app-style experience on both mobile and desktop.</p>
+                <p class="text-gray-700 mb-3"><strong>Mobile:</strong> Open SuperSteaks in your browser and choose <strong>Add to Home Screen</strong> or <strong>Install app</strong>.</p>
                 <p class="text-gray-700"><strong>Desktop:</strong> In Chrome or Edge, use the install icon in the address bar (or browser menu) to install SuperSteaks as an app window.</p>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Footer -->
     <footer class="bg-indigo-900 text-white py-6 mt-12">
         <div class="container mx-auto px-4 text-center text-sm">
             <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests.</p>
