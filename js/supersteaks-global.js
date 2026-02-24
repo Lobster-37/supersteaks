@@ -110,19 +110,38 @@ class SuperSteaksGlobal {
                 if (!navList) return;
 
                 const storageKey = 'supersteaks:navScroll';
-                const saved = window.localStorage.getItem(storageKey);
-                if (saved !== null) {
-                    const savedScroll = parseInt(saved, 10);
-                    if (!Number.isNaN(savedScroll)) {
-                        requestAnimationFrame(() => {
-                            navList.scrollLeft = savedScroll;
-                        });
-                    }
+                const getSavedScroll = () => {
+                    const saved = window.localStorage.getItem(storageKey);
+                    if (saved === null) return null;
+                    const parsed = parseInt(saved, 10);
+                    return Number.isNaN(parsed) ? null : parsed;
+                };
+
+                const applySavedScroll = () => {
+                    const savedScroll = getSavedScroll();
+                    if (savedScroll === null) return;
+                    const maxScroll = Math.max(0, navList.scrollWidth - navList.clientWidth);
+                    navList.scrollLeft = Math.max(0, Math.min(savedScroll, maxScroll));
+                };
+
+                // Restore early, then re-apply after layout/font settling
+                requestAnimationFrame(() => applySavedScroll());
+                requestAnimationFrame(() => requestAnimationFrame(() => applySavedScroll()));
+                window.setTimeout(applySavedScroll, 150);
+                window.addEventListener('load', applySavedScroll, { once: true });
+                if (document.fonts && document.fonts.ready) {
+                    document.fonts.ready.then(() => applySavedScroll()).catch(() => {});
                 }
 
                 navList.addEventListener('scroll', () => {
                     window.localStorage.setItem(storageKey, String(navList.scrollLeft));
                 }, { passive: true });
+
+                navList.querySelectorAll('a').forEach((link) => {
+                    link.addEventListener('click', () => {
+                        window.localStorage.setItem(storageKey, String(navList.scrollLeft));
+                    });
+                });
             } catch (error) {
                 console.warn('Nav scroll persistence setup failed:', error);
             }
