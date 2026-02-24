@@ -546,26 +546,51 @@
         }
 
         function setupModalControls() {
-            const closeBtn = document.getElementById('close-modal');
+            const closeModalBtns = document.querySelectorAll('#close-modal, #close-reset-modal');
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    var authModal = document.getElementById('auth-modal');
+                    var resetModal = document.getElementById('reset-password-modal');
+                    if (authModal) authModal.classList.add('hidden');
+                    if (resetModal) resetModal.classList.add('hidden');
+                });
+            });
             const authModal = document.getElementById('auth-modal');
+            const resetModal = document.getElementById('reset-password-modal');
+            [authModal, resetModal].forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        try {
+                            const inner = modal.querySelector('.modal-inner');
+                            if (e && (e.target === modal || (inner && !inner.contains(e.target)))) {
+                                modal.classList.add('hidden');
+                            }
+                        } catch (err) {
+                            if (e && e.target === modal) {
+                                modal.classList.add('hidden');
+                            }
+                        }
+                    });
+                }
+            });
             const switchToRegister = document.getElementById('switch-to-register');
             const switchToLogin = document.getElementById('switch-to-login');
-            const loginForm = document.getElementById('login-form-element');
-            const registerForm = document.getElementById('register-form-element');
             const forgotPasswordLink = document.getElementById('forgot-password-link');
             const cancelReset = document.getElementById('cancel-reset');
             const closeResetModal = document.getElementById('close-reset-modal');
             const resetForm = document.getElementById('reset-password-form-element');
-
-            if (closeBtn) closeBtn.addEventListener('click', hideAuthModal);
-            if (switchToRegister) switchToRegister.addEventListener('click', () => {
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('register-form').classList.remove('hidden');
-            });
-            if (switchToLogin) switchToLogin.addEventListener('click', () => {
-                document.getElementById('register-form').classList.add('hidden');
-                document.getElementById('login-form').classList.remove('hidden');
-            });
+            if (switchToRegister) {
+                switchToRegister.addEventListener('click', () => {
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                });
+            }
+            if (switchToLogin) {
+                switchToLogin.addEventListener('click', () => {
+                    document.getElementById('register-form').classList.add('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                });
+            }
             if (forgotPasswordLink) {
                 forgotPasswordLink.addEventListener('click', showResetPasswordModal);
             }
@@ -583,14 +608,13 @@
             if (resetForm) {
                 resetForm.addEventListener('submit', handlePasswordReset);
             }
-
-            if (loginForm) loginForm.addEventListener('submit', handleLogin);
-            if (registerForm) registerForm.addEventListener('submit', handleRegister);
-
-            if (authModal) {
-                authModal.addEventListener('click', (e) => {
-                    if (e.target.id === 'auth-modal') hideAuthModal();
-                });
+            const loginForm = document.getElementById('login-form-element');
+            const registerForm = document.getElementById('register-form-element');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+            if (registerForm) {
+                registerForm.addEventListener('submit', handleRegister);
             }
         }
 

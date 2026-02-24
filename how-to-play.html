@@ -368,6 +368,67 @@
                     if (resetModal) resetModal.classList.add('hidden');
                 });
             });
+            const authModal = document.getElementById('auth-modal');
+            const resetModal = document.getElementById('reset-password-modal');
+            [authModal, resetModal].forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        try {
+                            const inner = modal.querySelector('.modal-inner');
+                            if (e && (e.target === modal || (inner && !inner.contains(e.target)))) {
+                                modal.classList.add('hidden');
+                            }
+                        } catch (err) {
+                            if (e && e.target === modal) {
+                                modal.classList.add('hidden');
+                            }
+                        }
+                    });
+                }
+            });
+            const switchToRegister = document.getElementById('switch-to-register');
+            const switchToLogin = document.getElementById('switch-to-login');
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const cancelReset = document.getElementById('cancel-reset');
+            const closeResetModal = document.getElementById('close-reset-modal');
+            const resetForm = document.getElementById('reset-password-form-element');
+            if (switchToRegister) {
+                switchToRegister.addEventListener('click', () => {
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                });
+            }
+            if (switchToLogin) {
+                switchToLogin.addEventListener('click', () => {
+                    document.getElementById('register-form').classList.add('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                });
+            }
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', showResetPasswordModal);
+            }
+            if (cancelReset) {
+                cancelReset.addEventListener('click', () => {
+                    document.getElementById('reset-password-modal').classList.add('hidden');
+                    document.getElementById('auth-modal').classList.remove('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                    document.getElementById('register-form').classList.add('hidden');
+                });
+            }
+            if (closeResetModal) {
+                closeResetModal.addEventListener('click', hideResetPasswordModal);
+            }
+            if (resetForm) {
+                resetForm.addEventListener('submit', handlePasswordReset);
+            }
+            const loginForm = document.getElementById('login-form-element');
+            const registerForm = document.getElementById('register-form-element');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+            if (registerForm) {
+                registerForm.addEventListener('submit', handleRegister);
+            }
         }
 
         function handleLogin(e) {
@@ -481,6 +542,73 @@
                     console.error('Logout failed:', result.error);
                 }
             }
+        }
+        
+        function showAuthModal(showRegister = false) {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            if (showRegister) {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            } else {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('register-form').classList.add('hidden');
+            }
+        }
+        
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('login-form-element').reset();
+            document.getElementById('register-form-element').reset();
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeModal = document.getElementById('close-modal');
+            if (closeModal) {
+                closeModal.addEventListener('click', hideAuthModal);
+            }
+        });
+        
+        const authModal = document.getElementById('auth-modal');
+        if (authModal) {
+            authModal.addEventListener('click', (e) => {
+                if (e.target.id === 'auth-modal') {
+                    hideAuthModal();
+                }
+            });
+        }
+
+        function showResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function hideResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.add('hidden');
+            document.getElementById('reset-message').classList.add('hidden');
+        }
+
+        function handlePasswordReset(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
+            }
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Reset email sent! Please check your inbox.';
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-red-100', 'text-red-700');
+                    msg.classList.add('bg-green-100', 'text-green-700');
+                })
+                .catch((error) => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Error: ' + error.message;
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-green-100', 'text-green-700');
+                    msg.classList.add('bg-red-100', 'text-red-700');
+                });
         }
     </script>
 
