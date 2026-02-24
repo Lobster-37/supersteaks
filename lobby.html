@@ -260,6 +260,19 @@
     <script>
         let currentTournamentId = '';
         let currentLobbyId = '';
+
+        function formatLobbyLabel(lobbyId) {
+            if (!lobbyId || typeof lobbyId !== 'string') {
+                return 'Lobby';
+            }
+
+            const match = lobbyId.match(/(?:^|_)lobby_(\d+)$/i);
+            if (match && match[1]) {
+                return `Lobby ${match[1]}`;
+            }
+
+            return 'Lobby';
+        }
         let db = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -390,7 +403,7 @@
                     const { tournament, lobby, userAssignment, visibleTeamList } = result.data;
 
                     // Update page title and info
-                    document.getElementById('tournament-name').textContent = `${tournament.name} - Lobby ${currentLobbyId}`;
+                    document.getElementById('tournament-name').textContent = `${tournament.name} - ${formatLobbyLabel(currentLobbyId)}`;
                     document.getElementById('lobby-info').textContent = `${lobby.currentCount}/${tournament.teamCount} players assigned`;
 
                     // Display user's team
@@ -435,7 +448,7 @@
                     const userAssignment = assignmentDoc.docs[0]?.data();
 
                     // Update page title and info
-                    document.getElementById('tournament-name').textContent = `${tournament.name} - Lobby ${lobby.id}`;
+                    document.getElementById('tournament-name').textContent = `${tournament.name} - ${formatLobbyLabel(lobby.id)}`;
                     document.getElementById('lobby-info').textContent = `${lobby.currentCount}/${tournament.teamCount} players assigned`;
 
                     // Display user's team
