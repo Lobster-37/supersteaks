@@ -1,6 +1,10 @@
 (function () {
     const STYLE_ID = 'supersteaks-more-menu-style';
 
+    function getPanel(menu) {
+        return menu ? menu.querySelector('div') : null;
+    }
+
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) {
             return;
@@ -88,7 +92,7 @@
 
         const closeMenu = (menu) => {
             const summary = menu.querySelector('summary');
-            const panel = menu.querySelector(':scope > div');
+            const panel = getPanel(menu);
 
             if (summary) {
                 summary.setAttribute('aria-expanded', 'false');
@@ -109,7 +113,7 @@
             closeAll();
 
             const summary = menu.querySelector('summary');
-            const panel = menu.querySelector(':scope > div');
+            const panel = getPanel(menu);
             const triggerRect = summary ? summary.getBoundingClientRect() : null;
 
             menu.setAttribute('open', 'open');
@@ -148,7 +152,8 @@
                 }
             });
 
-            const panelLinks = menu.querySelectorAll(':scope > div a');
+            const panel = getPanel(menu);
+            const panelLinks = panel ? panel.querySelectorAll('a') : [];
             panelLinks.forEach((link) => {
                 link.addEventListener('click', () => {
                     closeAll();
