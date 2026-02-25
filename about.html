@@ -60,6 +60,7 @@
         .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
         /* Match Tailwind text-yellow-400 (#fbbf24) used in SUPERSTEAKS heading */
         .nav-link.enter-now { color: #fbbf24 !important; }
+        nav[aria-label="Main navigation"] { position: relative; z-index: 40; }
         nav[aria-label="Main navigation"] ul { align-items: center; }
         nav[aria-label="Main navigation"] ul > li { display: flex; align-items: center; }
         summary.nav-link { list-style: none; margin: 0 !important; }
@@ -171,10 +172,10 @@
                 margin-top: 0 !important;
             }
             nav[aria-label="Main navigation"] {
-                margin-top: -44px !important;
+                margin-top: 0 !important;
             }
             .flex.flex-row.items-center.justify-center.sm\:block {
-                margin-bottom: -8px !important;
+                margin-bottom: 0 !important;
             }
         }
         @media (max-width: 900px) and (orientation: landscape) {
