@@ -69,6 +69,8 @@ class SuperSteaksGlobal {
         this.init();
         this.initNavScrollPersistence();
         this.initProfileDropdownCloseBehavior();
+        this.injectMobileHeaderCompaction();
+        this.initMoreMenuFallback();
     }
     
 
@@ -184,6 +186,107 @@ class SuperSteaksGlobal {
                 });
             } catch (error) {
                 console.warn('Profile dropdown close behavior setup failed:', error);
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setup, { once: true });
+        } else {
+            setup();
+        }
+    }
+
+    injectMobileHeaderCompaction() {
+        const setup = () => {
+            try {
+                if (document.getElementById('supersteaks-mobile-header-compaction')) return;
+                const style = document.createElement('style');
+                style.id = 'supersteaks-mobile-header-compaction';
+                style.textContent = `
+                    @media (max-width: 639px) {
+                        nav[aria-label="Main navigation"] {
+                            margin-top: -30px !important;
+                            position: relative;
+                            z-index: 40;
+                        }
+                        .flex.flex-row.items-center.justify-center.sm\\:block {
+                            margin-bottom: -4px !important;
+                        }
+                    }
+                `;
+                (document.head || document.documentElement).appendChild(style);
+            } catch (error) {
+                console.warn('Mobile header compaction setup failed:', error);
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setup, { once: true });
+        } else {
+            setup();
+        }
+    }
+
+    initMoreMenuFallback() {
+        const setup = () => {
+            try {
+                const menus = Array.from(document.querySelectorAll('details.more-nav-menu'));
+                if (!menus.length) return;
+
+                const closeMenu = (menu) => {
+                    const panel = menu.querySelector('div');
+                    menu.removeAttribute('open');
+                    if (panel) panel.hidden = true;
+                };
+
+                const openMenu = (menu) => {
+                    menus.forEach((entry) => {
+                        if (entry !== menu) closeMenu(entry);
+                    });
+                    const panel = menu.querySelector('div');
+                    menu.setAttribute('open', 'open');
+                    if (panel) panel.hidden = false;
+                };
+
+                menus.forEach((menu) => {
+                    const summary = menu.querySelector('summary');
+                    const panel = menu.querySelector('div');
+                    if (!summary || !panel) return;
+
+                    panel.hidden = !menu.hasAttribute('open');
+
+                    const toggle = (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (menu.hasAttribute('open')) {
+                            closeMenu(menu);
+                        } else {
+                            openMenu(menu);
+                        }
+                    };
+
+                    summary.addEventListener('click', toggle);
+                    summary.addEventListener('touchend', toggle, { passive: false });
+
+                    panel.querySelectorAll('a').forEach((link) => {
+                        link.addEventListener('click', () => closeMenu(menu));
+                    });
+                });
+
+                document.addEventListener('click', (event) => {
+                    const clickedInside = menus.some((menu) => menu.contains(event.target));
+                    if (!clickedInside) {
+                        menus.forEach((menu) => closeMenu(menu));
+                    }
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        menus.forEach((menu) => closeMenu(menu));
+                    }
+                });
+            } catch (error) {
+                console.warn('More menu fallback setup failed:', error);
             }
         };
 
