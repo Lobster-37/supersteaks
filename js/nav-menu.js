@@ -140,7 +140,7 @@
             summary.setAttribute('aria-haspopup', 'menu');
             summary.setAttribute('aria-expanded', 'false');
 
-            summary.addEventListener('click', (event) => {
+            const onSummaryActivate = (event) => {
                 event.preventDefault();
                 event.stopPropagation();
 
@@ -150,7 +150,10 @@
                 } else {
                     openMenu(menu);
                 }
-            });
+            };
+
+            summary.addEventListener('click', onSummaryActivate);
+            summary.addEventListener('touchend', onSummaryActivate, { passive: false });
 
             const panel = getPanel(menu);
             const panelLinks = panel ? panel.querySelectorAll('a') : [];
@@ -178,9 +181,9 @@
             closeAll();
         });
 
-        window.addEventListener('scroll', () => {
+        window.addEventListener('orientationchange', () => {
             closeAll();
-        }, { passive: true });
+        });
     }
 
     if (document.readyState === 'loading') {
