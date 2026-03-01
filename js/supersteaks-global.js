@@ -58,8 +58,36 @@ if (typeof window !== 'undefined') {
     });
 }
 
-const SW_BUILD_VERSION = '20260301012';
+const SW_BUILD_VERSION = '20260301014';
 const SW_SCRIPT_URL = `/sw.js?v=${SW_BUILD_VERSION}`;
+const FORCE_CACHE_RESET_KEY = 'supersteaks:forceCacheResetVersion';
+
+async function forceOneTimeCacheRefresh() {
+    try {
+        const storedVersion = window.localStorage.getItem(FORCE_CACHE_RESET_KEY);
+        if (storedVersion === SW_BUILD_VERSION) {
+            return;
+        }
+
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map((registration) => registration.unregister().catch(() => false)));
+        }
+
+        if ('caches' in window) {
+            const cacheKeys = await caches.keys();
+            await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey).catch(() => false)));
+        }
+
+        window.localStorage.setItem(FORCE_CACHE_RESET_KEY, SW_BUILD_VERSION);
+
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('v', SW_BUILD_VERSION);
+        window.location.replace(currentUrl.toString());
+    } catch (error) {
+        console.warn('One-time cache refresh failed:', error.message || error);
+    }
+}
 
 class SuperSteaksGlobal {
     constructor() {
@@ -1322,6 +1350,7 @@ window.SuperSteaks = SuperSteaksGlobal;
 
 // Initialize when Firebase is ready
 document.addEventListener('DOMContentLoaded', () => {
+    forceOneTimeCacheRefresh();
     clearLegacyPwaNotices();
     ensurePwaHeadTags();
     ensureHowItWorksNavLink();
