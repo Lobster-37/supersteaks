@@ -17,6 +17,17 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <script>
+        (function() {
+            const CONTACT_PAGE_VERSION = '20260301016';
+            const currentUrl = new URL(window.location.href);
+            if (currentUrl.searchParams.get('cv') === CONTACT_PAGE_VERSION) {
+                return;
+            }
+            currentUrl.searchParams.set('cv', CONTACT_PAGE_VERSION);
+            window.location.replace(currentUrl.toString());
+        })();
+    </script>
     <link href="css/tailwind-2.2.19.min.css" rel="stylesheet">
     <script>
         // Verify CSS loaded
@@ -67,7 +78,7 @@
         summary.nav-link::-webkit-details-marker { display: none; }
         details.more-nav-menu { margin: 0; }
     </style>
-    <script src="js/supersteaks-global.js?v=20260301015"></script>
+    <script src="js/supersteaks-global.js?v=20260301016"></script>
 </head>
 <body class="min-h-screen flex flex-col">
     <!-- Draggable Logo (desktop only) -->

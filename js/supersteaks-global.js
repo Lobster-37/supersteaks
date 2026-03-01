@@ -149,7 +149,7 @@ if (typeof window !== 'undefined') {
     });
 }
 
-const SW_BUILD_VERSION = '20260301015';
+const SW_BUILD_VERSION = '20260301016';
 const SW_SCRIPT_URL = `/sw.js?v=${SW_BUILD_VERSION}`;
 const FORCE_CACHE_RESET_KEY = 'supersteaks:forceCacheResetVersion';
 
@@ -525,7 +525,7 @@ class SuperSteaksGlobal {
                         <a href="how-to-play.html" role="menuitem">Get the App</a>
                         <a href="faq.html" role="menuitem">FAQ</a>
                         <a href="about.html" role="menuitem">About</a>
-                        <a href="contact.html" role="menuitem">Contact</a>
+                        <a href="contact.html?cv=20260301016" role="menuitem">Contact</a>
                     `;
                     nav.appendChild(menu);
                 } else if (menu.parentElement !== nav) {
