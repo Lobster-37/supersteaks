@@ -214,6 +214,11 @@ class SuperSteaksGlobal {
                     }
 
                     @media (max-width: 639px) {
+                        #user-account-section {
+                            min-height: 0 !important;
+                            width: auto !important;
+                        }
+
                         header .container {
                             padding-top: 0 !important;
                             padding-bottom: 0 !important;
@@ -232,18 +237,22 @@ class SuperSteaksGlobal {
                         }
 
                         #mobile-welcome {
-                            display: block !important;
+                            display: none !important;
                             visibility: hidden;
                             opacity: 0;
-                            min-height: 28px;
-                            margin-top: 8px !important;
-                            margin-bottom: 8px !important;
+                            min-height: 0;
+                            margin-top: 0 !important;
+                            margin-bottom: 0 !important;
                             transition: opacity 0.2s ease-in-out;
                         }
 
                         .logged-in #mobile-welcome {
+                            display: block !important;
                             visibility: visible;
                             opacity: 1;
+                            min-height: 28px;
+                            margin-top: 4px !important;
+                            margin-bottom: 4px !important;
                         }
                     }
                 `;
