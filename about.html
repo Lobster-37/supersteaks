@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Firebase SDK - Load before any firebase usage -->
@@ -86,8 +86,17 @@
                         <a href="index.html" class="hover:opacity-80 transition-opacity relative">
                             <h1 class="mobile-title text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
                         </a>
-                    <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
-                    <li><a href="about.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end space-y-3">
+                    <!-- User Account Section -->
+                    <div id="user-account-section">
+                        <!-- Desktop: Skeleton loading and login/register buttons -->
+                        <div class="hidden sm:block">
+                            <div id="auth-skeleton" class="text-right">
+                                <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
+                                <div class="flex items-center justify-center sm:justify-end space-x-2">
+                                    <div class="skeleton h-6 rounded" style="width: 48px; padding: 4px 12px;"></div>
                                     <div class="skeleton h-6 rounded" style="width: 64px; padding: 4px 8px;"></div>
                                 </div>
                             </div>
@@ -132,10 +141,17 @@
                     <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display-mobile">User</span>!</p>
                 </div>
                 <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
-                    <li><a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a></li>
-                    <li><a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a></li>
-                    <li><a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a></li>
-                    <li><a href="about.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
+                    <li>
+                        <a href="index.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
+                    </li>
+                    <li>
+                        <a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a>
+                    </li>
+                    <li>
+                        <a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a>
+                    </li>
+                    <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
+                    <li><a href="about.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
                 </ul>
             </nav>
         </div>
@@ -729,3 +745,4 @@
     </footer>
 </body>
 </html>
+

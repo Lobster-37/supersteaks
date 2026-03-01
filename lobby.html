@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <!-- Firebase SDK -->
@@ -106,9 +106,11 @@
     <script src="js/supersteaks-global.js?v=20260301011"></script>
 </head>
 <body class="min-h-screen flex flex-col">
+    <!-- Draggable Logo (desktop only) -->
     <a href="index.html" class="hidden sm:block">
         <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-0 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
     </a>
+    <!-- Header & Navigation -->
     <header class="bg-indigo-800 text-white shadow-xl">
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
@@ -123,7 +125,9 @@
                     </div>
                 </div>
                 <div class="flex flex-col items-end space-y-3">
+                    <!-- User Account Section -->
                     <div id="user-account-section">
+                        <!-- Desktop: Skeleton loading and login/register buttons -->
                         <div class="hidden sm:block">
                             <div id="auth-skeleton" class="text-right">
                                 <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
@@ -173,9 +177,15 @@
                     <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display-mobile">User</span>!</p>
                 </div>
                 <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
-                    <li><a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a></li>
-                    <li><a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a></li>
-                    <li><a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a></li>
+                    <li>
+                        <a href="index.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
+                    </li>
+                    <li>
+                        <a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a>
+                    </li>
+                    <li>
+                        <a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a>
+                    </li>
                     <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
                     <li><a href="about.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
                 </ul>
@@ -747,3 +757,4 @@
     </script>
 </body>
 </html>
+
