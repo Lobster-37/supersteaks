@@ -142,7 +142,7 @@
                 </div>
                 <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
                     <li>
-                        <a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
+                        <a href="index.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
                     </li>
                     <li>
                         <a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a>
@@ -151,7 +151,7 @@
                         <a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a>
                     </li>
                     <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
-                    <li><a href="about.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
+                    <li><a href="about.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
                 </ul>
             </nav>
         </div>
@@ -223,31 +223,6 @@
         @keyframes skeleton-loading {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
-        }
-        .download-card {
-            background: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            border-bottom: 4px solid #fbbf24;
-            padding: 2rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .download-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.15);
-        }
-        .download-btn {
-            display: inline-block;
-            background-color: #4f46e5;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-        .download-btn:hover {
-            background-color: #4338ca;
         }
         /* Mobile banner typography/layout to match contests page */
         @media (max-width: 639px) {
@@ -534,6 +509,71 @@
                 });
         }
 
+        function handlePasswordReset(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
+            }
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Reset email sent! Please check your inbox.';
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-red-100', 'text-red-700');
+                    msg.classList.add('bg-green-100', 'text-green-700');
+                })
+                .catch((error) => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Error: ' + error.message;
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-green-100', 'text-green-700');
+                    msg.classList.add('bg-red-100', 'text-red-700');
+                });
+        }
+    </script>
+
+    <!-- Main Content Area - Index Page (banner aligned to contests) -->
+    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
+        <header class="text-center mt-8 mb-8 sm:mt-12 sm:mb-12">
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">Current SuperSteaks Draws</h2>
+            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">All entries are <strong>FREE</strong> for our launch period! Join the draw, get randomly assigned a team, and win if your team succeeds. Tournament winners receive <strong>£5</strong>.</p>
+        </header>
+        <section class="text-left bg-white p-4 sm:p-6 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+            <div class="mt-2 sm:mt-4 text-center">
+                <a href="tournaments.html" class="relative z-0 inline-block bg-yellow-500 text-indigo-800 font-extrabold py-3 sm:py-4 px-8 sm:px-12 rounded-full text-lg sm:text-xl shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50">
+                    🎲 Get Your Random Team Assignment!
+                </a>
+            </div>
+            <div class="mt-8 sm:mt-12 grid sm:grid-cols-3 gap-4 sm:gap-6">
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🎲 Random Assignment</h3>
+                    <p class="text-sm sm:text-base text-gray-600">We randomly assign you a team from competitions like Champions League, Premier League, and more. No choosing — it's all luck!</p>
+                </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🏆 Support Your Team</h3>
+                    <p class="text-sm sm:text-base text-gray-600">Once assigned, cheer for your team throughout the competition. If your team wins the tournament, you receive <strong>£5</strong>.</p>
+                </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🥇 Free to Join</h3>
+                    <p class="text-sm sm:text-base text-gray-600">All our random team draws are completely free to enter. Sign up and see which team you get!</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-indigo-900 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests.</p>
+            <p class="mt-2"><a href="privacy-policy.html" class="text-white hover:text-indigo-300">Privacy Policy</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // ===== USER ACCOUNT SYSTEM =====
+        
         async function logoutUser() {
             if (window.superSteaksGlobal) {
                 const result = await window.superSteaksGlobal.signOut();
@@ -588,178 +628,159 @@
             document.getElementById('reset-message').classList.add('hidden');
         }
 
-        function handlePasswordReset(e) {
-            e.preventDefault();
-            const email = document.getElementById('reset-email').value;
-            if (!email) {
-                alert('Please enter your email address.');
-                return;
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const loginBtn = document.getElementById('login-btn');
+                const registerBtn = document.getElementById('register-btn');
+                const mobileLoginBtn = document.getElementById('mobile-login-btn');
+                const mobileProfileBtn = document.getElementById('mobile-profile-btn');
+                const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
+                const profileDropdown = document.getElementById('profile-dropdown');
+                const logoutDropdown = document.getElementById('logout-btn-dropdown');
+
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', () => {
+                        showAuthModal(false);
+                    });
+                }
+
+                if (registerBtn) {
+                    registerBtn.addEventListener('click', () => {
+                        showAuthModal(true);
+                    });
+                }
+
+                if (mobileLoginBtn) {
+                    mobileLoginBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showAuthModal(false);
+                    });
+                }
+
+                if (mobileLoginBtn) {
+                    mobileLoginBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showAuthModal(false);
+                    });
+                }
+
+                if (mobileProfileBtn) {
+                    mobileProfileBtn.addEventListener('click', (e) => {
+                        try {
+                            const isLoggedIn = document.body.classList.contains('logged-in');
+                            if (!isLoggedIn) {
+                                e.preventDefault();
+                                showAuthModal(false);
+                                return;
+                            }
+                        } catch (err) {
+                            // ignore
+                        }
+                        if (profileDropdown) profileDropdown.classList.toggle('hidden');
+                    });
+                }
+
+                if (profileDropdownBtn) {
+                    profileDropdownBtn.addEventListener('click', () => {
+                        if (profileDropdown) profileDropdown.classList.toggle('hidden');
+                    });
+                }
+
+                if (logoutDropdown) {
+                    logoutDropdown.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (window.supersteaks && typeof window.supersteaks.signOut === 'function') {
+                            window.supersteaks.signOut().then(() => {
+                                console.log('Logged out via dropdown');
+                            }).catch(err => console.error('Logout error:', err));
+                        } else {
+                            logoutUser();
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Error setting up event listeners:', err);
             }
-            firebase.auth().sendPasswordResetEmail(email)
-                .then(() => {
-                    const msg = document.getElementById('reset-message');
-                    msg.textContent = 'Reset email sent! Please check your inbox.';
-                    msg.classList.remove('hidden');
-                    msg.classList.remove('bg-red-100', 'text-red-700');
-                    msg.classList.add('bg-green-100', 'text-green-700');
-                })
-                .catch((error) => {
-                    const msg = document.getElementById('reset-message');
-                    msg.textContent = 'Error: ' + error.message;
-                    msg.classList.remove('hidden');
-                    msg.classList.remove('bg-green-100', 'text-green-700');
-                    msg.classList.add('bg-red-100', 'text-red-700');
-                });
-        }
+        });
     </script>
 
-    <!-- Main Content Area - Index Page (banner aligned to contests) -->
-    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
-        <!-- Hero Section -->
-        <header class="text-center mt-8 mb-8 sm:mt-12 sm:mb-12">
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">Get SuperSteaks</h2>
-            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">Play tournaments anytime, anywhere. Install SuperSteaks on your device and compete on the go.</p>
-        </header>
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div id="auth-modal-content" class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]" role="dialog" aria-modal="true">
+            <!-- Modal Close X Button -->
+            <button id="close-modal" aria-label="Close modal" type="button"
+                class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2 z-[1000002]"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">
+                <span aria-hidden="true">&times;</span>
+            </button>
 
-        <!-- Download Options -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
-            <!-- Web App -->
-            <div class="download-card">
-                <div class="text-center mb-6">
-                    <div class="text-5xl mb-4">🌐</div>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Web App</h3>
-                </div>
-                <p class="text-gray-700 mb-6 text-center">Play directly in your browser. No installation needed, access from any device.</p>
-                <div class="text-center">
-                    <a href="https://supersteaks-240f7.web.app" class="download-btn">Open Web App</a>
-                </div>
-            </div>
-
-            <!-- Mobile App -->
-            <div class="download-card">
-                <div class="text-center mb-6">
-                    <div class="text-5xl mb-4">📱</div>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Mobile App</h3>
-                </div>
-                <p class="text-gray-700 mb-6 text-center">Install as an app on your phone for quick access and offline support.</p>
-                <div class="text-center">
-                    <a href="#mobile-install" class="download-btn">Install Now</a>
-                </div>
-            </div>
-
-            <!-- Desktop App -->
-            <div class="download-card">
-                <div class="text-center mb-6">
-                    <div class="text-5xl mb-4">💻</div>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Desktop App</h3>
-                </div>
-                <p class="text-gray-700 mb-6 text-center">Install SuperSteaks as a desktop application for Windows, Mac, and Linux.</p>
-                <div class="text-center">
-                    <a href="#desktop-install" class="download-btn">Install Now</a>
-                </div>
-            </div>
-
-            <!-- Cross-Platform -->
-            <div class="download-card">
-                <div class="text-center mb-6">
-                    <div class="text-5xl mb-4">🔄</div>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Sync Across Devices</h3>
-                </div>
-                <p class="text-gray-700 mb-6 text-center">Play on your phone, tablet, or computer and stay synced automatically.</p>
-                <div class="text-center">
-                    <a href="index.html" class="download-btn">Create Account</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Installation Guides -->
-        <div class="bg-white rounded-3xl shadow-2xl border-b-4 border-yellow-400 p-6 sm:p-8 md:p-12 max-w-4xl mx-auto mb-8">
-            <h2 class="text-3xl font-bold text-gray-800 mb-8">How to Install</h2>
-
-            <!-- Mobile Instructions -->
-            <div id="mobile-install" class="mb-10">
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">📱 Mobile Installation</h3>
-                <div class="space-y-4">
-                    <div class="border-l-4 border-yellow-400 pl-4">
-                        <h4 class="font-bold text-gray-800 mb-1">iPhone/iPad</h4>
-                        <p class="text-gray-700">1. Open SuperSteaks in Safari<br>2. Tap the Share button<br>3. Scroll down and tap "Add to Home Screen"<br>4. Tap "Add" to confirm</p>
+            <!-- Login Form -->
+            <div id="login-form">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email or Username</label>
+                        <input type="text" id="login-username" class="border rounded w-full py-2 px-3" placeholder="Enter your email or username" required />
                     </div>
-                    <div class="border-l-4 border-yellow-400 pl-4">
-                        <h4 class="font-bold text-gray-800 mb-1">Android Phone</h4>
-                        <p class="text-gray-700">1. Open SuperSteaks in Chrome or Edge<br>2. Tap the menu (three dots) in top right<br>3. Tap "Install app" or "Add to Home Screen"<br>4. Tap "Install" to confirm</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Desktop Instructions -->
-            <div id="desktop-install" class="mb-10">
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">💻 Desktop Installation</h3>
-                <div class="space-y-4">
-                    <div class="border-l-4 border-yellow-400 pl-4">
-                        <h4 class="font-bold text-gray-800 mb-1">Chrome/Edge</h4>
-                        <p class="text-gray-700">1. Open SuperSteaks in your browser<br>2. Look for the install icon in the address bar (usually on the right)<br>3. Click the icon and select "Install"<br>4. Choose where to save the app shortcut</p>
-                    </div>
-                    <div class="border-l-4 border-yellow-400 pl-4">
-                        <h4 class="font-bold text-gray-800 mb-1">Other Browsers</h4>
-                        <p class="text-gray-700">1. Open SuperSteaks in your browser<br>2. Right-click and select "Create shortcut" or "Create app shortcut"<br>3. Choose to save to desktop or start menu</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Benefits -->
-            <div class="mt-10 pt-8 border-t-2 border-gray-300">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6">Benefits of Installing SuperSteaks</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="flex items-start gap-3">
-                        <span class="text-3xl">⚡</span>
-                        <div>
-                            <h4 class="font-bold text-gray-800 mb-1">Faster Loading</h4>
-                            <p class="text-gray-700 text-sm">App installations provide faster access and better performance compared to browser visits.</p>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="login-password" class="border rounded w-full py-2 px-3" placeholder="Enter your password" required />
+                        <div class="text-right mt-2">
+                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:underline">Forgot Password?</button>
                         </div>
                     </div>
-                    <div class="flex items-start gap-3">
-                        <span class="text-3xl">🔔</span>
-                        <div>
-                            <h4 class="font-bold text-gray-800 mb-1">Notifications</h4>
-                            <p class="text-gray-700 text-sm">Get alerts about tournaments, match updates, and your standings.</p>
-                        </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Login</button>
+                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">Need an account?</button>
                     </div>
-                    <div class="flex items-start gap-3">
-                        <span class="text-3xl">📲</span>
-                        <div>
-                            <h4 class="font-bold text-gray-800 mb-1">Home Screen Access</h4>
-                            <p class="text-gray-700 text-sm">One tap from your home screen or desktop—just like a native app.</p>
-                        </div>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="hidden">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Create an Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="register-email" class="border rounded w-full py-2 px-3" placeholder="Enter your email" required />
                     </div>
-                    <div class="flex items-start gap-3">
-                        <span class="text-3xl">♻️</span>
-                        <div>
-                            <h4 class="font-bold text-gray-800 mb-1">Auto-Updates</h4>
-                            <p class="text-gray-700 text-sm">Always get the latest features and security updates automatically.</p>
-                        </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="register-username" class="border rounded w-full py-2 px-3" placeholder="Choose a username" required />
                     </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="register-password" class="border rounded w-full py-2 px-3" placeholder="Create a password" required />
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Register</button>
+                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">Already have an account?</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]">
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6">Reset Password</h2>
+            <form id="reset-password-form-element">
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="reset-email" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="Enter your email address" required>
                 </div>
-            </div>
+                <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Send Reset Email</button>
+                    <button type="button" id="cancel-reset" class="text-indigo-600 hover:underline text-sm">Cancel</button>
+                </div>
+            </form>
+            <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
+            <button id="close-reset-modal" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
         </div>
+    </div>
 
-        <!-- Help Section -->
-        <div class="bg-white rounded-3xl shadow-2xl border-b-4 border-yellow-400 p-6 sm:p-8 md:p-12 max-w-4xl mx-auto">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">Need Help?</h3>
-            <p class="text-gray-700 mb-6">If you're having trouble installing SuperSteaks on your device, we're here to help.</p>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <a href="contact.html" class="download-btn text-center">Contact Support</a>
-                <a href="faq.html" class="download-btn text-center">View FAQ</a>
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-indigo-900 text-white py-6 mt-12">
-        <div class="container mx-auto px-4 text-center text-sm">
-            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests.</p>
-            <p class="mt-2"><a href="privacy-policy.html" class="text-white hover:text-indigo-300">Privacy Policy</a></p>
-        </div>
-    </footer>
     <script>
         (function() {
             function closeIfOutside(e) {

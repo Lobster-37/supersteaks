@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK - Load before any firebase usage -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-functions-compat.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperSteaks - Lobby</title>
-    <meta name="description" content="Your tournament lobby and team assignment">
+    <meta name="google-adsense-account" content="ca-pub-7338242306259977">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7338242306259977" crossorigin="anonymous"></script>
+    <title>SuperSteaks - Free Random Team Assignment Draws</title>
+    <meta name="description" content="Join SuperSteaks for free random team assignment draws. Get assigned teams from major sports competitions and win prizes if your team wins!">
     <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
+    <!-- Cache Control -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <link href="css/tailwind-2.2.19.min.css" rel="stylesheet">
     <script>
         // Verify CSS loaded
@@ -30,6 +35,7 @@
         }, 1000);
     </script>
     <script>
+        // Firebase config and initialization (must be after CDN scripts)
         const firebaseConfig = {
             apiKey: "AIzaSyC7eQhMsCeQYcQrQq_BR1Wy7cCE4JltD5s",
             authDomain: "supersteaks-240f7.firebaseapp.com",
@@ -40,15 +46,19 @@
         };
         try {
             firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully in head');
             window.firebaseReady = true;
         } catch (error) {
             console.error('Firebase initialization failed:', error);
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- User Account System -->
     <style>
+        /* Ensure only the currently-active nav link is highlighted (match index) */
         .nav-link { background-color: transparent !important; color: inherit !important; display: inline-flex; align-items: center; line-height: 1.25rem; }
         .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
+        /* Match Tailwind text-yellow-400 (#fbbf24) used in SUPERSTEAKS heading */
         .nav-link.enter-now { color: #fbbf24 !important; }
         nav[aria-label="Main navigation"] { position: relative; z-index: 40; }
         nav[aria-label="Main navigation"] ul { align-items: center; }
@@ -56,59 +66,15 @@
         summary.nav-link { list-style: none; margin: 0 !important; }
         summary.nav-link::-webkit-details-marker { display: none; }
         details.more-nav-menu { margin: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-        @media (max-width: 639px) {
-            header .container { padding-top: 0 !important; padding-bottom: 0 !important; }
-            header .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
-            nav[aria-label="Main navigation"] { margin-top: 0 !important; }
-            .flex.flex-row.items-center.justify-center.sm\:block { margin-bottom: 0 !important; }
-        }
-        @media (max-width: 900px) and (orientation: landscape) {
-            .mobile-logo { height: 2.75rem !important; }
-            .mobile-title { font-size: 1.5rem !important; line-height: 2rem !important; }
-        }
-        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
-        .logged-out #auth-buttons { display: block !important; }
-        .logged-out #user-info { display: none !important; }
-        .logged-out #auth-skeleton { display: none !important; }
-        .logged-out #mobile-auth-buttons { display: none !important; }
-        .logged-in #mobile-auth-buttons { display: none !important; }
-        @media (max-width: 639px) {
-            .logged-out #mobile-auth-buttons { display: block !important; }
-        }
-        @media (max-width: 639px) { #auth-skeleton { display: none !important; } }
-        .logged-in #auth-buttons { display: none !important; }
-        .logged-in #user-info { display: block !important; }
-        .logged-in #auth-skeleton { display: none !important; }
-        /* Mobile welcome message visibility */
-        #mobile-welcome { display: none !important; }
-        #user-info { transition: opacity 0.2s ease-in-out; }
-        @media (max-width: 639px) {
-            #mobile-welcome { display: block !important; visibility: hidden; opacity: 0; min-height: 28px; margin-top: 8px !important; margin-bottom: 8px !important; transition: opacity 0.2s ease-in-out; }
-            .logged-in #mobile-welcome { visibility: visible; opacity: 1; }
-        }
-        body:not(.auth-ready) #auth-buttons { display: none !important; }
-        body:not(.auth-ready) #user-info { display: none !important; }
-        body:not(.auth-ready) #auth-skeleton { display: block !important; }
-        body:not(.auth-ready) #mobile-auth-buttons { display: none !important; }
-        #user-account-section { min-height: 52px; width: 176px; flex-shrink: 0; }
-        .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
-        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        @media (max-width: 639px) {
-            main .text-center { margin-top: 2rem !important; margin-bottom: 2rem !important; }
-            main h2:first-of-type { font-size: 1.875rem !important; line-height: 2.25rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; color: #1f2937 !important; }
-            main h2:first-of-type + p { font-size: 1.125rem !important; line-height: 1.75rem !important; color: #4b5563 !important; }
-        }
-        .team-badge { width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: bold; color: white; text-align: center; margin: 0 auto; }
-        .player-item { transition: all 0.3s ease; }
-        .player-item:hover { transform: translateX(4px); }
     </style>
     <script src="js/supersteaks-global.js?v=20260301010"></script>
 </head>
 <body class="min-h-screen flex flex-col">
+    <!-- Draggable Logo (desktop only) -->
     <a href="index.html" class="hidden sm:block">
         <img src="supersteaks-logo.png?v=20241118002" alt="SuperSteaks Logo" class="absolute h-20 sm:h-24 md:h-32 w-auto z-0 logo-cursor" style="filter: brightness(0.9) contrast(1.3) hue-rotate(-10deg) saturate(1.2); user-select: none;" draggable="false">
     </a>
+    <!-- Header & Navigation -->
     <header class="bg-indigo-800 text-white shadow-xl">
         <div class="container mx-auto px-4 py-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
@@ -123,7 +89,9 @@
                     </div>
                 </div>
                 <div class="flex flex-col items-end space-y-3">
+                    <!-- User Account Section -->
                     <div id="user-account-section">
+                        <!-- Desktop: Skeleton loading and login/register buttons -->
                         <div class="hidden sm:block">
                             <div id="auth-skeleton" class="text-right">
                                 <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
@@ -173,9 +141,15 @@
                     <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display-mobile">User</span>!</p>
                 </div>
                 <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
-                    <li><a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a></li>
-                    <li><a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a></li>
-                    <li><a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a></li>
+                    <li>
+                        <a href="index.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
+                    </li>
+                    <li>
+                        <a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a>
+                    </li>
+                    <li>
+                        <a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a>
+                    </li>
                     <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
                     <li><a href="about.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
                 </ul>
@@ -183,79 +157,413 @@
         </div>
     </header>
 
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        @media (max-width: 639px) {
+            header .container {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            header .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 0 !important;
+            }
+            nav[aria-label="Main navigation"] {
+                margin-top: 0 !important;
+            }
+            .flex.flex-row.items-center.justify-center.sm\:block {
+                margin-bottom: 0 !important;
+            }
+        }
+        @media (max-width: 900px) and (orientation: landscape) {
+            .mobile-logo { height: 2.75rem !important; }
+            .mobile-title { font-size: 1.5rem !important; line-height: 2rem !important; }
+        }
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+        /* Authentication state management with skeleton loading */
+        .logged-out #auth-buttons { display: block !important; }
+        .logged-out #user-info { display: none !important; }
+        .logged-out #auth-skeleton { display: none !important; }
+        .logged-out #mobile-auth-buttons { display: none !important; }
+        .logged-in #mobile-auth-buttons { display: none !important; }
+        @media (max-width: 639px) {
+            .logged-out #mobile-auth-buttons { display: block !important; }
+        }
+        @media (max-width: 639px) {
+            #auth-skeleton {
+                display: none !important;
+            }
+        }
+        .logged-in #auth-buttons { display: none !important; }
+        .logged-in #user-info { display: block !important; }
+        .logged-in #auth-skeleton { display: none !important; }
+        /* Mobile welcome message visibility */
+        #mobile-welcome { display: none !important; }
+        #user-info { transition: opacity 0.2s ease-in-out; }
+        @media (max-width: 639px) {
+            #mobile-welcome { display: block !important; visibility: hidden; opacity: 0; min-height: 28px; margin-top: 8px !important; margin-bottom: 8px !important; transition: opacity 0.2s ease-in-out; }
+            .logged-in #mobile-welcome { visibility: visible; opacity: 1; }
+        }
+        /* Force skeleton loading state initially - override everything */
+        body:not(.auth-ready) #auth-buttons { display: none !important; }
+        body:not(.auth-ready) #user-info { display: none !important; }
+        body:not(.auth-ready) #auth-skeleton { display: block !important; }
+        body:not(.auth-ready) #mobile-auth-buttons { display: none !important; }
+        /* Reserve exact space to prevent layout shift */
+        #user-account-section {
+            min-height: 52px; /* Reserve space for 2 lines + spacing */
+            width: 176px; /* Fixed width to match content */
+            flex-shrink: 0;
+        }
+        /* Skeleton loading animation */
+        .skeleton { 
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        /* Mobile banner typography/layout to match contests page */
+        @media (max-width: 639px) {
+            /* Tighten top banner spacing */
+            main .text-center { margin-top: 2rem !important; margin-bottom: 2rem !important; }
+            /* h2 sizing and weight to mirror contests banner */
+            main h2:first-of-type { font-size: 1.875rem !important; line-height: 2.25rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; color: #1f2937 !important; }
+            /* paragraph under banner */
+            main h2:first-of-type + p { font-size: 1.125rem !important; line-height: 1.75rem !important; color: #4b5563 !important; }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAuthentication();
+        });
+
+        function initializeAuthentication() {
+            console.log('Starting Firebase authentication...');
+            if (window.superSteaksGlobal) {
+                window.supersteaks = window.superSteaksGlobal;
+                console.log('Using existing superSteaksGlobal instance');
+                checkCurrentAuthState();
+            } else if (typeof SuperSteaks !== 'undefined') {
+                window.supersteaks = new SuperSteaks();
+                console.log('Created new SuperSteaks instance');
+                checkCurrentAuthState();
+            } else {
+                console.log('Waiting for SuperSteaks system to initialize...');
+                const checkSystem = setInterval(() => {
+                    if (window.superSteaksGlobal) {
+                        window.supersteaks = window.superSteaksGlobal;
+                        console.log('SuperSteaks global system now available');
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
+                    } else if (typeof SuperSteaks !== 'undefined') {
+                        window.supersteaks = new SuperSteaks();
+                        console.log('SuperSteaks class now available');
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
+                    }
+                }, 100);
+                setTimeout(() => {
+                    if (!window.supersteaks) {
+                        console.log('SuperSteaks not available after timeout, showing login buttons');
+                        showLoggedOutState();
+                        clearInterval(checkSystem);
+                    }
+                }, 200);
+            }
+            setupEventListeners();
+        }
+
+        function checkCurrentAuthState() {
+            try {
+                firebase.auth().onAuthStateChanged((user) => {
+                    try {
+                        if (user) {
+                            console.log('Auth state determined - User logged in:', user.email);
+                            showLoggedInState(user);
+                        } else {
+                            console.log('Auth state determined - User logged out');
+                            showLoggedOutState();
+                        }
+                    } catch (error) {
+                        console.error('Error in auth state change handler:', error);
+                        showLoggedOutState();
+                    }
+                }, (error) => {
+                    console.error('Firebase auth state listener error:', error);
+                    showLoggedOutState();
+                });
+            } catch (error) {
+                console.error('Error setting up auth state listener:', error);
+                showLoggedOutState();
+            }
+        }
+
+        function showLoggedInState(user) {
+            console.log('Setting logged-in state for user:', user.email);
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-in');
+                document.body.classList.remove('logged-out');
+                const usernameDisplay = document.getElementById('username-display');
+                const usernameDisplayMobile = document.getElementById('username-display-mobile');
+                if ((usernameDisplay || usernameDisplayMobile) && user) {
+                    let username = user.displayName;
+                    if (!username && user.email) {
+                        username = user.email.split('@')[0];
+                    }
+                    if (username) {
+                        if (usernameDisplay) usernameDisplay.textContent = username;
+                        if (usernameDisplayMobile) usernameDisplayMobile.textContent = username;
+                        console.log('Username display updated to:', username);
+                    }
+                }
+            }, 100);
+        }
+
+        function showLoggedOutState() {
+            console.log('Setting logged-out state');
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-out');
+                document.body.classList.remove('logged-in');
+            }, 100);
+        }
+
+        function setupEventListeners() {
+            const registerBtn = document.getElementById('register-btn');
+            if (registerBtn) {
+                registerBtn.addEventListener('click', () => {
+                    document.getElementById('auth-modal').classList.remove('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                    document.getElementById('login-form').classList.add('hidden');
+                });
+            }
+            setupModalControls();
+        }
+
+        function setupModalControls() {
+            const closeModalBtns = document.querySelectorAll('#close-modal, #close-reset-modal');
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    var authModal = document.getElementById('auth-modal');
+                    var resetModal = document.getElementById('reset-password-modal');
+                    if (authModal) authModal.classList.add('hidden');
+                    if (resetModal) resetModal.classList.add('hidden');
+                });
+            });
+            const authModal = document.getElementById('auth-modal');
+            const resetModal = document.getElementById('reset-password-modal');
+            [authModal, resetModal].forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        try {
+                            const inner = modal.querySelector('.modal-inner');
+                            if (e && (e.target === modal || (inner && !inner.contains(e.target)))) {
+                                modal.classList.add('hidden');
+                            }
+                        } catch (err) {
+                            if (e && e.target === modal) {
+                                modal.classList.add('hidden');
+                            }
+                        }
+                    });
+                }
+            });
+            const switchToRegister = document.getElementById('switch-to-register');
+            const switchToLogin = document.getElementById('switch-to-login');
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const cancelReset = document.getElementById('cancel-reset');
+            const closeResetModal = document.getElementById('close-reset-modal');
+            const resetForm = document.getElementById('reset-password-form-element');
+            if (switchToRegister) {
+                switchToRegister.addEventListener('click', () => {
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                });
+            }
+            if (switchToLogin) {
+                switchToLogin.addEventListener('click', () => {
+                    document.getElementById('register-form').classList.add('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                });
+            }
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', showResetPasswordModal);
+            }
+            if (cancelReset) {
+                cancelReset.addEventListener('click', () => {
+                    document.getElementById('reset-password-modal').classList.add('hidden');
+                    document.getElementById('auth-modal').classList.remove('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                    document.getElementById('register-form').classList.add('hidden');
+                });
+            }
+            if (closeResetModal) {
+                closeResetModal.addEventListener('click', hideResetPasswordModal);
+            }
+            if (resetForm) {
+                resetForm.addEventListener('submit', handlePasswordReset);
+            }
+            const loginForm = document.getElementById('login-form-element');
+            const registerForm = document.getElementById('register-form-element');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+            if (registerForm) {
+                registerForm.addEventListener('submit', handleRegister);
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            console.log('Attempting login for:', email);
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
+            }
+            window.supersteaks.login(email, password)
+                .then(result => {
+                    if (result.success) {
+                        console.log('Login successful:', result.user);
+                        document.getElementById('auth-modal').classList.add('hidden');
+                        document.getElementById('login-form-element').reset();
+                    } else {
+                        console.error('Login failed:', result.error);
+                        alert('Login failed: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Login failed:', error);
+                    alert('Login failed: ' + error.message);
+                });
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            console.log('Attempting registration for:', email, 'with username:', username);
+            if (!username) {
+                alert('Username is required. Please enter a username.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters long.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (username.length > 20) {
+                alert('Username must be 20 characters or less.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
+                alert('Username can only contain letters, numbers, dots, underscores, and hyphens.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (!email) {
+                alert('Email is required.');
+                document.getElementById('register-email').focus();
+                return;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                document.getElementById('register-email').focus();
+                return;
+            }
+            if (!password) {
+                alert('Password is required.');
+                document.getElementById('register-password').focus();
+                return;
+            }
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters long.');
+                document.getElementById('register-password').focus();
+                return;
+            }
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
+            }
+            window.supersteaks.register(email, password, username)
+                .then(result => {
+                    if (result.success) {
+                        console.log('Registration successful:', result.user);
+                        document.getElementById('auth-modal').classList.add('hidden');
+                        document.getElementById('register-form-element').reset();
+                    } else {
+                        console.error('Registration failed:', result.error);
+                        alert('Registration failed: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Registration failed:', error);
+                    alert('Registration failed: ' + error.message);
+                });
+        }
+
+        function handlePasswordReset(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
+            }
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Reset email sent! Please check your inbox.';
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-red-100', 'text-red-700');
+                    msg.classList.add('bg-green-100', 'text-green-700');
+                })
+                .catch((error) => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Error: ' + error.message;
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-green-100', 'text-green-700');
+                    msg.classList.add('bg-red-100', 'text-red-700');
+                });
+        }
+    </script>
+
+    <!-- Main Content Area - Index Page (banner aligned to contests) -->
     <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
         <header class="text-center mt-8 mb-8 sm:mt-12 sm:mb-12">
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4" id="tournament-name">Tournament Lobby</h2>
-            <p class="text-lg sm:text-xl text-gray-600" id="lobby-info">Loading lobby information...</p>
-            <p class="text-sm text-gray-500 mt-2">Tournament winners receive <strong>£5</strong>.</p>
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">Current SuperSteaks Draws</h2>
+            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">All entries are <strong>FREE</strong> for our launch period! Join the draw, get randomly assigned a team, and win if your team succeeds. Tournament winners receive <strong>£5</strong>.</p>
         </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-            <!-- Your Team Card -->
-            <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-2xl font-bold text-indigo-800 mb-4">Your Team</h3>
-                <div id="your-team-container" class="text-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+        <section class="text-left bg-white p-4 sm:p-6 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+            <div class="mt-2 sm:mt-4 text-center">
+                <a href="tournaments.html" class="relative z-0 inline-block bg-yellow-500 text-indigo-800 font-extrabold py-3 sm:py-4 px-8 sm:px-12 rounded-full text-lg sm:text-xl shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50">
+                    🎲 Get Your Random Team Assignment!
+                </a>
+            </div>
+            <div class="mt-8 sm:mt-12 grid sm:grid-cols-3 gap-4 sm:gap-6">
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🎲 Random Assignment</h3>
+                    <p class="text-sm sm:text-base text-gray-600">We randomly assign you a team from competitions like Champions League, Premier League, and more. No choosing — it's all luck!</p>
+                </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🏆 Support Your Team</h3>
+                    <p class="text-sm sm:text-base text-gray-600">Once assigned, cheer for your team throughout the competition. If your team wins the tournament, you receive <strong>£5</strong>.</p>
+                </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🥇 Free to Join</h3>
+                    <p class="text-sm sm:text-base text-gray-600">All our random team draws are completely free to enter. Sign up and see which team you get!</p>
                 </div>
             </div>
-
-            <!-- Lobby Status Card -->
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
-                <h3 class="text-2xl font-bold text-indigo-800 mb-4">Lobby Status</h3>
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="bg-indigo-50 rounded-lg p-4">
-                        <p class="text-gray-600 text-sm">Players Assigned</p>
-                        <p class="text-3xl font-bold text-indigo-600" id="players-count">0</p>
-                    </div>
-                    <div class="bg-green-50 rounded-lg p-4">
-                        <p class="text-gray-600 text-sm">Available Teams</p>
-                        <p class="text-3xl font-bold text-green-600" id="available-teams">0</p>
-                    </div>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                    <div id="lobby-progress" class="bg-green-500 h-full transition-all duration-300" style="width: 0%"></div>
-                </div>
-                <p class="text-sm text-gray-600 mt-2" id="progress-text">0%</p>
-            </div>
-        </div>
-
-        <!-- Your Team's Fixtures -->
-        <div id="fixtures-section" class="bg-white rounded-xl shadow-lg p-6 mb-12">
-            <h3 class="text-2xl font-bold text-indigo-800 mb-6">Your Team's Fixtures</h3>
-            <div id="fixtures-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Next Game -->
-                <div id="next-game-card" class="border-2 border-green-300 rounded-lg p-6 bg-green-50">
-                    <h4 class="text-lg font-bold text-green-800 mb-4">Next Game</h4>
-                    <div id="next-game-content" class="text-center text-gray-600">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-                    </div>
-                </div>
-                <!-- Previous Game -->
-                <div id="previous-game-card" class="border-2 border-gray-300 rounded-lg p-6 bg-gray-50">
-                    <h4 class="text-lg font-bold text-gray-800 mb-4">Previous Game</h4>
-                    <div id="previous-game-content" class="text-center text-gray-600">
-                        No previous games yet
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Players in Lobby -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-2xl font-bold text-indigo-800 mb-6">Players in This Lobby</h3>
-            <div id="players-list" class="space-y-3">
-                <div class="text-center text-gray-600 py-8">Loading players...</div>
-            </div>
-        </div>
-
-        <!-- Back Button -->
-        <div class="text-center mt-8">
-            <a href="tournaments.html" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition">
-                ← Back to Tournaments
-            </a>
-        </div>
+        </section>
     </main>
 
+    <!-- Footer -->
     <footer class="bg-indigo-900 text-white py-6 mt-12">
         <div class="container mx-auto px-4 text-center text-sm">
             <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests.</p>
@@ -264,486 +572,245 @@
     </footer>
 
     <script>
-        let currentTournamentId = '';
-        let currentLobbyId = '';
-
-        function formatLobbyLabel(lobbyId) {
-            if (!lobbyId || typeof lobbyId !== 'string') {
-                return 'Lobby';
+        // ===== USER ACCOUNT SYSTEM =====
+        
+        async function logoutUser() {
+            if (window.superSteaksGlobal) {
+                const result = await window.superSteaksGlobal.signOut();
+                if (result.success) {
+                    console.log('User logged out successfully');
+                } else {
+                    console.error('Logout failed:', result.error);
+                }
             }
-
-            const match = lobbyId.match(/(?:^|_)lobby_(\d+)$/i);
-            if (match && match[1]) {
-                return `Lobby ${match[1]}`;
-            }
-
-            return 'Lobby';
         }
-        let db = null;
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            initializeAuthentication();
-            
-            // Get tournament and lobby IDs from URL
-            const params = new URLSearchParams(window.location.search);
-            currentTournamentId = params.get('tournamentId');
-            currentLobbyId = params.get('lobbyId');
-
-            if (!currentTournamentId || !currentLobbyId) {
-                document.querySelector('main').innerHTML = '<div class="text-center text-red-600 py-12">No tournament or lobby specified. <a href="tournaments.html" class="text-indigo-600 hover:underline">Go back to tournaments</a></div>';
-                return;
+        
+        function showAuthModal(showRegister = false) {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            if (showRegister) {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            } else {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('register-form').classList.add('hidden');
             }
-
-            // Wait for authentication to be ready
-            await new Promise((resolve) => {
-                const checkAuth = () => {
-                    if (firebase.auth().currentUser) {
-                        resolve();
-                    } else {
-                        setTimeout(checkAuth, 100);
-                    }
-                };
-                checkAuth();
-            });
-
-            try {
-                db = firebase.firestore();
-                await loadLobbyData();
-                // Set up real-time listener for lobby updates
-                setupLobbyListener();
-            } catch (error) {
-                console.error('Error loading lobby:', error);
+        }
+        
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('login-form-element').reset();
+            document.getElementById('register-form-element').reset();
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeModal = document.getElementById('close-modal');
+            if (closeModal) {
+                closeModal.addEventListener('click', hideAuthModal);
             }
         });
-
-        function initializeAuthentication() {
-            if (window.superSteaksGlobal) {
-                checkCurrentAuthState();
-            } else {
-                const checkSystem = setInterval(() => {
-                    if (window.superSteaksGlobal) {
-                        checkCurrentAuthState();
-                        clearInterval(checkSystem);
-                    }
-                }, 100);
-                setTimeout(() => clearInterval(checkSystem), 200);
-            }
-            setupEventListeners();
-        }
-
-        function checkCurrentAuthState() {
-            firebase.auth().onAuthStateChanged((user) => {
-                if (user) {
-                    showLoggedInState(user);
-                } else {
-                    showLoggedOutState();
+        
+        const authModal = document.getElementById('auth-modal');
+        if (authModal) {
+            authModal.addEventListener('click', (e) => {
+                if (e.target.id === 'auth-modal') {
+                    hideAuthModal();
                 }
             });
         }
 
-        function showLoggedInState(user) {
-            setTimeout(() => {
-                document.body.classList.add('auth-ready', 'logged-in');
-                document.body.classList.remove('logged-out');
-                const usernameDisplay = document.getElementById('username-display');
-                const usernameDisplayMobile = document.getElementById('username-display-mobile');
-                if ((usernameDisplay || usernameDisplayMobile) && user) {
-                    const username = user.displayName || user.email.split('@')[0];
-                    if (usernameDisplay) usernameDisplay.textContent = username;
-                    if (usernameDisplayMobile) usernameDisplayMobile.textContent = username;
-                }
-            }, 100);
+        function showResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('hidden');
         }
 
-        function showLoggedOutState() {
-            setTimeout(() => {
-                document.body.classList.add('auth-ready', 'logged-out');
-                document.body.classList.remove('logged-in');
-            }, 100);
+        function hideResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.add('hidden');
+            document.getElementById('reset-message').classList.add('hidden');
         }
 
-        function setupEventListeners() {
-            const mobileLoginBtn = document.getElementById('mobile-login-btn');
-            const mobileProfileBtn = document.getElementById('mobile-profile-btn');
-            const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
-            const profileDropdown = document.getElementById('profile-dropdown');
-            const logoutBtn = document.getElementById('logout-btn-dropdown');
-
-            if (mobileLoginBtn) {
-                mobileLoginBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    window.location.href = 'index.html';
-                });
-            }
-
-            if (mobileProfileBtn) {
-                mobileProfileBtn.addEventListener('click', (e) => {
-                    if (profileDropdown) profileDropdown.classList.toggle('hidden');
-                });
-            }
-            if (profileDropdownBtn) {
-                profileDropdownBtn.addEventListener('click', () => {
-                    if (profileDropdown) profileDropdown.classList.toggle('hidden');
-                });
-            }
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
-                    firebase.auth().signOut();
-                });
-            }
-        }
-
-        async function loadLobbyData() {
+        document.addEventListener('DOMContentLoaded', function() {
             try {
-                const user = firebase.auth().currentUser;
-                
-                if (!user) {
-                    throw new Error('User not authenticated');
+                const loginBtn = document.getElementById('login-btn');
+                const registerBtn = document.getElementById('register-btn');
+                const mobileLoginBtn = document.getElementById('mobile-login-btn');
+                const mobileProfileBtn = document.getElementById('mobile-profile-btn');
+                const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
+                const profileDropdown = document.getElementById('profile-dropdown');
+                const logoutDropdown = document.getElementById('logout-btn-dropdown');
+
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', () => {
+                        showAuthModal(false);
+                    });
                 }
 
-                // Call the getTournamentTeamVisibility Cloud Function to get properly filtered data
-                const getTournamentTeamVisibility = firebase.functions().httpsCallable('getTournamentTeamVisibility');
-                
+                if (registerBtn) {
+                    registerBtn.addEventListener('click', () => {
+                        showAuthModal(true);
+                    });
+                }
+
+                if (mobileLoginBtn) {
+                    mobileLoginBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showAuthModal(false);
+                    });
+                }
+
+                if (mobileLoginBtn) {
+                    mobileLoginBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showAuthModal(false);
+                    });
+                }
+
+                if (mobileProfileBtn) {
+                    mobileProfileBtn.addEventListener('click', (e) => {
+                        try {
+                            const isLoggedIn = document.body.classList.contains('logged-in');
+                            if (!isLoggedIn) {
+                                e.preventDefault();
+                                showAuthModal(false);
+                                return;
+                            }
+                        } catch (err) {
+                            // ignore
+                        }
+                        if (profileDropdown) profileDropdown.classList.toggle('hidden');
+                    });
+                }
+
+                if (profileDropdownBtn) {
+                    profileDropdownBtn.addEventListener('click', () => {
+                        if (profileDropdown) profileDropdown.classList.toggle('hidden');
+                    });
+                }
+
+                if (logoutDropdown) {
+                    logoutDropdown.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (window.supersteaks && typeof window.supersteaks.signOut === 'function') {
+                            window.supersteaks.signOut().then(() => {
+                                console.log('Logged out via dropdown');
+                            }).catch(err => console.error('Logout error:', err));
+                        } else {
+                            logoutUser();
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Error setting up event listeners:', err);
+            }
+        });
+    </script>
+
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div id="auth-modal-content" class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]" role="dialog" aria-modal="true">
+            <!-- Modal Close X Button -->
+            <button id="close-modal" aria-label="Close modal" type="button"
+                class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2 z-[1000002]"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email or Username</label>
+                        <input type="text" id="login-username" class="border rounded w-full py-2 px-3" placeholder="Enter your email or username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="login-password" class="border rounded w-full py-2 px-3" placeholder="Enter your password" required />
+                        <div class="text-right mt-2">
+                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:underline">Forgot Password?</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Login</button>
+                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">Need an account?</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="hidden">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Create an Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="register-email" class="border rounded w-full py-2 px-3" placeholder="Enter your email" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="register-username" class="border rounded w-full py-2 px-3" placeholder="Choose a username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="register-password" class="border rounded w-full py-2 px-3" placeholder="Create a password" required />
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Register</button>
+                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">Already have an account?</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]">
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6">Reset Password</h2>
+            <form id="reset-password-form-element">
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="reset-email" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="Enter your email address" required>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Send Reset Email</button>
+                    <button type="button" id="cancel-reset" class="text-indigo-600 hover:underline text-sm">Cancel</button>
+                </div>
+            </form>
+            <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
+            <button id="close-reset-modal" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            function closeIfOutside(e) {
                 try {
-                    const result = await getTournamentTeamVisibility({ tournamentId: currentTournamentId });
-                    const { tournament, lobby, userAssignment, visibleTeamList } = result.data;
-
-                    // Update page title and info
-                    document.getElementById('tournament-name').textContent = `${tournament.name} - ${formatLobbyLabel(currentLobbyId)}`;
-                    document.getElementById('lobby-info').textContent = `${lobby.currentCount}/${tournament.teamCount} players assigned`;
-
-                    // Display user's team
-                    if (userAssignment) {
-                        displayUserTeam(userAssignment.team);
+                    const authModal = document.getElementById('auth-modal');
+                    const resetModal = document.getElementById('reset-password-modal');
+                    const authInner = authModal ? authModal.querySelector('.modal-inner') : null;
+                    const resetInner = resetModal ? resetModal.querySelector('.modal-inner') : null;
+                    const clickedOutsideAuth = authModal && !authModal.classList.contains('hidden') && authInner && !authInner.contains(e.target);
+                    const clickedOutsideReset = resetModal && !resetModal.classList.contains('hidden') && resetInner && !resetInner.contains(e.target);
+                    if (clickedOutsideAuth) {
+                        authModal.classList.add('hidden');
+                        if (resetModal) resetModal.classList.add('hidden');
                     }
-
-                    // Update lobby status
-                    const percentFull = (lobby.currentCount / tournament.teamCount) * 100;
-                    document.getElementById('players-count').textContent = lobby.currentCount;
-                    document.getElementById('available-teams').textContent = tournament.teamCount - lobby.currentCount;
-                    document.getElementById('lobby-progress').style.width = percentFull + '%';
-                    document.getElementById('progress-text').textContent = Math.round(percentFull) + '%';
-
-                    // Load players in lobby
-                    await loadLobbyPlayers(lobby);
-
-                    // Load team fixtures
-                    if (userAssignment) {
-                        await loadTeamFixtures(userAssignment.team, tournament);
+                    if (clickedOutsideReset) {
+                        resetModal.classList.add('hidden');
                     }
-                } catch (cloudFunctionError) {
-                    // Fallback: Load data directly from Firestore (non-filtered) if Cloud Function is not available
-                    console.warn('Cloud Function getTournamentTeamVisibility not available, using fallback:', cloudFunctionError.message);
-                    
-                    const [tournamentDoc, lobbyDoc, assignmentDoc] = await Promise.all([
-                        db.collection('tournaments').doc(currentTournamentId).get(),
-                        db.collection('lobbies').doc(currentLobbyId).get(),
-                        db.collection('teamAssignments')
-                            .where('userId', '==', user.uid)
-                            .where('tournamentId', '==', currentTournamentId)
-                            .limit(1)
-                            .get()
-                    ]);
-
-                    if (!tournamentDoc.exists || !lobbyDoc.exists) {
-                        throw new Error('Tournament or lobby not found');
-                    }
-
-                    const tournament = tournamentDoc.data();
-                    const lobby = lobbyDoc.data();
-                    const userAssignment = assignmentDoc.docs[0]?.data();
-
-                    // Update page title and info
-                    document.getElementById('tournament-name').textContent = `${tournament.name} - ${formatLobbyLabel(lobby.id)}`;
-                    document.getElementById('lobby-info').textContent = `${lobby.currentCount}/${tournament.teamCount} players assigned`;
-
-                    // Display user's team
-                    if (userAssignment) {
-                        displayUserTeam(userAssignment.team);
-                    }
-
-                    // Update lobby status
-                    const percentFull = (lobby.currentCount / tournament.teamCount) * 100;
-                    document.getElementById('players-count').textContent = lobby.currentCount;
-                    document.getElementById('available-teams').textContent = tournament.teamCount - lobby.currentCount;
-                    document.getElementById('lobby-progress').style.width = percentFull + '%';
-                    document.getElementById('progress-text').textContent = Math.round(percentFull) + '%';
-
-                    // Load players in lobby
-                    await loadLobbyPlayers(lobby);
-
-                    // Load team fixtures
-                    if (userAssignment) {
-                        await loadTeamFixtures(userAssignment.team, tournament);
-                    }
+                } catch (err) {}
+            }
+            function escHandler(e) {
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    const authModal = document.getElementById('auth-modal');
+                    if (authModal && !authModal.classList.contains('hidden')) authModal.classList.add('hidden');
+                    const reset = document.getElementById('reset-password-modal');
+                    if (reset && !reset.classList.contains('hidden')) reset.classList.add('hidden');
                 }
-            } catch (error) {
-                console.error('Error loading lobby data:', error);
-                document.querySelector('main').innerHTML += '<p class="text-red-600 mt-4">Error loading lobby information</p>';
             }
-        }
-
-        function setupLobbyListener() {
-            db.collection('lobbies').doc(currentLobbyId).onSnapshot((doc) => {
-                if (doc.exists) {
-                    const lobby = doc.data();
-                    // Update counts in real-time
-                    document.getElementById('players-count').textContent = lobby.currentCount;
-                }
-            });
-        }
-
-        function displayUserTeam(teamName) {
-            // Find team data from the global list (simplified version)
-            const container = document.getElementById('your-team-container');
-            container.innerHTML = `
-                <div class="team-badge bg-indigo-500" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <div>
-                        <p class="text-2xl font-bold">${teamName.substring(0, 3).toUpperCase()}</p>
-                        <p class="text-sm">${teamName}</p>
-                    </div>
-                </div>
-                <p class="text-sm text-green-600 mt-4 font-semibold">✓ You are assigned</p>
-            `;
-        }
-
-        async function loadLobbyPlayers(lobby) {
-            try {
-                const assignments = await db.collection('teamAssignments')
-                    .where('tournamentId', '==', currentTournamentId)
-                    .where('lobbyId', '==', currentLobbyId)
-                    .get();
-
-                const playersList = document.getElementById('players-list');
-                const currentUserId = firebase.auth().currentUser.uid;
-
-                if (assignments.empty) {
-                    playersList.innerHTML = '<div class="text-center text-gray-600 py-8">No players assigned yet</div>';
-                    return;
-                }
-
-                const playersHtml = assignments.docs.map((doc) => {
-                    const assignment = doc.data();
-                    const isCurrentUser = assignment.userId === currentUserId;
-                    return `
-                        <div class="player-item bg-gray-50 rounded-lg p-4 flex justify-between items-center border-l-4 border-indigo-600">
-                            <div>
-                                <p class="font-semibold text-indigo-800">${assignment.username}</p>
-                                <p class="text-sm text-gray-600">${assignment.team}</p>
-                            </div>
-                            ${isCurrentUser ? '<span class="bg-green-200 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">You</span>' : ''}
-                        </div>
-                    `;
-                }).join('');
-
-                playersList.innerHTML = playersHtml;
-            } catch (error) {
-                console.error('Error loading players:', error);
-                document.getElementById('players-list').innerHTML = '<div class="text-red-600">Error loading players</div>';
-            }
-        }
-
-        function resolveLeagueIdForTournament(tournament) {
-            const knownLeagueIds = new Set(['premier-league', 'championship', 'league-one', 'league-two', 'champions-league']);
-
-            if (tournament?.leagueId && knownLeagueIds.has(tournament.leagueId)) {
-                return tournament.leagueId;
-            }
-
-            const searchText = [tournament?.name, tournament?.description, tournament?.rules]
-                .filter(Boolean)
-                .join(' ')
-                .toLowerCase();
-
-            if (searchText.includes('champions league') || searchText.includes('uefa champions')) {
-                return 'champions-league';
-            }
-            if (searchText.includes('premier league')) {
-                return 'premier-league';
-            }
-            if (searchText.includes('championship')) {
-                return 'championship';
-            }
-            if (searchText.includes('league one') || searchText.includes('league 1')) {
-                return 'league-one';
-            }
-            if (searchText.includes('league two') || searchText.includes('league 2')) {
-                return 'league-two';
-            }
-
-            return null;
-        }
-
-        async function loadTeamFixtures(userTeamName, tournament) {
-            try {
-                const now = new Date();
-                const leagueId = resolveLeagueIdForTournament(tournament);
-
-                if (!leagueId) {
-                    document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">Fixtures unavailable for this competition</p>';
-                    document.getElementById('previous-game-card').style.display = 'none';
-                    return;
-                }
-                
-                // Get assignments for this lobby to have player info readily available
-                const allAssignments = await db.collection('teamAssignments')
-                    .where('tournamentId', '==', currentTournamentId)
-                    .where('lobbyId', '==', currentLobbyId)
-                    .get();
-
-                const assignmentsByTeam = {};
-                allAssignments.docs.forEach(doc => {
-                    const data = doc.data();
-                    if (!assignmentsByTeam[data.team]) {
-                        assignmentsByTeam[data.team] = [];
-                    }
-                    assignmentsByTeam[data.team].push(data.username);
-                });
-
-                let allMatches = [];
-
-                // Get fixtures (upcoming games) for this tournament's league only
-                const fixturesSnapshot = await db.collection('leagues')
-                    .doc(leagueId)
-                    .collection('fixtures')
-                    .get();
-
-                fixturesSnapshot.docs.forEach(doc => {
-                    const fixture = doc.data();
-                    if (fixture.homeTeam === userTeamName || fixture.awayTeam === userTeamName) {
-                        allMatches.push({
-                            homeTeam: fixture.homeTeam,
-                            awayTeam: fixture.awayTeam,
-                            teams: [fixture.homeTeam, fixture.awayTeam],
-                            date: new Date(fixture.date + 'T' + (fixture.time || '00:00:00')),
-                            venue: fixture.venue,
-                            isCompleted: false
-                        });
-                    }
-                });
-
-                // Get results (completed games) for this tournament's league only
-                const resultsSnapshot = await db.collection('leagues')
-                    .doc(leagueId)
-                    .collection('results')
-                    .get();
-
-                resultsSnapshot.docs.forEach(doc => {
-                    const result = doc.data();
-                    if (result.homeTeam === userTeamName || result.awayTeam === userTeamName) {
-                        allMatches.push({
-                            homeTeam: result.homeTeam,
-                            awayTeam: result.awayTeam,
-                            teams: [result.homeTeam, result.awayTeam],
-                            homeScore: result.homeScore,
-                            awayScore: result.awayScore,
-                            date: new Date(result.date + 'T' + (result.time || '00:00:00')),
-                            venue: result.venue,
-                            isCompleted: true
-                        });
-                    }
-                });
-
-                if (allMatches.length === 0) {
-                    document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">No games scheduled</p>';
-                    document.getElementById('previous-game-card').style.display = 'none';
-                    return;
-                }
-
-                const upcomingMatches = allMatches
-                    .filter(match => !match.isCompleted && match.date > now)
-                    .sort((a, b) => a.date - b.date);
-
-                const completedMatches = allMatches
-                    .filter(match => match.isCompleted && match.date <= now)
-                    .sort((a, b) => b.date - a.date);
-
-                const nextGame = upcomingMatches[0] || null;
-                const previousGame = completedMatches[0] || null;
-
-                // Display next game
-                if (nextGame) {
-                    displayGameCard('next-game-content', nextGame, userTeamName, assignmentsByTeam, false);
-                } else {
-                    document.getElementById('next-game-content').innerHTML = '<p class="text-gray-600">No upcoming games</p>';
-                }
-
-                // Display previous game
-                if (previousGame) {
-                    document.getElementById('previous-game-card').style.display = 'block';
-                    displayGameCard('previous-game-content', previousGame, userTeamName, assignmentsByTeam, true);
-                } else {
-                    document.getElementById('previous-game-card').style.display = 'none';
-                }
-
-            } catch (error) {
-                console.error('Error loading team fixtures:', error);
-                document.getElementById('next-game-content').innerHTML = '<p class="text-red-600">Error loading fixtures</p>';
-            }
-        }
-
-        function displayGameCard(containerId, match, userTeamName, assignmentsByTeam, showScore) {
-            // Find opponent team
-            const opponentTeam = match.teams.find(t => t !== userTeamName);
-            
-            // Get player lists for each team from the assignments
-            const yourTeamPlayers = assignmentsByTeam[userTeamName] || [];
-            const opponentTeamPlayers = assignmentsByTeam[opponentTeam] || [];
-
-            // Format date
-            const dateStr = match.date.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric',
-                year: 'numeric'
-            });
-
-            // Score display
-            let scoreHtml = '';
-            if (showScore && match.homeScore !== undefined && match.awayScore !== undefined) {
-                const homeTeam = match.homeTeam || match.teams[0];
-                const isUserTeamHome = homeTeam === userTeamName;
-                const userTeamScore = isUserTeamHome ? match.homeScore : match.awayScore;
-                const opponentScore = isUserTeamHome ? match.awayScore : match.homeScore;
-                scoreHtml = `<div class="text-center my-4"><span class="text-3xl font-bold text-indigo-600">${userTeamScore} - ${opponentScore}</span></div>`;
-            }
-
-            const html = `
-                <div class="space-y-4">
-                    <div class="text-center">
-                        <p class="text-sm text-gray-600 mb-2">${dateStr}</p>
-                        <p class="text-xl font-bold text-indigo-800">${userTeamName} vs ${opponentTeam}</p>
-                        ${scoreHtml}
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Your Team -->
-                        <div class="border border-green-200 rounded p-3 bg-white">
-                            <p class="font-semibold text-green-700 text-sm mb-2">${userTeamName}</p>
-                            <div class="space-y-1 text-sm">
-                                ${yourTeamPlayers.length > 0 
-                                    ? yourTeamPlayers.map(player => `<p class="text-gray-700">• ${player}</p>`).join('')
-                                    : '<p class="text-gray-500 italic">No players</p>'
-                                }
-                            </div>
-                        </div>
-                        
-                        <!-- Opponent Team -->
-                        <div class="border border-orange-200 rounded p-3 bg-white">
-                            <p class="font-semibold text-orange-700 text-sm mb-2">${opponentTeam}</p>
-                            <div class="space-y-1 text-sm">
-                                ${opponentTeamPlayers.length > 0 
-                                    ? opponentTeamPlayers.map(player => `<p class="text-gray-700">• ${player}</p>`).join('')
-                                    : '<p class="text-gray-500 italic">No players</p>'
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById(containerId).innerHTML = html;
-        }
+            document.addEventListener('click', closeIfOutside, true);
+            document.addEventListener('keydown', escHandler, true);
+        })();
     </script>
 </body>
 </html>

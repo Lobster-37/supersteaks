@@ -8,14 +8,32 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-functions-compat.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperSteaks - Fixtures & Results</title>
-    <meta name="description" content="Live fixtures, results, and league tables for the major competitions on SuperSteaks.">
+    <meta name="google-adsense-account" content="ca-pub-7338242306259977">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7338242306259977" crossorigin="anonymous"></script>
+    <title>SuperSteaks - Free Random Team Assignment Draws</title>
+    <meta name="description" content="Join SuperSteaks for free random team assignment draws. Get assigned teams from major sports competitions and win prizes if your team wins!">
+    <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
+    <!-- Cache Control -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
     <link href="css/tailwind-2.2.19.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // Verify CSS loaded
+        console.log('TailwindCSS CSS loading...');
+        setTimeout(() => {
+            const testEl = document.createElement('div');
+            testEl.className = 'bg-red-500';
+            document.body.appendChild(testEl);
+            const styles = getComputedStyle(testEl);
+            if (styles.backgroundColor === 'rgb(239, 68, 68)' || styles.backgroundColor.includes('239')) {
+                console.log('✅ TailwindCSS CSS loaded successfully');
+            } else {
+                console.error('❌ TailwindCSS CSS failed to load');
+            }
+            document.body.removeChild(testEl);
+        }, 1000);
+    </script>
     <script>
         // Firebase config and initialization (must be after CDN scripts)
         const firebaseConfig = {
@@ -23,21 +41,24 @@
             authDomain: "supersteaks-240f7.firebaseapp.com",
             projectId: "supersteaks-240f7",
             storageBucket: "supersteaks-240f7.appspot.com",
-            messagingSenderId: "397886230849",
-            appId: "1:397886230849:web:e17e36fa33e28c26e5e0f5",
-            databaseURL: "https://supersteaks-240f7.firebaseio.com"
+            messagingSenderId: "325643072121",
+            appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
         };
         try {
             firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully in head');
             window.firebaseReady = true;
         } catch (error) {
             console.error('Firebase initialization failed:', error);
         }
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- User Account System -->
     <style>
-        html { overflow-y: scroll; scrollbar-gutter: stable; }
+        /* Ensure only the currently-active nav link is highlighted (match index) */
         .nav-link { background-color: transparent !important; color: inherit !important; display: inline-flex; align-items: center; line-height: 1.25rem; }
         .nav-link[aria-current="page"] { background-color: #4f46e5 !important; color: #ffffff !important; }
+        /* Match Tailwind text-yellow-400 (#fbbf24) used in SUPERSTEAKS heading */
         .nav-link.enter-now { color: #fbbf24 !important; }
         nav[aria-label="Main navigation"] { position: relative; z-index: 40; }
         nav[aria-label="Main navigation"] ul { align-items: center; }
@@ -45,47 +66,6 @@
         summary.nav-link { list-style: none; margin: 0 !important; }
         summary.nav-link::-webkit-details-marker { display: none; }
         details.more-nav-menu { margin: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
-        @media (max-width: 639px) {
-            header .container { padding-top: 0 !important; padding-bottom: 0 !important; }
-            header .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
-            nav[aria-label="Main navigation"] { margin-top: 0 !important; }
-            .flex.flex-row.items-center.justify-center.sm\:block { margin-bottom: 0 !important; }
-        }
-        @media (max-width: 900px) and (orientation: landscape) {
-            .mobile-logo { height: 2.75rem !important; }
-            .mobile-title { font-size: 1.5rem !important; line-height: 2rem !important; }
-        }
-        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
-        .logged-out #auth-buttons { display: block !important; }
-        .logged-out #user-info { display: none !important; }
-        .logged-out #auth-skeleton { display: none !important; }
-        .logged-out #mobile-auth-buttons { display: none !important; }
-        .logged-in #mobile-auth-buttons { display: none !important; }
-        @media (max-width: 639px) { .logged-out #mobile-auth-buttons { display: block !important; } }
-        @media (max-width: 639px) { #auth-skeleton { display: none !important; } }
-        .logged-in #auth-buttons { display: none !important; }
-        .logged-in #user-info { display: block !important; }
-        .logged-in #auth-skeleton { display: none !important; }
-        #mobile-welcome { display: none !important; }
-        #user-info { transition: opacity 0.2s ease-in-out; }
-        @media (max-width: 639px) {
-            #mobile-welcome { display: block !important; visibility: hidden; opacity: 0; min-height: 28px; margin-top: 8px !important; margin-bottom: 8px !important; transition: opacity 0.2s ease-in-out; }
-            .logged-in #mobile-welcome { visibility: visible; opacity: 1; }
-        }
-        body:not(.auth-ready) #auth-buttons { display: none !important; }
-        body:not(.auth-ready) #user-info { display: none !important; }
-        body:not(.auth-ready) #auth-skeleton { display: block !important; }
-        body:not(.auth-ready) #mobile-auth-buttons { display: none !important; }
-        #user-account-section { min-height: 52px; width: 176px; flex-shrink: 0; }
-        .skeleton { background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; }
-        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        /* Fixtures tabs and animations */
-        .tab-active { border-bottom: 3px solid #ef4444; color: #ef4444; font-weight: 600; }
-        .league-tab-active { background-color: #ef4444; color: white; }
-        .fade-in { animation: fadeIn 0.3s ease-in; }
-        #loading-state, #content-container { min-height: 520px; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
     <script src="js/supersteaks-global.js?v=20260301010"></script>
 </head>
@@ -109,7 +89,9 @@
                     </div>
                 </div>
                 <div class="flex flex-col items-end space-y-3">
+                    <!-- User Account Section -->
                     <div id="user-account-section">
+                        <!-- Desktop: Skeleton loading and login/register buttons -->
                         <div class="hidden sm:block">
                             <div id="auth-skeleton" class="text-right">
                                 <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
@@ -126,6 +108,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Mobile: Login button (logged out) -->
                         <div id="mobile-auth-buttons" class="sm:hidden absolute top-4 right-4 hidden">
                             <button id="mobile-login-btn" aria-label="Login" class="bg-yellow-500 text-indigo-800 p-2 rounded-full text-xs font-semibold shadow focus:outline-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -133,6 +116,7 @@
                                 </svg>
                             </button>
                         </div>
+                        <!-- User info (when logged in) - moved to top right -->
                         <div id="user-info" class="hidden absolute top-4 right-4">
                             <p class="hidden sm:block text-yellow-400 font-semibold text-sm mb-1">Welcome, <span id="username-display">User</span>!</p>
                             <div class="relative">
@@ -152,13 +136,20 @@
                 </div>
             </div>
             <nav aria-label="Main navigation" class="mt-4">
+                <!-- Mobile welcome message -->
                 <div id="mobile-welcome" class="hidden text-left mb-2">
                     <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display-mobile">User</span>!</p>
                 </div>
                 <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
-                    <li><a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a></li>
-                    <li><a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a></li>
-                    <li><a href="fixtures.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base font-semibold">Fixtures &amp; Results</a></li>
+                    <li>
+                        <a href="index.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
+                    </li>
+                    <li>
+                        <a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a>
+                    </li>
+                    <li>
+                        <a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a>
+                    </li>
                     <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
                     <li><a href="about.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
                 </ul>
@@ -166,99 +157,660 @@
         </div>
     </header>
 
-    <!-- Main Content -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        @media (max-width: 639px) {
+            header .container {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+            header .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 0 !important;
+            }
+            nav[aria-label="Main navigation"] {
+                margin-top: 0 !important;
+            }
+            .flex.flex-row.items-center.justify-center.sm\:block {
+                margin-bottom: 0 !important;
+            }
+        }
+        @media (max-width: 900px) and (orientation: landscape) {
+            .mobile-logo { height: 2.75rem !important; }
+            .mobile-title { font-size: 1.5rem !important; line-height: 2rem !important; }
+        }
+        .nav-link:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); }
+        /* Authentication state management with skeleton loading */
+        .logged-out #auth-buttons { display: block !important; }
+        .logged-out #user-info { display: none !important; }
+        .logged-out #auth-skeleton { display: none !important; }
+        .logged-out #mobile-auth-buttons { display: none !important; }
+        .logged-in #mobile-auth-buttons { display: none !important; }
+        @media (max-width: 639px) {
+            .logged-out #mobile-auth-buttons { display: block !important; }
+        }
+        @media (max-width: 639px) {
+            #auth-skeleton {
+                display: none !important;
+            }
+        }
+        .logged-in #auth-buttons { display: none !important; }
+        .logged-in #user-info { display: block !important; }
+        .logged-in #auth-skeleton { display: none !important; }
+        /* Mobile welcome message visibility */
+        #mobile-welcome { display: none !important; }
+        #user-info { transition: opacity 0.2s ease-in-out; }
+        @media (max-width: 639px) {
+            #mobile-welcome { display: block !important; visibility: hidden; opacity: 0; min-height: 28px; margin-top: 8px !important; margin-bottom: 8px !important; transition: opacity 0.2s ease-in-out; }
+            .logged-in #mobile-welcome { visibility: visible; opacity: 1; }
+        }
+        /* Force skeleton loading state initially - override everything */
+        body:not(.auth-ready) #auth-buttons { display: none !important; }
+        body:not(.auth-ready) #user-info { display: none !important; }
+        body:not(.auth-ready) #auth-skeleton { display: block !important; }
+        body:not(.auth-ready) #mobile-auth-buttons { display: none !important; }
+        /* Reserve exact space to prevent layout shift */
+        #user-account-section {
+            min-height: 52px; /* Reserve space for 2 lines + spacing */
+            width: 176px; /* Fixed width to match content */
+            flex-shrink: 0;
+        }
+        /* Skeleton loading animation */
+        .skeleton { 
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        /* Mobile banner typography/layout to match contests page */
+        @media (max-width: 639px) {
+            /* Tighten top banner spacing */
+            main .text-center { margin-top: 2rem !important; margin-bottom: 2rem !important; }
+            /* h2 sizing and weight to mirror contests banner */
+            main h2:first-of-type { font-size: 1.875rem !important; line-height: 2.25rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; color: #1f2937 !important; }
+            /* paragraph under banner */
+            main h2:first-of-type + p { font-size: 1.125rem !important; line-height: 1.75rem !important; color: #4b5563 !important; }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAuthentication();
+        });
+
+        function initializeAuthentication() {
+            console.log('Starting Firebase authentication...');
+            if (window.superSteaksGlobal) {
+                window.supersteaks = window.superSteaksGlobal;
+                console.log('Using existing superSteaksGlobal instance');
+                checkCurrentAuthState();
+            } else if (typeof SuperSteaks !== 'undefined') {
+                window.supersteaks = new SuperSteaks();
+                console.log('Created new SuperSteaks instance');
+                checkCurrentAuthState();
+            } else {
+                console.log('Waiting for SuperSteaks system to initialize...');
+                const checkSystem = setInterval(() => {
+                    if (window.superSteaksGlobal) {
+                        window.supersteaks = window.superSteaksGlobal;
+                        console.log('SuperSteaks global system now available');
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
+                    } else if (typeof SuperSteaks !== 'undefined') {
+                        window.supersteaks = new SuperSteaks();
+                        console.log('SuperSteaks class now available');
+                        checkCurrentAuthState();
+                        clearInterval(checkSystem);
+                    }
+                }, 100);
+                setTimeout(() => {
+                    if (!window.supersteaks) {
+                        console.log('SuperSteaks not available after timeout, showing login buttons');
+                        showLoggedOutState();
+                        clearInterval(checkSystem);
+                    }
+                }, 200);
+            }
+            setupEventListeners();
+        }
+
+        function checkCurrentAuthState() {
+            try {
+                firebase.auth().onAuthStateChanged((user) => {
+                    try {
+                        if (user) {
+                            console.log('Auth state determined - User logged in:', user.email);
+                            showLoggedInState(user);
+                        } else {
+                            console.log('Auth state determined - User logged out');
+                            showLoggedOutState();
+                        }
+                    } catch (error) {
+                        console.error('Error in auth state change handler:', error);
+                        showLoggedOutState();
+                    }
+                }, (error) => {
+                    console.error('Firebase auth state listener error:', error);
+                    showLoggedOutState();
+                });
+            } catch (error) {
+                console.error('Error setting up auth state listener:', error);
+                showLoggedOutState();
+            }
+        }
+
+        function showLoggedInState(user) {
+            console.log('Setting logged-in state for user:', user.email);
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-in');
+                document.body.classList.remove('logged-out');
+                const usernameDisplay = document.getElementById('username-display');
+                const usernameDisplayMobile = document.getElementById('username-display-mobile');
+                if ((usernameDisplay || usernameDisplayMobile) && user) {
+                    let username = user.displayName;
+                    if (!username && user.email) {
+                        username = user.email.split('@')[0];
+                    }
+                    if (username) {
+                        if (usernameDisplay) usernameDisplay.textContent = username;
+                        if (usernameDisplayMobile) usernameDisplayMobile.textContent = username;
+                        console.log('Username display updated to:', username);
+                    }
+                }
+            }, 100);
+        }
+
+        function showLoggedOutState() {
+            console.log('Setting logged-out state');
+            setTimeout(() => {
+                document.body.classList.add('auth-ready', 'logged-out');
+                document.body.classList.remove('logged-in');
+            }, 100);
+        }
+
+        function setupEventListeners() {
+            const registerBtn = document.getElementById('register-btn');
+            if (registerBtn) {
+                registerBtn.addEventListener('click', () => {
+                    document.getElementById('auth-modal').classList.remove('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                    document.getElementById('login-form').classList.add('hidden');
+                });
+            }
+            setupModalControls();
+        }
+
+        function setupModalControls() {
+            const closeModalBtns = document.querySelectorAll('#close-modal, #close-reset-modal');
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    var authModal = document.getElementById('auth-modal');
+                    var resetModal = document.getElementById('reset-password-modal');
+                    if (authModal) authModal.classList.add('hidden');
+                    if (resetModal) resetModal.classList.add('hidden');
+                });
+            });
+            const authModal = document.getElementById('auth-modal');
+            const resetModal = document.getElementById('reset-password-modal');
+            [authModal, resetModal].forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        try {
+                            const inner = modal.querySelector('.modal-inner');
+                            if (e && (e.target === modal || (inner && !inner.contains(e.target)))) {
+                                modal.classList.add('hidden');
+                            }
+                        } catch (err) {
+                            if (e && e.target === modal) {
+                                modal.classList.add('hidden');
+                            }
+                        }
+                    });
+                }
+            });
+            const switchToRegister = document.getElementById('switch-to-register');
+            const switchToLogin = document.getElementById('switch-to-login');
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const cancelReset = document.getElementById('cancel-reset');
+            const closeResetModal = document.getElementById('close-reset-modal');
+            const resetForm = document.getElementById('reset-password-form-element');
+            if (switchToRegister) {
+                switchToRegister.addEventListener('click', () => {
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                });
+            }
+            if (switchToLogin) {
+                switchToLogin.addEventListener('click', () => {
+                    document.getElementById('register-form').classList.add('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                });
+            }
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', showResetPasswordModal);
+            }
+            if (cancelReset) {
+                cancelReset.addEventListener('click', () => {
+                    document.getElementById('reset-password-modal').classList.add('hidden');
+                    document.getElementById('auth-modal').classList.remove('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                    document.getElementById('register-form').classList.add('hidden');
+                });
+            }
+            if (closeResetModal) {
+                closeResetModal.addEventListener('click', hideResetPasswordModal);
+            }
+            if (resetForm) {
+                resetForm.addEventListener('submit', handlePasswordReset);
+            }
+            const loginForm = document.getElementById('login-form-element');
+            const registerForm = document.getElementById('register-form-element');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+            }
+            if (registerForm) {
+                registerForm.addEventListener('submit', handleRegister);
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            console.log('Attempting login for:', email);
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
+            }
+            window.supersteaks.login(email, password)
+                .then(result => {
+                    if (result.success) {
+                        console.log('Login successful:', result.user);
+                        document.getElementById('auth-modal').classList.add('hidden');
+                        document.getElementById('login-form-element').reset();
+                    } else {
+                        console.error('Login failed:', result.error);
+                        alert('Login failed: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Login failed:', error);
+                    alert('Login failed: ' + error.message);
+                });
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            console.log('Attempting registration for:', email, 'with username:', username);
+            if (!username) {
+                alert('Username is required. Please enter a username.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters long.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (username.length > 20) {
+                alert('Username must be 20 characters or less.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
+                alert('Username can only contain letters, numbers, dots, underscores, and hyphens.');
+                document.getElementById('register-username').focus();
+                return;
+            }
+            if (!email) {
+                alert('Email is required.');
+                document.getElementById('register-email').focus();
+                return;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                document.getElementById('register-email').focus();
+                return;
+            }
+            if (!password) {
+                alert('Password is required.');
+                document.getElementById('register-password').focus();
+                return;
+            }
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters long.');
+                document.getElementById('register-password').focus();
+                return;
+            }
+            if (!window.supersteaks) {
+                alert('Authentication system not available. Please try again later.');
+                return;
+            }
+            window.supersteaks.register(email, password, username)
+                .then(result => {
+                    if (result.success) {
+                        console.log('Registration successful:', result.user);
+                        document.getElementById('auth-modal').classList.add('hidden');
+                        document.getElementById('register-form-element').reset();
+                    } else {
+                        console.error('Registration failed:', result.error);
+                        alert('Registration failed: ' + result.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Registration failed:', error);
+                    alert('Registration failed: ' + error.message);
+                });
+        }
+
+        function handlePasswordReset(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
+            }
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Reset email sent! Please check your inbox.';
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-red-100', 'text-red-700');
+                    msg.classList.add('bg-green-100', 'text-green-700');
+                })
+                .catch((error) => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Error: ' + error.message;
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-green-100', 'text-green-700');
+                    msg.classList.add('bg-red-100', 'text-red-700');
+                });
+        }
+    </script>
+
+    <!-- Main Content Area - Index Page (banner aligned to contests) -->
     <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
         <header class="text-center mt-8 mb-8 sm:mt-12 sm:mb-12">
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">Fixtures &amp; Results</h2>
-            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">Live fixtures, results, and league tables for major competitions on SuperSteaks.</p>
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">Current SuperSteaks Draws</h2>
+            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">All entries are <strong>FREE</strong> for our launch period! Join the draw, get randomly assigned a team, and win if your team succeeds. Tournament winners receive <strong>£5</strong>.</p>
         </header>
-        <div class="bg-white rounded-lg shadow-lg p-6">
-
-            <!-- League Tabs -->
-            <div class="flex flex-wrap gap-2 mb-6 border-b pb-4">
-                <button class="league-tab px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition" data-league="premier-league">
-                    Premier League
-                </button>
-                <button class="league-tab px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition" data-league="championship">
-                    Championship
-                </button>
-                <button class="league-tab px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition" data-league="league-one">
-                    League One
-                </button>
-                <button class="league-tab px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition" data-league="league-two">
-                    League Two
-                </button>
-                <button class="league-tab px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition" data-league="champions-league">
-                    Champions League
-                </button>
+        <section class="text-left bg-white p-4 sm:p-6 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
+            <div class="mt-2 sm:mt-4 text-center">
+                <a href="tournaments.html" class="relative z-0 inline-block bg-yellow-500 text-indigo-800 font-extrabold py-3 sm:py-4 px-8 sm:px-12 rounded-full text-lg sm:text-xl shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50">
+                    🎲 Get Your Random Team Assignment!
+                </a>
             </div>
-
-            <!-- View Tabs -->
-            <div class="flex space-x-6 mb-6 border-b">
-                <button class="view-tab px-4 py-2 transition" data-view="fixtures">
-                    Fixtures
-                </button>
-                <button class="view-tab px-4 py-2 hover:text-red-500 transition" data-view="results">
-                    Results
-                </button>
-                <button class="view-tab tab-active px-4 py-2 hover:text-red-500 transition" data-view="table">
-                    Table
-                </button>
-            </div>
-
-            <!-- Loading State -->
-            <div id="loading-state" class="text-center py-12">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-red-600"></div>
-                <p class="mt-4 text-gray-600">Loading data...</p>
-            </div>
-
-            <!-- Content Container -->
-            <div id="content-container" class="hidden">
-                <!-- Fixtures View -->
-                <div id="fixtures-view" class="hidden fade-in">
-                    <div id="fixtures-list" class="space-y-3">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
+            <div class="mt-8 sm:mt-12 grid sm:grid-cols-3 gap-4 sm:gap-6">
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🎲 Random Assignment</h3>
+                    <p class="text-sm sm:text-base text-gray-600">We randomly assign you a team from competitions like Champions League, Premier League, and more. No choosing — it's all luck!</p>
                 </div>
-
-                <!-- Results View -->
-                <div id="results-view" class="hidden fade-in">
-                    <div id="results-list" class="space-y-3">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🏆 Support Your Team</h3>
+                    <p class="text-sm sm:text-base text-gray-600">Once assigned, cheer for your team throughout the competition. If your team wins the tournament, you receive <strong>£5</strong>.</p>
                 </div>
-
-                <!-- Table View -->
-                <div id="table-view" class="fade-in">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Pos</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Team</th>
-                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">P</th>
-                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">W</th>
-                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">D</th>
-                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">L</th>
-                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">GF</th>
-                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">GA</th>
-                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">GD</th>
-                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Pts</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body" class="bg-white divide-y divide-gray-200">
-                                <!-- Will be populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
+                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🥇 Free to Join</h3>
+                    <p class="text-sm sm:text-base text-gray-600">All our random team draws are completely free to enter. Sign up and see which team you get!</p>
                 </div>
             </div>
-
-            <!-- Last Updated -->
-            <p id="last-updated" class="text-sm text-gray-500 mt-6 text-right"></p>
-        </div>
+        </section>
     </main>
 
-    <script src="js/fixtures.js?v=20260224001"></script>
+    <!-- Footer -->
+    <footer class="bg-indigo-900 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests.</p>
+            <p class="mt-2"><a href="privacy-policy.html" class="text-white hover:text-indigo-300">Privacy Policy</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // ===== USER ACCOUNT SYSTEM =====
+        
+        async function logoutUser() {
+            if (window.superSteaksGlobal) {
+                const result = await window.superSteaksGlobal.signOut();
+                if (result.success) {
+                    console.log('User logged out successfully');
+                } else {
+                    console.error('Logout failed:', result.error);
+                }
+            }
+        }
+        
+        function showAuthModal(showRegister = false) {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            if (showRegister) {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            } else {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('register-form').classList.add('hidden');
+            }
+        }
+        
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('login-form-element').reset();
+            document.getElementById('register-form-element').reset();
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeModal = document.getElementById('close-modal');
+            if (closeModal) {
+                closeModal.addEventListener('click', hideAuthModal);
+            }
+        });
+        
+        const authModal = document.getElementById('auth-modal');
+        if (authModal) {
+            authModal.addEventListener('click', (e) => {
+                if (e.target.id === 'auth-modal') {
+                    hideAuthModal();
+                }
+            });
+        }
+
+        function showResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function hideResetPasswordModal() {
+            document.getElementById('reset-password-modal').classList.add('hidden');
+            document.getElementById('reset-message').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const loginBtn = document.getElementById('login-btn');
+                const registerBtn = document.getElementById('register-btn');
+                const mobileLoginBtn = document.getElementById('mobile-login-btn');
+                const mobileProfileBtn = document.getElementById('mobile-profile-btn');
+                const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
+                const profileDropdown = document.getElementById('profile-dropdown');
+                const logoutDropdown = document.getElementById('logout-btn-dropdown');
+
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', () => {
+                        showAuthModal(false);
+                    });
+                }
+
+                if (registerBtn) {
+                    registerBtn.addEventListener('click', () => {
+                        showAuthModal(true);
+                    });
+                }
+
+                if (mobileLoginBtn) {
+                    mobileLoginBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showAuthModal(false);
+                    });
+                }
+
+                if (mobileLoginBtn) {
+                    mobileLoginBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showAuthModal(false);
+                    });
+                }
+
+                if (mobileProfileBtn) {
+                    mobileProfileBtn.addEventListener('click', (e) => {
+                        try {
+                            const isLoggedIn = document.body.classList.contains('logged-in');
+                            if (!isLoggedIn) {
+                                e.preventDefault();
+                                showAuthModal(false);
+                                return;
+                            }
+                        } catch (err) {
+                            // ignore
+                        }
+                        if (profileDropdown) profileDropdown.classList.toggle('hidden');
+                    });
+                }
+
+                if (profileDropdownBtn) {
+                    profileDropdownBtn.addEventListener('click', () => {
+                        if (profileDropdown) profileDropdown.classList.toggle('hidden');
+                    });
+                }
+
+                if (logoutDropdown) {
+                    logoutDropdown.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (window.supersteaks && typeof window.supersteaks.signOut === 'function') {
+                            window.supersteaks.signOut().then(() => {
+                                console.log('Logged out via dropdown');
+                            }).catch(err => console.error('Logout error:', err));
+                        } else {
+                            logoutUser();
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Error setting up event listeners:', err);
+            }
+        });
+    </script>
+
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div id="auth-modal-content" class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]" role="dialog" aria-modal="true">
+            <!-- Modal Close X Button -->
+            <button id="close-modal" aria-label="Close modal" type="button"
+                class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2 z-[1000002]"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
+                <form id="login-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email or Username</label>
+                        <input type="text" id="login-username" class="border rounded w-full py-2 px-3" placeholder="Enter your email or username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="login-password" class="border rounded w-full py-2 px-3" placeholder="Enter your password" required />
+                        <div class="text-right mt-2">
+                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:underline">Forgot Password?</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Login</button>
+                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">Need an account?</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="hidden">
+                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Create an Account</h2>
+                <form id="register-form-element">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="register-email" class="border rounded w-full py-2 px-3" placeholder="Enter your email" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                        <input type="text" id="register-username" class="border rounded w-full py-2 px-3" placeholder="Choose a username" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                        <input type="password" id="register-password" class="border rounded w-full py-2 px-3" placeholder="Create a password" required />
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Register</button>
+                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">Already have an account?</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
+        <div class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]">
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6">Reset Password</h2>
+            <form id="reset-password-form-element">
+                <div class="mb-4">
+                    <label class="block text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="reset-email" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="Enter your email address" required>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Send Reset Email</button>
+                    <button type="button" id="cancel-reset" class="text-indigo-600 hover:underline text-sm">Cancel</button>
+                </div>
+            </form>
+            <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
+            <button id="close-reset-modal" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2"
+                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            function closeIfOutside(e) {
+                try {
+                    const authModal = document.getElementById('auth-modal');
+                    const resetModal = document.getElementById('reset-password-modal');
+                    const authInner = authModal ? authModal.querySelector('.modal-inner') : null;
+                    const resetInner = resetModal ? resetModal.querySelector('.modal-inner') : null;
+                    const clickedOutsideAuth = authModal && !authModal.classList.contains('hidden') && authInner && !authInner.contains(e.target);
+                    const clickedOutsideReset = resetModal && !resetModal.classList.contains('hidden') && resetInner && !resetInner.contains(e.target);
+                    if (clickedOutsideAuth) {
+                        authModal.classList.add('hidden');
+                        if (resetModal) resetModal.classList.add('hidden');
+                    }
+                    if (clickedOutsideReset) {
+                        resetModal.classList.add('hidden');
+                    }
+                } catch (err) {}
+            }
+            function escHandler(e) {
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    const authModal = document.getElementById('auth-modal');
+                    if (authModal && !authModal.classList.contains('hidden')) authModal.classList.add('hidden');
+                    const reset = document.getElementById('reset-password-modal');
+                    if (reset && !reset.classList.contains('hidden')) reset.classList.add('hidden');
+                }
+            }
+            document.addEventListener('click', closeIfOutside, true);
+            document.addEventListener('keydown', escHandler, true);
+        })();
+    </script>
 </body>
 </html>
