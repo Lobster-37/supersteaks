@@ -243,16 +243,18 @@ class SuperSteaksGlobal {
                             min-height: 0;
                             margin-top: 0 !important;
                             margin-bottom: 0 !important;
+                            padding: 0 !important;
                             transition: opacity 0.2s ease-in-out;
                         }
 
                         .logged-in #mobile-welcome {
-                            display: block !important;
+                            display: none !important;
                             visibility: visible;
                             opacity: 1;
-                            min-height: 28px;
-                            margin-top: 4px !important;
-                            margin-bottom: 4px !important;
+                            min-height: 0;
+                            margin-top: 0 !important;
+                            margin-bottom: 0 !important;
+                            padding: 0 !important;
                         }
                     }
                 `;
