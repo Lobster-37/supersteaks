@@ -64,6 +64,7 @@ class SuperSteaksGlobal {
         this.firestore = null;
         this.currentUser = null;
         this.initialized = false;
+        this.normalizeMainNav();
         
         // Initialize Firebase services
         this.init();
@@ -71,6 +72,62 @@ class SuperSteaksGlobal {
         this.initProfileDropdownCloseBehavior();
         this.enforceFixturesHeaderParity();
         this.initGlobalMoreMenu();
+    }
+
+    normalizeMainNav() {
+        const setup = () => {
+            try {
+                const navList = document.querySelector('nav[aria-label="Main navigation"] ul');
+                if (!navList) return;
+
+                const appInfoLinks = Array.from(navList.querySelectorAll('a')).filter((link) => {
+                    return (link.textContent || '').trim().toLowerCase() === 'app info';
+                });
+                appInfoLinks.forEach((link) => {
+                    const item = link.closest('li');
+                    if (item) item.remove();
+                });
+
+                const hasHowItWorks = Array.from(navList.querySelectorAll('a')).some((link) => {
+                    const href = (link.getAttribute('href') || '').toLowerCase();
+                    return href.includes('rules.html');
+                });
+
+                if (!hasHowItWorks) {
+                    const listItem = document.createElement('li');
+                    const anchor = document.createElement('a');
+                    anchor.href = 'rules.html';
+                    anchor.textContent = 'How It Works';
+
+                    const templateLink = navList.querySelector('a.nav-link');
+                    if (templateLink) {
+                        anchor.className = templateLink.className;
+                    } else {
+                        anchor.className = 'nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base';
+                    }
+
+                    listItem.appendChild(anchor);
+
+                    const moreLink = Array.from(navList.querySelectorAll('a')).find((link) => {
+                        return (link.textContent || '').trim().toLowerCase() === 'more';
+                    });
+                    const moreItem = moreLink ? moreLink.closest('li') : null;
+                    if (moreItem) {
+                        navList.insertBefore(listItem, moreItem);
+                    } else {
+                        navList.appendChild(listItem);
+                    }
+                }
+            } catch (error) {
+                console.warn('Main nav normalization failed:', error);
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setup, { once: true });
+        } else {
+            setup();
+        }
     }
     
 
