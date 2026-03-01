@@ -343,7 +343,6 @@ class SuperSteaksGlobal {
                     menu.setAttribute('role', 'menu');
                     menu.setAttribute('aria-hidden', 'true');
                     menu.innerHTML = `
-                        <a href="how-to-play.html" role="menuitem">Get the App</a>
                         <a href="faq.html" role="menuitem">FAQ</a>
                         <a href="about.html" role="menuitem">About</a>
                         <a href="contact.html" role="menuitem">Contact</a>
