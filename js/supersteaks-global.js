@@ -277,6 +277,8 @@ class SuperSteaksGlobal {
             try {
                 const nav = document.querySelector('nav[aria-label="Main navigation"]');
                 if (!nav) return;
+                const navList = nav.querySelector('ul');
+                if (!navList) return;
 
                 const moreLinks = Array.from(nav.querySelectorAll('a')).filter((link) => {
                     return link.textContent && link.textContent.trim().toLowerCase() === 'more';
@@ -289,28 +291,42 @@ class SuperSteaksGlobal {
                     style.id = 'supersteaks-global-more-style';
                     style.textContent = `
                         #supersteaks-global-more-menu {
-                            position: fixed;
-                            z-index: 80;
-                            width: 14rem;
-                            max-width: calc(100vw - 1rem);
+                            position: relative;
+                            z-index: 40;
+                            width: 100%;
+                            margin-top: 0.5rem;
+                            padding: 0.6rem 0.75rem;
                             background: #ffffff;
                             color: #1f2937;
                             border: 1px solid #e5e7eb;
                             border-radius: 0.5rem;
-                            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
-                            overflow: hidden;
+                            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+                            display: flex;
+                            flex-wrap: wrap;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.5rem;
                         }
                         #supersteaks-global-more-menu.hidden {
                             display: none !important;
                         }
                         #supersteaks-global-more-menu a {
-                            display: block;
-                            padding: 0.55rem 0.9rem;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 0.45rem 0.85rem;
                             font-size: 0.875rem;
                             line-height: 1.25rem;
+                            border-radius: 9999px;
+                            white-space: nowrap;
                         }
                         #supersteaks-global-more-menu a:hover {
                             background: #f3f4f6;
+                        }
+                        @media (max-width: 639px) {
+                            #supersteaks-global-more-menu {
+                                justify-content: flex-start;
+                            }
                         }
                     `;
                     (document.head || document.documentElement).appendChild(style);
@@ -329,22 +345,21 @@ class SuperSteaksGlobal {
                         <a href="about.html" role="menuitem">About</a>
                         <a href="contact.html" role="menuitem">Contact</a>
                     `;
-                    document.body.appendChild(menu);
+                    nav.appendChild(menu);
+                } else if (menu.parentElement !== nav) {
+                    nav.appendChild(menu);
                 }
 
                 const closeMenu = () => {
                     menu.classList.add('hidden');
                     menu.setAttribute('aria-hidden', 'true');
+                    moreLinks.forEach((link) => link.setAttribute('aria-expanded', 'false'));
                 };
 
-                const openMenu = (trigger) => {
-                    const rect = trigger.getBoundingClientRect();
-                    const menuWidth = 224;
-                    const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8));
-                    menu.style.top = `${Math.round(rect.bottom + 8)}px`;
-                    menu.style.left = `${Math.round(left)}px`;
+                const openMenu = () => {
                     menu.classList.remove('hidden');
                     menu.setAttribute('aria-hidden', 'false');
+                    moreLinks.forEach((link) => link.setAttribute('aria-expanded', 'true'));
                 };
 
                 const toggleFromTrigger = (event) => {
@@ -354,7 +369,7 @@ class SuperSteaksGlobal {
                     if (isOpen) {
                         closeMenu();
                     } else {
-                        openMenu(event.currentTarget);
+                        openMenu();
                     }
                 };
 
