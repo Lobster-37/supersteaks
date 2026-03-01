@@ -10,8 +10,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-adsense-account" content="ca-pub-7338242306259977">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7338242306259977" crossorigin="anonymous"></script>
-    <title>SuperSteaks - Free Random Team Assignment Draws</title>
-    <meta name="description" content="Join SuperSteaks for free random team assignment draws. Get assigned teams from major sports competitions and win prizes if your team wins!">
+    <title>About Us - Supersteaks</title>
+    <meta name="description" content="Learn about SuperSteaks, the free sports tournament platform where fans compete and win prizes.">
     <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
     <!-- Cache Control -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -86,17 +86,8 @@
                         <a href="index.html" class="hover:opacity-80 transition-opacity relative">
                             <h1 class="mobile-title text-2xl sm:text-3xl font-extrabold tracking-widest text-yellow-400 mt-0" aria-label="SuperSteaks Logo">SUPERSTEAKS</h1>
                         </a>
-                    </div>
-                </div>
-                <div class="flex flex-col items-end space-y-3">
-                    <!-- User Account Section -->
-                    <div id="user-account-section">
-                        <!-- Desktop: Skeleton loading and login/register buttons -->
-                        <div class="hidden sm:block">
-                            <div id="auth-skeleton" class="text-right">
-                                <div class="skeleton h-4 mb-1 rounded ml-auto" style="width: 148px;"></div>
-                                <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                    <div class="skeleton h-6 rounded" style="width: 48px; padding: 4px 12px;"></div>
+                    <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
+                    <li><a href="about.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
                                     <div class="skeleton h-6 rounded" style="width: 64px; padding: 4px 8px;"></div>
                                 </div>
                             </div>
@@ -141,17 +132,10 @@
                     <p class="text-yellow-400 font-semibold text-sm">Welcome, <span id="username-display-mobile">User</span>!</p>
                 </div>
                 <ul class="flex flex-row overflow-x-auto overflow-y-hidden whitespace-nowrap justify-start px-1 space-x-3 sm:flex-wrap sm:overflow-x-visible sm:overflow-y-visible sm:whitespace-normal sm:justify-center sm:space-x-6 sm:px-0" style="-webkit-overflow-scrolling: touch;">
-                    <li>
-                        <a href="index.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a>
-                    </li>
-                    <li>
-                        <a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a>
-                    </li>
-                    <li>
-                        <a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a>
-                    </li>
-                    <li><a href="rules.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">How It Works</a></li>
-                    <li><a href="about.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
+                    <li><a href="index.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Home</a></li>
+                    <li><a href="tournaments.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 font-semibold text-yellow-400 border-2 border-yellow-400 text-sm sm:text-base enter-now">Tournaments</a></li>
+                    <li><a href="fixtures.html" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">Fixtures &amp; Results</a></li>
+                    <li><a href="about.html" aria-current="page" class="nav-link px-2 sm:px-3 py-2 rounded-lg transition duration-300 hover:bg-indigo-700 text-sm sm:text-base">More</a></li>
                 </ul>
             </nav>
         </div>
@@ -334,9 +318,11 @@
             const registerBtn = document.getElementById('register-btn');
             if (registerBtn) {
                 registerBtn.addEventListener('click', () => {
-                    document.getElementById('auth-modal').classList.remove('hidden');
-                    document.getElementById('register-form').classList.remove('hidden');
-                    document.getElementById('login-form').classList.add('hidden');
+                    if (document.getElementById('auth-modal')) {
+                        document.getElementById('auth-modal').classList.remove('hidden');
+                        document.getElementById('register-form').classList.remove('hidden');
+                        document.getElementById('login-form').classList.add('hidden');
+                    }
                 });
             }
             setupModalControls();
@@ -428,8 +414,12 @@
                 .then(result => {
                     if (result.success) {
                         console.log('Login successful:', result.user);
-                        document.getElementById('auth-modal').classList.add('hidden');
-                        document.getElementById('login-form-element').reset();
+                        if (document.getElementById('auth-modal')) {
+                            document.getElementById('auth-modal').classList.add('hidden');
+                        }
+                        if (document.getElementById('login-form-element')) {
+                            document.getElementById('login-form-element').reset();
+                        }
                     } else {
                         console.error('Login failed:', result.error);
                         alert('Login failed: ' + result.error);
@@ -496,8 +486,12 @@
                 .then(result => {
                     if (result.success) {
                         console.log('Registration successful:', result.user);
-                        document.getElementById('auth-modal').classList.add('hidden');
-                        document.getElementById('register-form-element').reset();
+                        if (document.getElementById('auth-modal')) {
+                            document.getElementById('auth-modal').classList.add('hidden');
+                        }
+                        if (document.getElementById('register-form-element')) {
+                            document.getElementById('register-form-element').reset();
+                        }
                     } else {
                         console.error('Registration failed:', result.error);
                         alert('Registration failed: ' + result.error);
@@ -509,71 +503,6 @@
                 });
         }
 
-        function handlePasswordReset(e) {
-            e.preventDefault();
-            const email = document.getElementById('reset-email').value;
-            if (!email) {
-                alert('Please enter your email address.');
-                return;
-            }
-            firebase.auth().sendPasswordResetEmail(email)
-                .then(() => {
-                    const msg = document.getElementById('reset-message');
-                    msg.textContent = 'Reset email sent! Please check your inbox.';
-                    msg.classList.remove('hidden');
-                    msg.classList.remove('bg-red-100', 'text-red-700');
-                    msg.classList.add('bg-green-100', 'text-green-700');
-                })
-                .catch((error) => {
-                    const msg = document.getElementById('reset-message');
-                    msg.textContent = 'Error: ' + error.message;
-                    msg.classList.remove('hidden');
-                    msg.classList.remove('bg-green-100', 'text-green-700');
-                    msg.classList.add('bg-red-100', 'text-red-700');
-                });
-        }
-    </script>
-
-    <!-- Main Content Area - Index Page (banner aligned to contests) -->
-    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
-        <header class="text-center mt-8 mb-8 sm:mt-12 sm:mb-12">
-            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">Current SuperSteaks Draws</h2>
-            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">All entries are <strong>FREE</strong> for our launch period! Join the draw, get randomly assigned a team, and win if your team succeeds. Tournament winners receive <strong>£5</strong>.</p>
-        </header>
-        <section class="text-left bg-white p-4 sm:p-6 md:p-12 rounded-3xl shadow-2xl border-b-4 border-yellow-400">
-            <div class="mt-2 sm:mt-4 text-center">
-                <a href="tournaments.html" class="relative z-0 inline-block bg-yellow-500 text-indigo-800 font-extrabold py-3 sm:py-4 px-8 sm:px-12 rounded-full text-lg sm:text-xl shadow-lg hover:bg-yellow-400 transition duration-300 transform hover:scale-105 ring-4 ring-yellow-300/50">
-                    🎲 Get Your Random Team Assignment!
-                </a>
-            </div>
-            <div class="mt-8 sm:mt-12 grid sm:grid-cols-3 gap-4 sm:gap-6">
-                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
-                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🎲 Random Assignment</h3>
-                    <p class="text-sm sm:text-base text-gray-600">We randomly assign you a team from competitions like Champions League, Premier League, and more. No choosing — it's all luck!</p>
-                </div>
-                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
-                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🏆 Support Your Team</h3>
-                    <p class="text-sm sm:text-base text-gray-600">Once assigned, cheer for your team throughout the competition. If your team wins the tournament, you receive <strong>£5</strong>.</p>
-                </div>
-                <div class="p-3 sm:p-4 bg-indigo-50 rounded-xl shadow-md">
-                    <h3 class="font-bold text-lg sm:text-xl text-indigo-700 mb-2">🥇 Free to Join</h3>
-                    <p class="text-sm sm:text-base text-gray-600">All our random team draws are completely free to enter. Sign up and see which team you get!</p>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-indigo-900 text-white py-6 mt-12">
-        <div class="container mx-auto px-4 text-center text-sm">
-            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests.</p>
-            <p class="mt-2"><a href="privacy-policy.html" class="text-white hover:text-indigo-300">Privacy Policy</a></p>
-        </div>
-    </footer>
-
-    <script>
-        // ===== USER ACCOUNT SYSTEM =====
-        
         async function logoutUser() {
             if (window.superSteaksGlobal) {
                 const result = await window.superSteaksGlobal.signOut();
@@ -628,189 +557,175 @@
             document.getElementById('reset-message').classList.add('hidden');
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            try {
-                const loginBtn = document.getElementById('login-btn');
-                const registerBtn = document.getElementById('register-btn');
-                const mobileLoginBtn = document.getElementById('mobile-login-btn');
-                const mobileProfileBtn = document.getElementById('mobile-profile-btn');
-                const profileDropdownBtn = document.getElementById('profile-dropdown-btn');
-                const profileDropdown = document.getElementById('profile-dropdown');
-                const logoutDropdown = document.getElementById('logout-btn-dropdown');
-
-                if (loginBtn) {
-                    loginBtn.addEventListener('click', () => {
-                        showAuthModal(false);
-                    });
-                }
-
-                if (registerBtn) {
-                    registerBtn.addEventListener('click', () => {
-                        showAuthModal(true);
-                    });
-                }
-
-                if (mobileLoginBtn) {
-                    mobileLoginBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        showAuthModal(false);
-                    });
-                }
-
-                if (mobileLoginBtn) {
-                    mobileLoginBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        showAuthModal(false);
-                    });
-                }
-
-                if (mobileProfileBtn) {
-                    mobileProfileBtn.addEventListener('click', (e) => {
-                        try {
-                            const isLoggedIn = document.body.classList.contains('logged-in');
-                            if (!isLoggedIn) {
-                                e.preventDefault();
-                                showAuthModal(false);
-                                return;
-                            }
-                        } catch (err) {
-                            // ignore
-                        }
-                        if (profileDropdown) profileDropdown.classList.toggle('hidden');
-                    });
-                }
-
-                if (profileDropdownBtn) {
-                    profileDropdownBtn.addEventListener('click', () => {
-                        if (profileDropdown) profileDropdown.classList.toggle('hidden');
-                    });
-                }
-
-                if (logoutDropdown) {
-                    logoutDropdown.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        if (window.supersteaks && typeof window.supersteaks.signOut === 'function') {
-                            window.supersteaks.signOut().then(() => {
-                                console.log('Logged out via dropdown');
-                            }).catch(err => console.error('Logout error:', err));
-                        } else {
-                            logoutUser();
-                        }
-                    });
-                }
-            } catch (err) {
-                console.error('Error setting up event listeners:', err);
+        function handlePasswordReset(e) {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
             }
-        });
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Reset email sent! Please check your inbox.';
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-red-100', 'text-red-700');
+                    msg.classList.add('bg-green-100', 'text-green-700');
+                })
+                .catch((error) => {
+                    const msg = document.getElementById('reset-message');
+                    msg.textContent = 'Error: ' + error.message;
+                    msg.classList.remove('hidden');
+                    msg.classList.remove('bg-green-100', 'text-green-700');
+                    msg.classList.add('bg-red-100', 'text-red-700');
+                });
+        }
     </script>
 
-    <!-- Login/Register Modal -->
-    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
-        <div id="auth-modal-content" class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]" role="dialog" aria-modal="true">
-            <!-- Modal Close X Button -->
-            <button id="close-modal" aria-label="Close modal" type="button"
-                class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2 z-[1000002]"
-                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">
-                <span aria-hidden="true">&times;</span>
-            </button>
+    <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">
+        <!-- Hero Section -->
+        <header class="text-center mt-8 mb-8 sm:mt-12 sm:mb-12">
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-indigo-800 mb-4">About SuperSteaks</h2>
+            <p class="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">Where sports fans become tournament champions. Experience the thrill of competitive sports contests in a new way.</p>
+        </header>
 
-            <!-- Login Form -->
-            <div id="login-form">
-                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Login to Your Account</h2>
-                <form id="login-form-element">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Email or Username</label>
-                        <input type="text" id="login-username" class="border rounded w-full py-2 px-3" placeholder="Enter your email or username" required />
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
-                        <input type="password" id="login-password" class="border rounded w-full py-2 px-3" placeholder="Enter your password" required />
-                        <div class="text-right mt-2">
-                            <button type="button" id="forgot-password-link" class="text-sm text-indigo-600 hover:underline">Forgot Password?</button>
-                        </div>
-                    </div>
-                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Login</button>
-                        <button type="button" id="switch-to-register" class="text-indigo-600 hover:underline text-sm">Need an account?</button>
-                    </div>
-                </form>
-            </div>
+        <!-- Mission Section -->
+        <div class="bg-white rounded-3xl shadow-2xl border-b-4 border-yellow-400 p-6 sm:p-8 md:p-12 max-w-4xl mx-auto mb-8">
+            <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Our Mission</h3>
+            <p class="text-gray-700 text-base sm:text-lg mb-4">
+                SuperSteaks is dedicated to bringing sports fans together through exciting tournament competitions. Our mission is to create an engaging, fair, and entertaining platform where players can compete, test their sports knowledge, and enjoy the thrill of victory.
+            </p>
+            <p class="text-gray-700 text-base sm:text-lg">
+                We believe that every sports fan deserves the opportunity to participate in meaningful competitions and experience the excitement of tournament play. Whether you're a casual fan or a dedicated sports enthusiast, SuperSteaks offers something for everyone.
+            </p>
+        </div>
 
-            <!-- Register Form -->
-            <div id="register-form" class="hidden">
-                <h2 class="text-xl sm:text-2xl font-bold text-indigo-800 mb-4 sm:mb-6">Create an Account</h2>
-                <form id="register-form-element">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
-                        <input type="email" id="register-email" class="border rounded w-full py-2 px-3" placeholder="Enter your email" required />
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Username</label>
-                        <input type="text" id="register-username" class="border rounded w-full py-2 px-3" placeholder="Choose a username" required />
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
-                        <input type="password" id="register-password" class="border rounded w-full py-2 px-3" placeholder="Create a password" required />
-                    </div>
-                    <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-                        <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded w-full sm:w-auto">Register</button>
-                        <button type="button" id="switch-to-login" class="text-indigo-600 hover:underline text-sm">Already have an account?</button>
-                    </div>
-                </form>
+        <!-- What We Do Section -->
+        <div class="bg-white rounded-3xl shadow-2xl border-b-4 border-yellow-400 p-6 sm:p-8 md:p-12 max-w-4xl mx-auto mb-8">
+            <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">What We Do</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-lg font-bold text-gray-800 mb-3">🎯 Tournament Management</h4>
+                    <p class="text-gray-700 text-sm sm:text-base">We organize and manage tournament competitions based on major football events around the world. From international championships to domestic leagues, we bring the excitement of professional sports to our players.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold text-gray-800 mb-3">⚽ Team Assignment</h4>
+                    <p class="text-gray-700 text-sm sm:text-base">Our fair random assignment system ensures every player gets a unique team for each tournament, creating equal opportunities for all competitors regardless of their preferred team.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold text-gray-800 mb-3">📊 Live Tracking</h4>
+                    <p class="text-gray-700 text-sm sm:text-base">Track your team's performance in real-time as matches unfold. Watch your score accumulate and compete against other players on the leaderboard.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold text-gray-800 mb-3">🏆 Fair Competition</h4>
+                    <p class="text-gray-700 text-sm sm:text-base">Our transparent scoring system and random team assignments ensure a fair and balanced competition where skill and knowledge matter.</p>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Password Reset Modal -->
-    <div id="reset-password-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[999999] p-4">
-        <div class="modal-inner bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 relative overflow-y-auto z-[1000001]">
-            <h2 class="text-2xl font-bold text-indigo-800 mb-6">Reset Password</h2>
-            <form id="reset-password-form-element">
-                <div class="mb-4">
-                    <label class="block text-sm font-bold mb-2">Email</label>
-                    <input type="email" id="reset-email" class="w-full px-3 py-3 border rounded-lg focus:outline-none focus:border-indigo-500 text-base" placeholder="Enter your email address" required>
+        <!-- Why Choose Us Section -->
+        <div class="bg-white rounded-3xl shadow-2xl border-b-4 border-yellow-400 p-6 sm:p-8 md:p-12 max-w-4xl mx-auto mb-8">
+            <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Why Choose SuperSteaks</h3>
+            <div class="space-y-4">
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">✅</span>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 mb-1">Free to Play</h4>
+                        <p class="text-gray-700 text-sm sm:text-base">Join tournaments at no cost. Compete, win, and enjoy without spending money.</p>
+                    </div>
                 </div>
-                <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Send Reset Email</button>
-                    <button type="button" id="cancel-reset" class="text-indigo-600 hover:underline text-sm">Cancel</button>
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">✅</span>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 mb-1">Easy to Use</h4>
+                        <p class="text-gray-700 text-sm sm:text-base">Simple, intuitive interface that anyone can use. No complicated rules or confusing mechanics.</p>
+                    </div>
                 </div>
-            </form>
-            <div id="reset-message" class="hidden mt-4 p-3 rounded-lg"></div>
-            <button id="close-reset-modal" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full bg-white bg-opacity-80 p-1 sm:p-2"
-                style="font-size: 1.5rem; line-height: 1; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">✅</span>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 mb-1">Exciting Tournaments</h4>
+                        <p class="text-gray-700 text-sm sm:text-base">Access to major football tournaments including World Cup, Champions League, and top domestic leagues.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">✅</span>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 mb-1">Real-Time Updates</h4>
+                        <p class="text-gray-700 text-sm sm:text-base">Get instant updates on match results and score changes as tournaments progress.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">✅</span>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 mb-1">Fair & Transparent</h4>
+                        <p class="text-gray-700 text-sm sm:text-base">Transparent scoring system and random team assignments ensure fair competition for all players.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">✅</span>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 mb-1">Secure & Safe</h4>
+                        <p class="text-gray-700 text-sm sm:text-base">Your data is protected with industry-standard security measures and encryption.</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <script>
-        (function() {
-            function closeIfOutside(e) {
-                try {
-                    const authModal = document.getElementById('auth-modal');
-                    const resetModal = document.getElementById('reset-password-modal');
-                    const authInner = authModal ? authModal.querySelector('.modal-inner') : null;
-                    const resetInner = resetModal ? resetModal.querySelector('.modal-inner') : null;
-                    const clickedOutsideAuth = authModal && !authModal.classList.contains('hidden') && authInner && !authInner.contains(e.target);
-                    const clickedOutsideReset = resetModal && !resetModal.classList.contains('hidden') && resetInner && !resetInner.contains(e.target);
-                    if (clickedOutsideAuth) {
-                        authModal.classList.add('hidden');
-                        if (resetModal) resetModal.classList.add('hidden');
-                    }
-                    if (clickedOutsideReset) {
-                        resetModal.classList.add('hidden');
-                    }
-                } catch (err) {}
-            }
-            function escHandler(e) {
-                if (e.key === 'Escape' || e.key === 'Esc') {
-                    const authModal = document.getElementById('auth-modal');
-                    if (authModal && !authModal.classList.contains('hidden')) authModal.classList.add('hidden');
-                    const reset = document.getElementById('reset-password-modal');
-                    if (reset && !reset.classList.contains('hidden')) reset.classList.add('hidden');
-                }
-            }
-            document.addEventListener('click', closeIfOutside, true);
-            document.addEventListener('keydown', escHandler, true);
-        })();
-    </script>
+        <!-- Our Tournaments Section -->
+        <div class="bg-white rounded-3xl shadow-2xl border-b-4 border-yellow-400 p-6 sm:p-8 md:p-12 max-w-4xl mx-auto mb-8">
+            <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">Our Tournament Portfolio</h3>
+            <p class="text-gray-700 text-base sm:text-lg mb-6">We feature major international and domestic football tournaments:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border-l-4 border-yellow-400 pl-4">
+                    <h4 class="font-bold text-gray-800">FIFA World Cup 2026</h4>
+                    <p class="text-gray-700 text-sm">48 teams competing in the ultimate international tournament</p>
+                </div>
+                <div class="border-l-4 border-yellow-400 pl-4">
+                    <h4 class="font-bold text-gray-800">UEFA Champions League</h4>
+                    <p class="text-gray-700 text-sm">32 elite European club teams</p>
+                </div>
+                <div class="border-l-4 border-yellow-400 pl-4">
+                    <h4 class="font-bold text-gray-800">UEFA Europa League</h4>
+                    <p class="text-gray-700 text-sm">32 European clubs competing for glory</p>
+                </div>
+                <div class="border-l-4 border-yellow-400 pl-4">
+                    <h4 class="font-bold text-gray-800">Premier League</h4>
+                    <p class="text-gray-700 text-sm">20 top-tier English football clubs</p>
+                </div>
+                <div class="border-l-4 border-yellow-400 pl-4">
+                    <h4 class="font-bold text-gray-800">La Liga</h4>
+                    <p class="text-gray-700 text-sm">20 elite Spanish football clubs</p>
+                </div>
+                <div class="border-l-4 border-yellow-400 pl-4">
+                    <h4 class="font-bold text-gray-800">Copa Libertadores</h4>
+                    <p class="text-gray-700 text-sm">32 South American champion clubs</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vision Section -->
+        <div class="bg-white rounded-3xl shadow-2xl border-b-4 border-yellow-400 p-6 sm:p-8 md:p-12 max-w-4xl mx-auto mb-8">
+            <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">Our Vision</h3>
+            <p class="text-gray-700 text-base sm:text-lg">
+                SuperSteaks envisions a world where sports fans can easily engage in competitive tournaments and experience the thrill of victory. We're committed to expanding our tournament portfolio, improving our platform, and building a vibrant community of sports enthusiasts. Whether you're just getting started or a seasoned competitor, there's a place for you at SuperSteaks.
+            </p>
+        </div>
+
+        <!-- Contact CTA -->
+        <div class="text-center max-w-4xl mx-auto mb-12">
+            <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">Have Questions?</h3>
+            <p class="text-gray-700 text-base sm:text-lg mb-6">We'd love to hear from you. Reach out with any questions or feedback.</p>
+            <a href="contact.html" class="inline-block bg-indigo-800 text-white px-8 py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Contact Us</a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-indigo-900 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2025 SuperSteaks. All Rights Reserved. Play for fun! | The Best Sports Contests.</p>
+            <p class="mt-2"><a href="privacy-policy.html" class="text-white hover:text-indigo-300">Privacy Policy</a></p>
+        </div>
+    </footer>
 </body>
 </html>
