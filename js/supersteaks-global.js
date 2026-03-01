@@ -5,6 +5,97 @@
 
 // Global error handler for catching Firebase auth.ts errors
 if (typeof window !== 'undefined') {
+    const injectGlobalHeaderConsistency = () => {
+        try {
+            if (document.getElementById('supersteaks-header-consistency')) return;
+
+            const style = document.createElement('style');
+            style.id = 'supersteaks-header-consistency';
+            style.textContent = `
+                nav[aria-label="Main navigation"] {
+                    position: relative;
+                    z-index: 40;
+                }
+
+                nav[aria-label="Main navigation"] ul {
+                    align-items: center;
+                }
+
+                nav[aria-label="Main navigation"] ul > li {
+                    display: flex;
+                    align-items: center;
+                }
+
+                #user-account-section {
+                    min-height: 52px;
+                    width: 176px;
+                    flex-shrink: 0;
+                }
+
+                #mobile-welcome {
+                    display: none !important;
+                }
+
+                @media (max-width: 639px) {
+                    #user-account-section {
+                        min-height: 0 !important;
+                        width: auto !important;
+                    }
+
+                    header .container {
+                        padding-top: 0 !important;
+                        padding-bottom: 0 !important;
+                    }
+
+                    header .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+                        margin-top: 0 !important;
+                    }
+
+                    nav[aria-label="Main navigation"] {
+                        margin-top: 0 !important;
+                        margin-bottom: 0 !important;
+                    }
+
+                    .flex.flex-row.items-center.justify-center.sm\\:block {
+                        margin-bottom: 0 !important;
+                    }
+
+                    #mobile-welcome {
+                        display: block !important;
+                        visibility: hidden;
+                        opacity: 0;
+                        min-height: 28px;
+                        margin-top: 8px !important;
+                        margin-bottom: 8px !important;
+                        transition: opacity 0.2s ease-in-out;
+                    }
+
+                    .logged-in #mobile-welcome {
+                        visibility: visible;
+                        opacity: 1;
+                    }
+                }
+
+                @media (max-width: 900px) and (orientation: landscape) {
+                    .mobile-logo {
+                        height: 2.75rem !important;
+                    }
+
+                    .mobile-title {
+                        font-size: 1.5rem !important;
+                        line-height: 2rem !important;
+                    }
+                }
+            `;
+
+            (document.head || document.documentElement).appendChild(style);
+        } catch (error) {
+            console.warn('Could not inject global header consistency:', error);
+        }
+    };
+
+    injectGlobalHeaderConsistency();
+
     const injectDesktopAuthLayoutFix = () => {
         try {
             if (document.getElementById('supersteaks-auth-layout-fix')) return;
@@ -58,7 +149,7 @@ if (typeof window !== 'undefined') {
     });
 }
 
-const SW_BUILD_VERSION = '20260301014';
+const SW_BUILD_VERSION = '20260301015';
 const SW_SCRIPT_URL = `/sw.js?v=${SW_BUILD_VERSION}`;
 const FORCE_CACHE_RESET_KEY = 'supersteaks:forceCacheResetVersion';
 
