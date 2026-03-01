@@ -280,16 +280,6 @@ class SuperSteaksGlobal {
                 const navList = nav.querySelector('ul');
                 if (!navList) return;
 
-                const appInfoLinks = Array.from(navList.querySelectorAll('a[href="rules.html"]'));
-                appInfoLinks.forEach((link) => {
-                    const navItem = link.closest('li');
-                    if (navItem) {
-                        navItem.remove();
-                    } else {
-                        link.remove();
-                    }
-                });
-
                 const moreLinks = Array.from(nav.querySelectorAll('a')).filter((link) => {
                     return link.textContent && link.textContent.trim().toLowerCase() === 'more';
                 });
@@ -1133,7 +1123,7 @@ function maybePromptForAppVersion() {
     });
 }
 
-function ensureAppInfoNavLink() {
+function ensureHowItWorksNavLink() {
     try {
         const navList = document.querySelector('nav[aria-label="Main navigation"] ul');
         if (!navList) {
@@ -1142,7 +1132,7 @@ function ensureAppInfoNavLink() {
 
         const hasLink = Array.from(navList.querySelectorAll('a')).some((link) => {
             const href = (link.getAttribute('href') || '').toLowerCase();
-            return href.includes('how-to-play.html') || href.includes('#app-version');
+            return href.includes('rules.html');
         });
 
         if (hasLink) {
@@ -1151,8 +1141,8 @@ function ensureAppInfoNavLink() {
 
         const listItem = document.createElement('li');
         const anchor = document.createElement('a');
-        anchor.href = 'how-to-play.html#app-version';
-        anchor.textContent = 'App Info';
+        anchor.href = 'rules.html';
+        anchor.textContent = 'How It Works';
 
         const templateLink = navList.querySelector('a.nav-link');
         if (templateLink) {
@@ -1162,9 +1152,19 @@ function ensureAppInfoNavLink() {
         }
 
         listItem.appendChild(anchor);
-        navList.appendChild(listItem);
+
+        const moreLink = Array.from(navList.querySelectorAll('a')).find((link) => {
+            return link.textContent && link.textContent.trim().toLowerCase() === 'more';
+        });
+
+        const moreListItem = moreLink ? moreLink.closest('li') : null;
+        if (moreListItem) {
+            navList.insertBefore(listItem, moreListItem);
+        } else {
+            navList.appendChild(listItem);
+        }
     } catch (error) {
-        console.warn('Could not ensure App Info nav link:', error.message || error);
+        console.warn('Could not ensure How It Works nav link:', error.message || error);
     }
 }
 
@@ -1233,7 +1233,7 @@ window.SuperSteaks = SuperSteaksGlobal;
 document.addEventListener('DOMContentLoaded', () => {
     clearLegacyPwaNotices();
     ensurePwaHeadTags();
-    ensureAppInfoNavLink();
+    ensureHowItWorksNavLink();
     registerServiceWorker();
     window.setTimeout(maybePromptForAppVersion, 3000);
 
