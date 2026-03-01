@@ -302,9 +302,12 @@ class SuperSteaksGlobal {
                             border-radius: 0.5rem;
                             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
                             display: flex;
-                            flex-wrap: wrap;
+                            flex-wrap: nowrap;
+                            overflow-x: auto;
+                            overflow-y: hidden;
+                            -webkit-overflow-scrolling: touch;
                             align-items: center;
-                            justify-content: center;
+                            justify-content: flex-start;
                             gap: 0.5rem;
                         }
                         #supersteaks-global-more-menu.hidden {
