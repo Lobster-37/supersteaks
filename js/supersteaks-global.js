@@ -280,6 +280,16 @@ class SuperSteaksGlobal {
                 const navList = nav.querySelector('ul');
                 if (!navList) return;
 
+                const appInfoLinks = Array.from(navList.querySelectorAll('a[href="rules.html"]'));
+                appInfoLinks.forEach((link) => {
+                    const navItem = link.closest('li');
+                    if (navItem) {
+                        navItem.remove();
+                    } else {
+                        link.remove();
+                    }
+                });
+
                 const moreLinks = Array.from(nav.querySelectorAll('a')).filter((link) => {
                     return link.textContent && link.textContent.trim().toLowerCase() === 'more';
                 });
@@ -343,6 +353,7 @@ class SuperSteaksGlobal {
                     menu.setAttribute('role', 'menu');
                     menu.setAttribute('aria-hidden', 'true');
                     menu.innerHTML = `
+                        <a href="how-to-play.html" role="menuitem">Get the App</a>
                         <a href="faq.html" role="menuitem">FAQ</a>
                         <a href="about.html" role="menuitem">About</a>
                         <a href="contact.html" role="menuitem">Contact</a>
