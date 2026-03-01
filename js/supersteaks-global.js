@@ -58,6 +58,9 @@ if (typeof window !== 'undefined') {
     });
 }
 
+const SW_BUILD_VERSION = '20260301012';
+const SW_SCRIPT_URL = `/sw.js?v=${SW_BUILD_VERSION}`;
+
 class SuperSteaksGlobal {
     constructor() {
         this.auth = null;
@@ -1037,7 +1040,7 @@ async function registerPushTokenForCurrentUser() {
             return false;
         }
 
-        const registration = await navigator.serviceWorker.getRegistration('/sw.js') || await navigator.serviceWorker.register('/sw.js');
+        const registration = await navigator.serviceWorker.getRegistration('/') || await navigator.serviceWorker.register(SW_SCRIPT_URL, { scope: '/' });
         const messaging = firebase.messaging();
 
         const getTokenOptions = {
@@ -1258,7 +1261,7 @@ function registerServiceWorker() {
     }
 
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then((registration) => {
+        navigator.serviceWorker.register(SW_SCRIPT_URL, { scope: '/' }).then((registration) => {
             let refreshing = false;
 
             const promoteWaitingWorker = () => {
@@ -1281,7 +1284,16 @@ function registerServiceWorker() {
                 });
             });
 
-            registration.update().catch(() => {});
+            const checkForUpdates = () => registration.update().catch(() => {});
+            checkForUpdates();
+
+            window.setInterval(checkForUpdates, 60000);
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    checkForUpdates();
+                }
+            });
 
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (refreshing) {
