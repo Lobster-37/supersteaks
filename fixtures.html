@@ -15,7 +15,7 @@
     <meta http-equiv="Expires" content="0">
     <script>
         (function() {
-            const FIXTURES_PAGE_VERSION = '20260301017';
+            const FIXTURES_PAGE_VERSION = '20260301018';
             const currentUrl = new URL(window.location.href);
             if (currentUrl.searchParams.get('fv') === FIXTURES_PAGE_VERSION) {
                 return;
@@ -34,9 +34,8 @@
             authDomain: "supersteaks-240f7.firebaseapp.com",
             projectId: "supersteaks-240f7",
             storageBucket: "supersteaks-240f7.appspot.com",
-            messagingSenderId: "397886230849",
-            appId: "1:397886230849:web:e17e36fa33e28c26e5e0f5",
-            databaseURL: "https://supersteaks-240f7.firebaseio.com"
+            messagingSenderId: "325643072121",
+            appId: "1:325643072121:web:9c3c7d3c64c431bc77daa8"
         };
         try {
             firebase.initializeApp(firebaseConfig);
@@ -98,7 +97,7 @@
         #loading-state, #content-container { min-height: 520px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-    <script src="js/supersteaks-global.js?v=20260301017"></script>
+    <script src="js/supersteaks-global.js?v=20260301018"></script>
 </head>
 <body class="min-h-screen flex flex-col">
     <!-- Draggable Logo (desktop only) -->
@@ -187,6 +186,17 @@
             </nav>
         </div>
     </header>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.setTimeout(() => {
+                if (!document.body.classList.contains('auth-ready')) {
+                    document.body.classList.add('auth-ready', 'logged-out');
+                    document.body.classList.remove('logged-in');
+                }
+            }, 1200);
+        });
+    </script>
 
     <!-- Main Content -->
     <main aria-label="Main content" class="container mx-auto px-4 py-6 sm:py-12 flex-grow">

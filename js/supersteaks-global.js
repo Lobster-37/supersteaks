@@ -149,7 +149,7 @@ if (typeof window !== 'undefined') {
     });
 }
 
-const SW_BUILD_VERSION = '20260301017';
+const SW_BUILD_VERSION = '20260301018';
 const SW_SCRIPT_URL = `/sw.js?v=${SW_BUILD_VERSION}`;
 const FORCE_CACHE_RESET_KEY = 'supersteaks:forceCacheResetVersion';
 
