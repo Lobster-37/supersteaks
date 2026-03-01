@@ -1261,6 +1261,28 @@ function registerServiceWorker() {
         navigator.serviceWorker.register('/sw.js').then((registration) => {
             let refreshing = false;
 
+            const promoteWaitingWorker = () => {
+                if (registration.waiting) {
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+            };
+
+            if (registration.waiting) {
+                promoteWaitingWorker();
+            }
+
+            registration.addEventListener('updatefound', () => {
+                const installingWorker = registration.installing;
+                if (!installingWorker) return;
+                installingWorker.addEventListener('statechange', () => {
+                    if (installingWorker.state === 'installed') {
+                        promoteWaitingWorker();
+                    }
+                });
+            });
+
+            registration.update().catch(() => {});
+
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (refreshing) {
                     return;

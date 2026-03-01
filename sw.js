@@ -1,4 +1,4 @@
-const CACHE_NAME = 'supersteaks-v10';
+const CACHE_NAME = 'supersteaks-v11';
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -19,6 +19,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS)).catch(() => undefined)
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
