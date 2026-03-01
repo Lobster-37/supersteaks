@@ -70,6 +70,7 @@ class SuperSteaksGlobal {
         this.initNavScrollPersistence();
         this.initProfileDropdownCloseBehavior();
         this.enforceFixturesHeaderParity();
+        this.initGlobalMoreMenu();
     }
     
 
@@ -261,6 +262,134 @@ class SuperSteaksGlobal {
                 (document.head || document.documentElement).appendChild(style);
             } catch (error) {
                 console.warn('Fixtures header parity setup failed:', error);
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setup, { once: true });
+        } else {
+            setup();
+        }
+    }
+
+    initGlobalMoreMenu() {
+        const setup = () => {
+            try {
+                const nav = document.querySelector('nav[aria-label="Main navigation"]');
+                if (!nav) return;
+
+                const moreLinks = Array.from(nav.querySelectorAll('a')).filter((link) => {
+                    return link.textContent && link.textContent.trim().toLowerCase() === 'more';
+                });
+
+                if (!moreLinks.length) return;
+
+                if (!document.getElementById('supersteaks-global-more-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'supersteaks-global-more-style';
+                    style.textContent = `
+                        #supersteaks-global-more-menu {
+                            position: fixed;
+                            z-index: 80;
+                            width: 14rem;
+                            max-width: calc(100vw - 1rem);
+                            background: #ffffff;
+                            color: #1f2937;
+                            border: 1px solid #e5e7eb;
+                            border-radius: 0.5rem;
+                            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+                            overflow: hidden;
+                        }
+                        #supersteaks-global-more-menu.hidden {
+                            display: none !important;
+                        }
+                        #supersteaks-global-more-menu a {
+                            display: block;
+                            padding: 0.55rem 0.9rem;
+                            font-size: 0.875rem;
+                            line-height: 1.25rem;
+                        }
+                        #supersteaks-global-more-menu a:hover {
+                            background: #f3f4f6;
+                        }
+                    `;
+                    (document.head || document.documentElement).appendChild(style);
+                }
+
+                let menu = document.getElementById('supersteaks-global-more-menu');
+                if (!menu) {
+                    menu = document.createElement('div');
+                    menu.id = 'supersteaks-global-more-menu';
+                    menu.className = 'hidden';
+                    menu.setAttribute('role', 'menu');
+                    menu.setAttribute('aria-hidden', 'true');
+                    menu.innerHTML = `
+                        <a href="how-to-play.html" role="menuitem">Get the App</a>
+                        <a href="faq.html" role="menuitem">FAQ</a>
+                        <a href="about.html" role="menuitem">About</a>
+                        <a href="contact.html" role="menuitem">Contact</a>
+                    `;
+                    document.body.appendChild(menu);
+                }
+
+                const closeMenu = () => {
+                    menu.classList.add('hidden');
+                    menu.setAttribute('aria-hidden', 'true');
+                };
+
+                const openMenu = (trigger) => {
+                    const rect = trigger.getBoundingClientRect();
+                    const menuWidth = 224;
+                    const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8));
+                    menu.style.top = `${Math.round(rect.bottom + 8)}px`;
+                    menu.style.left = `${Math.round(left)}px`;
+                    menu.classList.remove('hidden');
+                    menu.setAttribute('aria-hidden', 'false');
+                };
+
+                const toggleFromTrigger = (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const isOpen = !menu.classList.contains('hidden');
+                    if (isOpen) {
+                        closeMenu();
+                    } else {
+                        openMenu(event.currentTarget);
+                    }
+                };
+
+                moreLinks.forEach((link) => {
+                    if (link.dataset.moreMenuBound === 'true') return;
+                    link.dataset.moreMenuBound = 'true';
+                    link.setAttribute('aria-haspopup', 'menu');
+                    link.setAttribute('aria-expanded', 'false');
+                    link.addEventListener('click', toggleFromTrigger);
+                    link.addEventListener('touchend', toggleFromTrigger, { passive: false });
+                });
+
+                menu.querySelectorAll('a').forEach((link) => {
+                    if (link.dataset.moreMenuBound === 'true') return;
+                    link.dataset.moreMenuBound = 'true';
+                    link.addEventListener('click', () => closeMenu());
+                });
+
+                document.addEventListener('click', (event) => {
+                    const clickedTrigger = moreLinks.some((link) => link.contains(event.target));
+                    if (!clickedTrigger && !menu.contains(event.target)) {
+                        closeMenu();
+                    }
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        closeMenu();
+                    }
+                });
+
+                window.addEventListener('resize', closeMenu);
+                window.addEventListener('scroll', closeMenu, { passive: true });
+            } catch (error) {
+                console.warn('Global More menu setup failed:', error);
             }
         };
 
