@@ -13,6 +13,17 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <script>
+        (function() {
+            const FIXTURES_PAGE_VERSION = '20260301017';
+            const currentUrl = new URL(window.location.href);
+            if (currentUrl.searchParams.get('fv') === FIXTURES_PAGE_VERSION) {
+                return;
+            }
+            currentUrl.searchParams.set('fv', FIXTURES_PAGE_VERSION);
+            window.location.replace(currentUrl.toString());
+        })();
+    </script>
     <link rel="icon" type="image/png" href="supersteaks-logo.png?v=20241118002">
     <link href="css/tailwind-2.2.19.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -87,7 +98,7 @@
         #loading-state, #content-container { min-height: 520px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-    <script src="js/supersteaks-global.js?v=20260301016"></script>
+    <script src="js/supersteaks-global.js?v=20260301017"></script>
 </head>
 <body class="min-h-screen flex flex-col">
     <!-- Draggable Logo (desktop only) -->
